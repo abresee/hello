@@ -138,11 +138,15 @@ $(document).ready(function(){
 $('.note').contextmenu(function(){
 	$(this).remove();
 });
-
-$('.container').click(function(){
-	var theHtml = "<div class='note'></div>";
+var id_number = 0;
+var id_num;;
+$('.container').click(function(e){
+	id_number += 1;
+	id_num = id_number.toString();
+	var theHtml = "<div id='id_num_"+id_num+"' class='note'></div>";
 	$(this).append(theHtml);
 	$('.note').draggable({axis:'x', containment:'parent'}).resizable({minHeight:25, containment:'parent'});
+	$('#id_num_'+id_num).offset({left: e.pageX});
 	$('.note').contextmenu(function(){
 		$(this).remove();
 });
