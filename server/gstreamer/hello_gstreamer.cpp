@@ -5,14 +5,14 @@
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
 
-const int sample_rate = 10000;
+const int sample_rate = 44100;
 const int frequency = 440;
 const char * format = "S16LE";
 const int width = 16;
 const int depth = 16;
 const int seconds = 10;
 const int signal_length = sample_rate*seconds;
-const int buffer_length = 1024;
+const int buffer_length = 512;
 const int channels = 1;
 
 int16_t data[signal_length];

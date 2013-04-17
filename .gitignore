@@ -2,6 +2,7 @@
 
 # C extensions
 *.so
+*.o
 
 # Packages
 *.egg
@@ -33,3 +34,7 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# specific files
+#
+server/gstreamer/hello_gstreamer
