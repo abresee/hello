@@ -35,6 +35,8 @@ nosetests.xml
 .project
 .pydevproject
 
+#vim
+*.swp
 # specific files
 #
 server/gstreamer/hello_gstreamer

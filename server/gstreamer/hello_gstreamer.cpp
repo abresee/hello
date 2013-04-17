@@ -6,15 +6,15 @@
 #include <gst/app/gstappsrc.h>
 
 const int sample_rate = 44100;
-const int frequency = 440;
 const char * format = "S16LE";
 const int width = 16;
 const int depth = 16;
-const int seconds = 10;
-const int signal_length = sample_rate*seconds;
-const int buffer_length = 512;
+const int buffer_length = 1024*16;//signal_length/4;
 const int channels = 1;
 
+const int frequency = 440;
+const int seconds = 10;
+const int signal_length = sample_rate*seconds;
 int16_t data[signal_length];
 
 static GMainLoop *loop;
