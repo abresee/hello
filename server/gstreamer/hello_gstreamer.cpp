@@ -9,12 +9,13 @@ const int sample_rate = 44100;
 const char * format = "S16LE";
 const int width = 16;
 const int depth = 16;
-const int buffer_length = 1024*16;//signal_length/4;
+const int buffer_length = 1024;
 const int channels = 1;
 
 const int frequency = 440;
 const int seconds = 10;
 const int signal_length = sample_rate*seconds;
+const int amplitude = std::numeric_limits<int16_t>::max();
 int16_t data[signal_length];
 
 static GMainLoop *loop;
@@ -34,7 +35,7 @@ cb_need_data (GstElement *appsrc,
     buffer = gst_buffer_new_allocate (NULL, buffer_length, NULL);
     gst_buffer_fill(buffer,0,data+offset,buffer_length);
 
-    offset+=buffer_length;
+    offset+=buffer_length/2;
     offset%=signal_length;
 
     g_signal_emit_by_name (appsrc, "push-buffer", buffer, &ret);
@@ -52,12 +53,12 @@ gint main (gint argc, gchar *argv[])
     cout<<"data init."<<endl;
     for(int i=0; i < signal_length/2; ++i)
     {
-        data[i]=std::numeric_limits<int16_t>::max()*sin(frequency*M_PI*2*i/sample_rate);
+        data[i]=amplitude*sin(frequency*M_PI*2*i/sample_rate);
     }
 
     for(int i=signal_length/2; i < signal_length; ++i)
     {
-        data[i]=std::numeric_limits<int16_t>::max()*sin(1.5*frequency*M_PI*2*i/sample_rate);
+        data[i]=amplitude*sin(1.5*frequency*M_PI*2*i/sample_rate);
     }
 
 
@@ -85,7 +86,6 @@ gint main (gint argc, gchar *argv[])
                 "channels",G_TYPE_INT, channels,
                 "signed", G_TYPE_BOOLEAN, TRUE,
                 "layout", G_TYPE_STRING, "interleaved",
-                "channel-mask", GST_TYPE_BITMASK, 1,
                 NULL),
             NULL);
     cout<<"bin init."<<endl;
