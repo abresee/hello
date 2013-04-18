@@ -8,7 +8,7 @@
 div.container {width:1000px;
 	height:25px;
 	position:relative;
-	top:2px;
+	top:1px;
 	left:1px;
 	}
 div.note {background-color:green;
@@ -17,143 +17,135 @@ div.note {background-color:green;
 	position:absolute;
 	top:0px;
 	left:0px;
-	z-index:2;}
+	white-space: nowrap;}
 div.piano_roll {background-image:url('https://dl.dropboxusercontent.com/u/286533/html%20project/piano_roll_background.png');
 	width:1002px;
 	height:502px;
 	position:absolute;
 	top:100px;
 	left:100px;
-	overflow:hidden;
-	z-index:3;}
+	overflow:hidden;}
+#select_tool {background-color:gray;
+	width:38px;
+	height:20px;
+	position:absolute;
+	top:60px;
+	left:60px;}
+#selectable .ui-selecting { background: yellow; }
+#selectable .ui-selected { background: red}
 </style>
 </head>
 
 <body oncontextmenu="return false;">
-
-<div class='piano_roll'>
+<div id='select_tool'></div>
+<div id='selectable' class='piano_roll'>
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'>
-</div>
 </div>
 
 <div class='container'>
-<div class='note'></div>
 </div>
 
 <div class='container'>
-<div class='note'></div>
 </div>
 
 <div class='container'>
-<div class='note'></div>
 </div>
 
 </div>
 <script>
-$(document).ready(function(){
-	$(function(){
-		$('.note')
-			.draggable({axis:'x', containment:'parent'})
-			.resizable({minHeight:25, containment:'parent'});
-	});
-});
-$('.note').contextmenu(function(){
-	$(this).remove();
-});
-var id_number = 0;
-var id_num;;
+
+var id_number;
+id_number = 0;
+var id_num;
+var mouse_pos;
+var offset_val;
+var disabled;
+offset_val = 0;
 $('.container').click(function(e){
-	id_number += 1;
-	id_num = id_number.toString();
-	var theHtml = "<div id='id_num_"+id_num+"' class='note'></div>";
-	$(this).append(theHtml);
-	$('.note').draggable({axis:'x', containment:'parent'}).resizable({minHeight:25, containment:'parent'});
-	$('#id_num_'+id_num).offset({left: e.pageX});
-	$('.note').contextmenu(function(){
-		$(this).remove();
-});
-});
+	if (select_val == 0){
+		mouse_pos = e.pageY - $('.piano_roll').offset().top;
+		id_number += 1;
+		id_num = id_number.toString();
+		
+		var theHtml = "<div id='id_num_"+id_num+"' class='note'></div>";
+		
+		$('.piano_roll').append(theHtml);
+		
+		$('#id_num_'+id_num).draggable({containment:'.piano_roll', snap:'.container', snapMode:'inner', snapTolerance:20})
+		.resizable({minHeight:24,maxHeight:24, containment:'.piano_roll'})
+		.css({position:'absolute', top:1})
+		.offset({top: ((Math.ceil(mouse_pos/25) * 25) % 502) + $('.piano_roll').offset().top -23, left: e.pageX - 10});
+		
+		$('.note').contextmenu(function(){
+			if (select_val == 0){
+				$(this).remove()
+			}
+		});
+		
+	}
+});	
+var select_val;
+select_val = 0;
+$('#select_tool').click(function(){
+	select_val = (select_val + 1) % 2;
+	if (select_val==1){
+		$('#select_tool').css('background-color', 'yellow');
+		$('.piano_roll').selectable({filter: '.note', disabled: false});
+		}
+	else{
+		$('#select_tool').css('background-color', 'gray');
+		$('.piano_roll .ui-selected').removeClass('ui-selected');
+		$('#selectable').selectable("destroy")
+		}
+	});
 </script>
 </body>
 </html>
