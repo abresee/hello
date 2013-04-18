@@ -11,7 +11,7 @@ const int width = 16;
 const int depth = 16;
 const int buffer_length = 1024;
 const int channels = 1;
-
+guint sourceid=0;
 const int frequency = 440;
 const int seconds = 10;
 const int signal_length = sample_rate*seconds;
@@ -23,10 +23,7 @@ static GMainLoop *loop;
 using std::cout;
 using std::endl;
 
-static void
-cb_need_data (GstElement *appsrc,
-	      guint       unused_size,
-	      gpointer    user_data)
+static gboolean cb_push_data(GstElement *appsrc)
 {
     GstBuffer *buffer;
     GstFlowReturn ret;
@@ -43,6 +40,27 @@ cb_need_data (GstElement *appsrc,
     if (ret != GST_FLOW_OK) {
       /* something wrong, stop pushing */
       g_main_loop_quit (loop);
+      return false;
+    }
+    return true;
+}
+
+static void cb_need_data(GstElement *appsrc)
+{
+    if(sourceid==0)
+    {
+        cout<<"start feeding data!"<<endl;
+        sourceid=g_idle_add((GSourceFunc) cb_push_data,appsrc);
+    } 
+}
+
+static void cb_enough_data(GstElement *appsrc)
+{
+    if(sourceid!=0)
+    {
+        cout<<"stop feeding data!"<<endl;
+        g_source_remove(sourceid);
+        sourceid=0;
     }
 }
 
@@ -51,16 +69,22 @@ gint main (gint argc, gchar *argv[])
     GstElement *pipeline, *appsrc, *conv, *audiosink;
 
     cout<<"data init."<<endl;
-    for(int i=0; i < signal_length/2; ++i)
+
+    for(int i=0; i < signal_length/4; ++i)
+
     {
         data[i]=amplitude*sin(frequency*M_PI*2*i/sample_rate);
     }
 
-    for(int i=signal_length/2; i < signal_length; ++i)
+    for(int i=signal_length/4; i < signal_length/2; ++i)
     {
         data[i]=amplitude*sin(1.5*frequency*M_PI*2*i/sample_rate);
     }
 
+    for(int i=signal_length/2; i < signal_length; ++i)
+    {
+        data[i]=amplitude*sin(2*frequency*M_PI*2*i/sample_rate);
+    }
 
     /* init GStreamer */
     cout<<"gstreamer init."<<endl;
