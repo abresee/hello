@@ -4,6 +4,7 @@
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
 <script src="https://dl.dropboxusercontent.com/u/286533/jquery-1.9.1.min.js"></script>
 <script src="https://dl.dropboxusercontent.com/u/286533/jquery-ui.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/286533/html%20project/jquery.event.drag-2.2.js"></script>
 <style>
 div.container {width:1000px;
 	height:25px;
@@ -17,7 +18,8 @@ div.note {background-color:green;
 	position:absolute;
 	top:0px;
 	left:0px;
-	white-space: nowrap;}
+	white-space: nowrap;
+	cursor: move;}
 div.piano_roll {background-image:url('https://dl.dropboxusercontent.com/u/286533/html%20project/piano_roll_background.png');
 	width:1002px;
 	height:502px;
@@ -31,7 +33,7 @@ div.piano_roll {background-image:url('https://dl.dropboxusercontent.com/u/286533
 	position:absolute;
 	top:60px;
 	left:60px;}
-#selectable .ui-selecting { background: yellow; }
+#selectable .ui-selecting{ background: yellow; }
 #selectable .ui-selected { background: red}
 </style>
 </head>
@@ -130,22 +132,47 @@ $('.container').click(function(e){
 			}
 		});
 		
+
+		
 	}
 });	
-var select_val;
-select_val = 0;
+
+var select_val = 0;
 $('#select_tool').click(function(){
 	select_val = (select_val + 1) % 2;
 	if (select_val==1){
 		$('#select_tool').css('background-color', 'yellow');
-		$('.piano_roll').selectable({filter: '.note', disabled: false});
-		}
+		$('.piano_roll').selectable({filter: '.note'});
+		
+		$('.note')
+		.drag("init",function(){
+			if ($(this).is('.ui-selected'))
+				return $('.ui-selected');
+		})
+		.drag(function( ev, dd ){
+				$(this).css({top: ((Math.ceil((dd.offsetY +3) / 25) * 25) - 123) % 502, left: dd.offsetX - 100});
+		});
+	}
 	else{
 		$('#select_tool').css('background-color', 'gray');
 		$('.piano_roll .ui-selected').removeClass('ui-selected');
 		$('#selectable').selectable("destroy")
-		}
-	});
+		$('.first_drag').removeClass('first_drag');
+	}
+		
+});
+
+
+
+
+
+
+
+		
+
+
+	
+
 </script>
 </body>
 </html>
