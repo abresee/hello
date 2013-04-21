@@ -135,7 +135,7 @@ $('#select_tool').click(function(){
 			if (($('#window').scrollTop() % 25) == 0){
 				$(this).css({top: ((Math.ceil((dd.offsetY + ((($('#window').scrollTop() - ($('#windowdrag').position().top % 25)) + 6 % 25))) / 25) * 25) - 49) + (Math.ceil($('#window').scrollTop() / 25) * 25) - ((Math.ceil($('#windowdrag').position().top / 25) * 25) - 25), left: dd.offsetX - 100 + ($('#window').scrollLeft() - $('#windowdrag').position().left) + 97});
 			}else{
-				$(this).css({top: ((Math.ceil((dd.offsetY + ((($('#window').scrollTop() - ($('#windowdrag').position().top % 25)) + 6 % 25)) - 50) / 25) * 25) - 49) + (Math.ceil($('#window').scrollTop() / 25) * 25) - ((Math.ceil($('#windowdrag').position().top / 25) * 25) - 25), left: dd.offsetX - 100 + ($('#window').scrollLeft() - $('#windowdrag').position().left) + 97});
+				$(this).css({top: ((Math.ceil((dd.offsetY + ((($('#window').scrollTop() - ($('#windowdrag').position().top % 25)) + 6 % 25)) - 50) / 25) * 25) - 49) + (Math.ceil(($('#window').scrollTop() % 25) / 25) * 25) - ((Math.ceil($('#windowdrag').position().top / 25) * 25) - 50), left: dd.offsetX - 100 + ($('#window').scrollLeft() - $('#windowdrag').position().left) + 97});
 				}
 		});
 	}else{
