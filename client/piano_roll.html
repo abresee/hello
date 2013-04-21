@@ -5,11 +5,12 @@
 <script src="https://dl.dropboxusercontent.com/u/286533/jquery-1.9.1.min.js"></script>
 <script src="https://dl.dropboxusercontent.com/u/286533/jquery-ui.js"></script>
 <script src="https://dl.dropboxusercontent.com/u/286533/html%20project/jquery.event.drag-2.2.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/286533/html%20project/jquery.event.drag.live-2.2.js"></script>
 <style>
-div.container {width:1000px;
+div.container {width:10000px;
 	height:25px;
 	position:relative;
-	top:1px;
+	top:0px;
 	left:1px;
 	}
 div.note {background-color:green;
@@ -21,89 +22,73 @@ div.note {background-color:green;
 	white-space: nowrap;
 	cursor: move;}
 div.piano_roll {background-image:url('https://dl.dropboxusercontent.com/u/286533/html%20project/piano_roll_background.png');
-	width:1002px;
-	height:502px;
+	width:10002px;
+	height:2700px;
 	position:absolute;
-	top:100px;
-	left:100px;
-	overflow:hidden;}
+	top:0px;
+	left:0px;
+}
 #select_tool {background-color:gray;
 	width:38px;
 	height:20px;
 	position:absolute;
 	top:60px;
 	left:60px;}
+#window {
+	width:1022px;
+	height:502px;
+	position:absolute;
+	top:0px;
+	left:0px;
+	overflow-x:auto;
+	overflow-y:auto;
+	border-style: outset}
+#windowresize {
+	width:1029px;
+	height:509px;
+	position:absolute;
+	top:20px;
+	left:0px;
+	overflow: visible;
+}
+#windowdrag {
+	width:1029px;
+	height:20px;
+	position:fixed;
+	top:10px;
+	left:100px;
+	background: yellow;
+}	
 #selectable .ui-selecting{ background: yellow; }
 #selectable .ui-selected { background: red}
 </style>
 </head>
 
 <body oncontextmenu="return false;">
+
 <div id='select_tool'></div>
+<div id='windowdrag'>haha you can drag this around?
+<div id='windowresize'>
+
+<div id='window'>
+
 <div id='selectable' class='piano_roll'>
-<div class='container'>
-</div>
 
-<div class='container'>
 </div>
-
-<div class='container'>
 </div>
-
-<div class='container'>
 </div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
-<div class='container'>
-</div>
-
 </div>
 <script>
+var max_notes = 108;
+var count = 0;
+var theHtml_container;
+theHtml_container = "<div class='container'></div>";
 
+while (count < max_notes){
+	$('.piano_roll').append(theHtml_container);
+	count += 1;
+	}
+	
 var id_number;
 id_number = 0;
 var id_num;
@@ -116,24 +101,21 @@ $('.container').click(function(e){
 		mouse_pos = e.pageY - $('.piano_roll').offset().top;
 		id_number += 1;
 		id_num = id_number.toString();
-		
+
 		var theHtml = "<div id='id_num_"+id_num+"' class='note'></div>";
-		
+
 		$('.piano_roll').append(theHtml);
-		
-		$('#id_num_'+id_num).draggable({containment:'.piano_roll', snap:'.container', snapMode:'inner', snapTolerance:20})
-		.resizable({minHeight:24,maxHeight:24, containment:'.piano_roll'})
+
+		$('#id_num_'+id_num).draggable({snap:'.container', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'})
+		.resizable({minHeight:24,maxHeight:24})
 		.css({position:'absolute', top:1})
-		.offset({top: ((Math.ceil(mouse_pos/25) * 25) % 502) + $('.piano_roll').offset().top -23, left: e.pageX - 10});
-		
+		.offset({top: ((Math.ceil(mouse_pos/25) * 25)) + $('.piano_roll').offset().top -24, left: e.pageX - 10});
+
 		$('.note').contextmenu(function(){
 			if (select_val == 0){
 				$(this).remove()
 			}
 		});
-		
-
-		
 	}
 });	
 
@@ -149,29 +131,22 @@ $('#select_tool').click(function(){
 			if ($(this).is('.ui-selected'))
 				return $('.ui-selected');
 		})
-		.drag(function( ev, dd ){
-				$(this).css({top: ((Math.ceil((dd.offsetY +3) / 25) * 25) - 123) % 502, left: dd.offsetX - 100});
+		.drag(function(ev, dd){
+			if (($('#window').scrollTop() % 25) == 0){
+				$(this).css({top: ((Math.ceil((dd.offsetY + ((($('#window').scrollTop() - ($('#windowdrag').position().top % 25)) + 6 % 25))) / 25) * 25) - 49) + (Math.ceil($('#window').scrollTop() / 25) * 25) - ((Math.ceil($('#windowdrag').position().top / 25) * 25) - 25), left: dd.offsetX - 100 + ($('#window').scrollLeft() - $('#windowdrag').position().left) + 97});
+			}else{
+				$(this).css({top: ((Math.ceil((dd.offsetY + ((($('#window').scrollTop() - ($('#windowdrag').position().top % 25)) + 6 % 25)) - 50) / 25) * 25) - 49) + (Math.ceil($('#window').scrollTop() / 25) * 25) - ((Math.ceil($('#windowdrag').position().top / 25) * 25) - 25), left: dd.offsetX - 100 + ($('#window').scrollLeft() - $('#windowdrag').position().left) + 97});
+				}
 		});
-	}
-	else{
+	}else{
 		$('#select_tool').css('background-color', 'gray');
-		$('.piano_roll .ui-selected').removeClass('ui-selected');
-		$('#selectable').selectable("destroy")
-		$('.first_drag').removeClass('first_drag');
+		$('#selectable').selectable("destroy");
+		$('.note').removeClass('ui-selected');
 	}
-		
 });
 
-
-
-
-
-
-
-		
-
-
-	
+$('#windowresize').resizable({alsoResize: '#window,#windowdrag'});
+$('#windowdrag').draggable({cancel: '#windowresize'});
 
 </script>
 </body>
