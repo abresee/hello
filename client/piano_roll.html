@@ -8,25 +8,39 @@
 <script src="https://dl.dropboxusercontent.com/u/286533/html%20project/jquery.event.drag.live-2.2.js"></script>
 <style>
 div.container {width:10000px;
-	height:25px;
+	border-top-style:solid;
+	border-width:1px;
+	height:24px;
 	position:relative;
 	top:0px;
 	left:1px;
+	z-index: 3;
 	}
-div.note {background-color:green;
+div.note {background-color: #9999cc;
 	width:70px;
 	height:24px;
 	position:absolute;
 	top:0px;
 	left:0px;
 	white-space: nowrap;
-	cursor: move;}
-div.piano_roll {background-image:url('https://dl.dropboxusercontent.com/u/286533/html%20project/piano_roll_background.png');
+	cursor: move;
+	z-index:3}
+div.piano_roll {
 	width:10002px;
 	height:2700px;
 	position:absolute;
 	top:0px;
 	left:0px;
+}
+div.time_column {
+	width:30px;
+	height:2700px;
+	position:absolute;
+	border-right-style:solid;
+	border-width:1px;
+	top:0px;
+	left:0px;
+	z-index: 1;
 }
 #select_tool {background-color:gray;
 	width:38px;
@@ -34,14 +48,19 @@ div.piano_roll {background-image:url('https://dl.dropboxusercontent.com/u/286533
 	position:absolute;
 	top:60px;
 	left:60px;}
+div.select {background-color:gray;
+	width:38px;
+	height:20px;
+	position:absolute;
+	top:85px;
+	left:60px;}
 #window {
 	width:1022px;
 	height:502px;
 	position:absolute;
 	top:0px;
 	left:0px;
-	overflow-x:auto;
-	overflow-y:auto;
+	overflow: auto;
 	border-style: outset}
 #windowresize {
 	width:1029px;
@@ -55,25 +74,31 @@ div.piano_roll {background-image:url('https://dl.dropboxusercontent.com/u/286533
 	width:1028px;
 	height:20px;
 	min-height: 20px;
+	max-height: 20px;
 	position:fixed;
 	top:10px;
 	left:100px;
-	background: yellow;
+	background: purple;
 }	
-#selectable .ui-selecting{ background: yellow; }
-#selectable .ui-selected { background: red}
+#selectable .ui-selecting{ background: #663399; }
+#selectable .ui-selected { background: #330066}
 </style>
 </head>
 
 <body oncontextmenu="return false;">
 
-<div id='select_tool'></div>
-<div id='windowdrag'>haha you can drag this around?
-<div id='windowresize'>
+<div id='select_tool' class='select'></div>
 
+<div id='windowdrag'>
+<div id='windowresize'>
+<div id='zoom_slider' style="width: 300px; position: absolute; bottom: -20px; right:5px"></div>
 <div id='window'>
 
+
 <div id='selectable' class='piano_roll'>
+
+<div class='time_column'><div>
+
 
 </div>
 </div>
@@ -82,21 +107,21 @@ div.piano_roll {background-image:url('https://dl.dropboxusercontent.com/u/286533
 <script>
 var max_notes = 108;
 var count = 0;
-var theHtml_container;
-theHtml_container = "<div class='container'></div>";
+var theHtml_container = "<div class='container'></div>";
+var theHtml_time = "<div class='time_column'></div>";
 
 while (count < max_notes){
-	$('.piano_roll').append(theHtml_container);
+	$('.piano_roll').prepend(theHtml_container);
 	count += 1;
 	}
 	
-var id_number;
-id_number = 0;
+var zoom_const = 4;	
+var id_number = 0;
 var id_num;
 var mouse_pos;
-var offset_val;
+var offset_val = 0;
 var disabled;
-offset_val = 0;
+var resize = 0;
 $('.container').click(function(e){
 	if (select_val == 0){
 		mouse_pos = e.pageY - $('.piano_roll').offset().top;
@@ -104,19 +129,57 @@ $('.container').click(function(e){
 		id_num = id_number.toString();
 
 		var theHtml = "<div id='id_num_"+id_num+"' class='note'></div>";
-
-		$('.piano_roll').append(theHtml);
+		
+		$('.time_column').before(theHtml);
+		$('.note').trigger('click');
 
 		$('#id_num_'+id_num).draggable({snap:'.container', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'})
-		.resizable({minHeight:24,maxHeight:24})
-		.css({position:'absolute', top:1})
+		.resizable({minHeight:24,maxHeight:24, handles: "e"})
+		.css({position:'absolute'})
 		.offset({top: ((Math.ceil(mouse_pos/25) * 25)) + $('.piano_roll').offset().top -24, left: e.pageX - 10});
 
 		$('.note').contextmenu(function(){
 			if (select_val == 0){
 				$(this).remove()
 			}
-		});
+		})
+		.each(function(){ //init placement
+			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+			.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+		})
+		.on('resize', function(){
+			if ($(this).is('.ui-selected')){
+				$(this).resizable({alsoResize: '.ui-selected'})
+				.resizable({start: function(){
+					resize = 1;
+					}
+				})
+				.resizable({stop: function(){
+					resize = 0;
+					}
+				});
+				$('.ui-selected').each(function(){
+				$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+				.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+				});
+			}
+		//	$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+		//	.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+		})
+		.draggable({stop: function(e, ui){
+			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+			.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+			if ($(this).is('.ui-selected')){
+				$('.ui-selected').each(function(){
+				$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+				.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+				});
+			}
+		}})
+		.resizable({stop: function(e, ui){
+			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+			.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+		}});
 	}
 });	
 
@@ -130,15 +193,20 @@ $('#select_tool').click(function(){
 		$('.note')
 		.drag("init",function(){
 			if ($(this).is('.ui-selected'))
+				$('.note').trigger('resize');
 				return $('.ui-selected');
 		})
 		.drag(function(ev, dd){
 			if (($('#window').scrollTop() % 25) == 0){
-				$(this).css({top: ((Math.ceil((dd.offsetY + ((($('#window').scrollTop() - ($('#windowdrag').position().top % 25)) + 6 % 25))) / 25) * 25) - 49) + (Math.ceil($('#window').scrollTop() / 25) * 25) - ((Math.ceil($('#windowdrag').position().top / 25) * 25) - 25), left: dd.offsetX - 100 + ($('#window').scrollLeft() - $('#windowdrag').position().left) + 97});
-			}else{
-				$(this).css({top: ((Math.ceil((dd.offsetY + ((($('#window').scrollTop() - ($('#windowdrag').position().top % 25)) + 6 % 25)) - 50) / 25) * 25) - 49) + (Math.ceil(($('#window').scrollTop() % 25) / 25) * 25) - ((Math.ceil($('#windowdrag').position().top / 25) * 25) - 50), left: dd.offsetX - 100 + ($('#window').scrollLeft() - $('#windowdrag').position().left) + 97});
+				if (resize == 0){
+					$(this).css({top: ((Math.ceil((dd.offsetY + ((($('#window').scrollTop() % 25 - ($('#windowdrag').position().top % 25)) + 6 % 25))) / 25) * 25) - 49) + (Math.ceil($('#window').scrollTop() / 25) * 25) - ((Math.ceil($('#windowdrag').position().top / 25) * 25) - 25), left: dd.offsetX - 100 + ($('#window').scrollLeft() - $('#windowdrag').position().left) + 97});
 				}
+			}else{
+				if (resize == 0){
+					$(this).css({top: ((Math.ceil((dd.offsetY + ((($('#window').scrollTop() % 25 - ($('#windowdrag').position().top % 25)) + 6 % 25)) - 50) / 25) * 25) - 49) + (Math.ceil(($('#window').scrollTop() % 25) / 25) * 25) - ((Math.ceil($('#windowdrag').position().top / 25) * 25) - 50), left: dd.offsetX - 100 + ($('#window').scrollLeft() - $('#windowdrag').position().left) + 97});
+			}	}
 		});
+		
 	}else{
 		$('#select_tool').css('background-color', 'gray');
 		$('#selectable').selectable("destroy");
@@ -146,8 +214,30 @@ $('#select_tool').click(function(){
 	}
 });
 
-$('#windowresize').resizable({alsoResize: '#window,#windowdrag'});
-$('#windowdrag').draggable({cancel: '#windowresize'});
+$('#windowresize').resizable({alsoResize: '#window,#windowdrag', minWidth: "311", minHeight: "311"});
+$('#windowdrag').draggable({cancel: '#windowresize', containment: 'document'});
+
+var piano_roll_width = "10002";
+var container_width_const = 30000;
+var container_width_default = 25 * (zoom_const / 100) * container_width_const;
+var container_width;
+var width = 0;
+var height = "2700px";
+var px = "px";
+$('.container').css("width", container_width_default);
+$('#zoom_slider').slider({min: 1, max: 50, value:25})
+.slider({change: function(e, ui){
+	$('.note').each(function(e, ui){
+		zoom_width = $('#zoom_slider').slider("value") * (zoom_const / 100) * $(this).data("length");
+		zoom_width = zoom_width.toString();
+		$(this).css("width", zoom_width)
+		.css({left: $('#zoom_slider').slider("value") * (zoom_const / 100) * $(this).data("positionx")})
+		});
+	container_width = ($('#zoom_slider').slider("value") * (zoom_const / 100) * container_width_const);
+	container_width = container_width.toString();
+	$('.container').css("width", container_width);
+	$('.piano_roll').css("width", container_width);
+}});
 
 </script>
 </body>
