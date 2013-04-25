@@ -118,6 +118,7 @@ gint main (gint argc, gchar *argv[])
     gst_element_link_many (appsrc, conv, audiosink, NULL);
     /* setup appsrc */
     g_signal_connect (appsrc, "need-data", G_CALLBACK (cb_need_data), NULL);
+    g_signal_connect (appsrc, "enough-data", G_CALLBACK (cb_enough_data), NULL);
 
     /* play */
     gst_element_set_state (pipeline, GST_STATE_PLAYING);

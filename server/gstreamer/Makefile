@@ -8,4 +8,4 @@ hello_gstreamer.o: hello_gstreamer.cpp
 
 .PHONY: clean
 clean:
-	rm hello_gstreamer hello_gstreamer.o
+	rm -rf hello_gstreamer hello_gstreamer.o
