@@ -9,7 +9,9 @@ const int sample_rate = 44100;
 const char * format = "S16LE";
 const int width = 16;
 const int depth = 16;
-const int buffer_length = 1024;
+const int word_size = 2;
+const int packet_count = 512;
+const int buffer_length = packet_count*word_size;
 const int channels = 1;
 guint sourceid=0;
 const int frequency = 440;
@@ -32,7 +34,7 @@ static gboolean cb_push_data(GstElement *appsrc)
     buffer = gst_buffer_new_allocate (NULL, buffer_length, NULL);
     gst_buffer_fill(buffer,0,data+offset,buffer_length);
 
-    offset+=buffer_length/2;
+    offset+=buffer_length/word_size;
     offset%=signal_length;
 
     g_signal_emit_by_name (appsrc, "push-buffer", buffer, &ret);
@@ -71,7 +73,6 @@ gint main (gint argc, gchar *argv[])
     cout<<"data init."<<endl;
 
     for(int i=0; i < signal_length/4; ++i)
-
     {
         data[i]=amplitude*sin(frequency*M_PI*2*i/sample_rate);
     }
