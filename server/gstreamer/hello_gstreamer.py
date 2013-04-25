@@ -17,6 +17,7 @@ omega = 2 * pi * frequency / sample_rate
 packet_count = 512
 word_size = 2
 buffer_length = word_size * packet_count 
+
 class Player(object):
     def __init__(self):
 
@@ -48,6 +49,8 @@ class Player(object):
         self.sourceid=None
 
         self.sample_count=0
+        self.samples=[]
+        
 
     def run(self):
         self.pipeline.set_state(Gst.State.PLAYING)
@@ -61,16 +64,26 @@ class Player(object):
     def on_error(self,bus,msg):
         print('on_error():',msg.parse_error())
 
-    def need_data(self,src,avail):
-        data=bytearray().join(reversed([trunc(amplitude * sin(omega*i)).to_bytes(2,'little',signed=True) 
-                        for i in range(self.sample_count,
-                            self.sample_count+trunc(avail/2))]))
+    def need_data(self,src,avail_bytes):
+        avail_samples=avail_bytes//word_size
+        print("avail_bytes: ",avail_bytes)
+        print("avail_samples: ",avail_samples)
+        
+        sample_list = [trunc(amplitude/2 * sin(omega*i))
+                         for i in range(self.sample_count,
+                             self.sample_count+avail_samples)]
+        self.samples.extend(sample_list)
+        data_list = [i.to_bytes(2,'little',signed=True) for i in sample_list]
+        data=bytes().join(data_list)
+        buff=Gst.Buffer.new_allocate(None,len(data) , None)
+        self.last_samples=sample_list
+        self.last_list=data_list
         self.last_data=data
-        self.sample_count+=avail
-        buff=Gst.Buffer.new_allocate(None, avail, None)
-        buff.fill(0,data,avail)
+        self.sample_count+=avail_samples
+        self.last_buff=buff
+        buff.fill(0,data,len(data))
         src.emit("push_buffer",buff)
-
+        print('welp!')
 
     def enough_data(self):
         print("that's enough!")
@@ -79,4 +92,11 @@ class Player(object):
             self.sourceid=None
 
 p = Player()
-p.run()
+try:
+    p.run()
+    while True: pass
+
+except KeyboardInterrupt:
+    p.quit()
+
+
