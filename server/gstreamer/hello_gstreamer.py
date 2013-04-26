@@ -10,12 +10,15 @@ gi.require_version('Gst','1.0')
 GObject.threads_init()
 Gst.init(None)
 
-sample_rate=44100
-amplitude=32767
+sample_rate = 44100
+amplitude = 32767
 frequency = 440
+seconds = 10
+signal_length=sample_rate*seconds
+word_size = 2
+byte_length = signal_length * word_size
 omega = 2 * pi * frequency / sample_rate
 packet_count = 512
-word_size = 2
 buffer_length = word_size * packet_count 
 
 class Player(object):
@@ -32,7 +35,7 @@ class Player(object):
         self.conv=Gst.ElementFactory.make('audioconvert','conv')
         self.audiosink = Gst.ElementFactory.make('autoaudiosink','audio-output')
 
-        self.capsstring="audio/x-raw, format={0}, rate={1}, channels=1, signed=true, layout=interleaved".format("S16LE",44100)
+        self.capsstring="audio/x-raw, format={0}, rate={1}, channels=1, signed=true, layout=interleaved".format("S16LE",sample_rate)
         self.src.set_property("caps",Gst.Caps.from_string(self.capsstring))
 
         self.pipeline.add(self.src)
@@ -44,18 +47,23 @@ class Player(object):
 
         self.src.connect("need-data",self.need_data)
         self.src.connect("enough-data",self.enough_data)
-    
 
-        self.sourceid=None
+        self.add = False
+        self.playing=False
+        self.byte_count = 0 
+         
+        sample_list = [trunc(amplitude * sin(omega*i)) for i in range(signal_length)]
 
-        self.sample_count=0
-        self.samples=[]
-        
+        data_list = [i.to_bytes(2,'little',signed=True) for i in sample_list]
+
+        self.data = bytes().join(data_list)
 
     def run(self):
+        self.playing=True
         self.pipeline.set_state(Gst.State.PLAYING)
 
     def quit(self):
+        self.playing=False
         self.pipeline.set_state(Gst.State.NULL)
 
     def on_eos(self,bus,msg):
@@ -64,37 +72,31 @@ class Player(object):
     def on_error(self,bus,msg):
         print('on_error():',msg.parse_error())
 
-    def need_data(self,src,avail_bytes):
-        avail_samples=avail_bytes//word_size
-        print("avail_bytes: ",avail_bytes)
-        print("avail_samples: ",avail_samples)
+    def push_data(self):
         
-        sample_list = [trunc(amplitude/2 * sin(omega*i))
-                         for i in range(self.sample_count,
-                             self.sample_count+avail_samples)]
-        self.samples.extend(sample_list)
-        data_list = [i.to_bytes(2,'little',signed=True) for i in sample_list]
-        data=bytes().join(data_list)
-        buff=Gst.Buffer.new_allocate(None,len(data) , None)
-        self.last_samples=sample_list
-        self.last_list=data_list
-        self.last_data=data
-        self.sample_count+=avail_samples
-        self.last_buff=buff
-        buff.fill(0,data,len(data))
-        src.emit("push_buffer",buff)
-        print('welp!')
+        buff=Gst.Buffer.new_allocate(None,buffer_length , None)
+        if self.byte_count > byte_length:
+            self.quit()
+        buff.fill(0,self.data[self.byte_count:self.byte_count+buffer_length],buffer_length)
+        self.byte_count += buffer_length
 
-    def enough_data(self):
+        self.src.emit("push_buffer",buff)
+
+    def need_data(self,src,byte_count):
+        print("need data!")
+        self.add=True
+
+    def enough_data(self,src):
         print("that's enough!")
-        if self.sourceid is not None:
-            GObject.source_remove(self.sourceid)
-            self.sourceid=None
+        self.add=False
 
 p = Player()
 try:
     p.run()
-    while True: pass
+    while p.playing:
+        if p.add:
+            p.push_data()
+        
 
 except KeyboardInterrupt:
     p.quit()
