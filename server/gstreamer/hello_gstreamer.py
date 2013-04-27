@@ -10,19 +10,37 @@ gi.require_version('Gst','1.0')
 GObject.threads_init()
 Gst.init(None)
 
-sample_rate = 44100
-amplitude = 32767
-frequency = 440
-seconds = 10
-signal_length=sample_rate*seconds
-word_size = 2
-byte_length = signal_length * word_size
-omega = 2 * pi * frequency / sample_rate
-packet_count = 512
-buffer_length = word_size * packet_count 
 
 class Player(object):
+    '''instantiations of this class generate aribtrary data for the sound device'''
+
+    #statics
+    @classmethod
+    def Byte_convert(cls,sample_list):
+        return [i.to_bytes(2,'little',signed=True) for i in sample_list]
+
+    Sample_rate = 44100
+    Amplitude = 32767
+    Frequency = 440
+    Seconds = 5
+    Signal_length=Sample_rate*Seconds
+    Word_size = 2
+    Byte_length = Signal_length * Word_size
+    Omega = 2 * pi * Frequency / Sample_rate
+    Packet_count = 10*512
+    Buffer_length = Word_size * Packet_count 
+    __Init=False
+
+    @classmethod
+    def __Static_init(cls):
+        cls.Sample_list = [trunc(cls.Amplitude * sin(cls.Omega*i)) for i in range(cls.Signal_length)]
+        cls.Data_list = cls.Byte_convert(cls.Sample_list)
+        cls.__Init=True
+
+    #instance 
     def __init__(self):
+        if not self.__Init:
+            self.__Static_init()
 
         self.pipeline=Gst.Pipeline()
 
@@ -35,7 +53,7 @@ class Player(object):
         self.conv=Gst.ElementFactory.make('audioconvert','conv')
         self.audiosink = Gst.ElementFactory.make('autoaudiosink','audio-output')
 
-        self.capsstring="audio/x-raw, format={0}, rate={1}, channels=1, signed=true, layout=interleaved".format("S16LE",sample_rate)
+        self.capsstring="audio/x-raw, format={0}, rate={1}, channels=1, signed=true, layout=interleaved".format("S16LE",self.Sample_rate)
         self.src.set_property("caps",Gst.Caps.from_string(self.capsstring))
 
         self.pipeline.add(self.src)
@@ -52,11 +70,11 @@ class Player(object):
         self.playing=False
         self.byte_count = 0 
          
-        sample_list = [trunc(amplitude * sin(omega*i)) for i in range(signal_length)]
 
-        data_list = [i.to_bytes(2,'little',signed=True) for i in sample_list]
+        self.data = bytes().join(self.Data_list)
+        self.protect=False
+        self.written=[]
 
-        self.data = bytes().join(data_list)
 
     def run(self):
         self.playing=True
@@ -64,6 +82,7 @@ class Player(object):
 
     def quit(self):
         self.playing=False
+        self.protect=False
         self.pipeline.set_state(Gst.State.NULL)
 
     def on_eos(self,bus,msg):
@@ -73,14 +92,20 @@ class Player(object):
         print('on_error():',msg.parse_error())
 
     def push_data(self):
+        while self.protect: pass
+        self.protect=True
         
-        buff=Gst.Buffer.new_allocate(None,buffer_length , None)
-        if self.byte_count > byte_length:
-            self.quit()
-        buff.fill(0,self.data[self.byte_count:self.byte_count+buffer_length],buffer_length)
-        self.byte_count += buffer_length
+        buff=Gst.Buffer.new_allocate(None,self.Buffer_length , None)
+        if self.byte_count > self.Byte_length:
+            self.src.emit("end-of-stream")
+            return
+        to_write=self.data[self.byte_count:self.byte_count+self.Buffer_length]
+        buff.fill(0,to_write,self.Buffer_length)
+        self.byte_count += self.Buffer_length-4
 
         self.src.emit("push_buffer",buff)
+        self.written.append(to_write)
+        self.protect=False
 
     def need_data(self,src,byte_count):
         print("need data!")
@@ -95,6 +120,7 @@ try:
     p.run()
     while p.playing:
         if p.add:
+            while p.protect: pass
             p.push_data()
         
 
