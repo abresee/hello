@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+<script src="https://dl.dropboxusercontent.com/u/286533/jquery-1.9.1.min.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/286533/jquery-ui.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/286533/html%20project/jquery.event.drag-2.2.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/286533/html%20project/jquery.event.drag.live-2.2.js"></script>
+<style>
+div.container {width:10000px;
+	border-top-style:solid;
+	border-width:1px;
+	height:24px;
+	position:relative;
+	top:1px;
+	left:1px;
+	z-index: 3;
+	}
+div.note {background-color: #9999cc;
+	width:59px;
+	height:24px;
+	position:relative;
+	top:0px;
+	left:0px;
+	border-left-style: solid;
+	border-width:1px;
+	white-space: nowrap;
+	cursor: move;
+	z-index:3}
+div.piano_roll {
+	width:10002px;
+	height:2700px;
+	position:absolute;
+	top:0px;
+	left:0px;
+}
+div.time_column {
+	width:29px;
+	height:2700px;
+	position:absolute;
+	border-right-style:solid;
+	border-width:1px;
+	top:0px;
+	left:0px;
+	z-index: 1;
+}
+#select_tool {background-color:gray;
+	width:38px;
+	height:20px;
+	position:absolute;
+	top:60px;
+	left:60px;}
+div.select {background-color:gray;
+	width:38px;
+	height:20px;
+	position:absolute;
+	top:85px;
+	left:60px;}
+#window {
+	width:1022px;
+	height:502px;
+	position:absolute;
+	top:0px;
+	left:0px;
+	overflow: auto;
+	border-style: outset}
+#windowresize {
+	width:1029px;
+	height:509px;
+	position:absolute;
+	top:20px;
+	left:0px;
+	overflow: visible;
+}
+#windowdrag {
+	width:1028px;
+	height:20px;
+	min-height: 20px;
+	max-height: 20px;
+	position:fixed;
+	top:10px;
+	left:100px;
+	background: purple;
+}	
+#selectable .ui-selecting{ background: #663399; }
+#selectable .ui-selected { background: #330066; z-index: 4}
+</style>
+</head>
+
+<body oncontextmenu="return false;">
+
+<div id='select_tool' class='select'>select</div>
+<div id='snap_tool' class='select'>snap</div>
+
+<div id='windowdrag'>
+<div id='windowresize'>
+<div id='zoom_slider' style="width: 300px; position: absolute; bottom: -20px; right:5px"></div>
+<div id='window'>
+
+
+<div id='selectable' class='piano_roll'>
+</div>
+
+
+</div>
+</div>
+</div>
+<script>
+var max_notes = 108;
+var count = 0;
+var theHtml_container = "<div class='container'></div>";
+var theHtml_time = "<div class='.time_container'><div class='time_column'></div></div>";
+var zoom_const = 4;	
+var zoom_time_width = 4;	
+var id_number = 0;
+var id_num;
+var mouse_pos;
+var mouse_pos_x;
+var offset_val = 0;
+var disabled;
+var resize = 0;
+var position_x = 100;
+var position_y;
+var variablelol = 1;
+var drag_start_position_x;
+var drag_start_position_y;
+var piano_roll_width = "10002";
+var container_width_const = 30000;
+var container_width_default = 25 * (zoom_const / 100) * container_width_const;
+var container_width;
+var width = 0;
+var height = "2700px";
+var px = "px";
+
+while (count < max_notes){
+	$('.piano_roll').prepend(theHtml_container);
+	count += 1;
+	}
+
+count = 0;
+while (count < 1000){
+	$('.piano_roll').after(theHtml_time);
+	count += 1
+	}
+
+function time_position(){
+$('.time_column').each(function(e, ui){
+		zoom_time_width = 25 * (zoom_const / 100) * 30;
+		zoom_time_width = zoom_time_width.toString();
+		$(this).css("width", zoom_time_width)
+		.css({left: Math.round(25 * (zoom_const / 100) * $(this).data("positionx"))});
+	});
+}
+
+count = 0;
+var left_offset;	
+$('.time_column').each(function(){
+	left_offset = (30 * count);
+	$(this).css({left: left_offset})
+	.data("positionx", left_offset);
+	count += 1;
+});
+time_position()
+
+	
+
+
+function left_position(){
+	$('#id_num_'+id_num).offset({top: ((Math.ceil(mouse_pos/25) * 25)) + $('.piano_roll').offset().top -23, left: ((Math.floor(mouse_pos_x / ($('.time_column').width() + 0)) * ($('.time_column').width() + 0))) + $('.piano_roll').offset().left});
+}
+
+
+
+
+$('.container').click(function(e){
+	if (select_val == 0){
+		mouse_pos = e.pageY - $('.piano_roll').offset().top;
+		mouse_pos_x = e.pageX - $('.piano_roll').offset().left;
+		id_number += 1;
+		id_num = id_number.toString();
+		
+		
+		var theHtml = "<div id='id_num_"+id_num+"' class='note'></div>";
+		
+		$('.piano_roll').append(theHtml);
+		$('#id_num_'+id_num).width(($('.time_column').width() * 2) - 1);
+		$('.note').trigger('click');
+		
+		$('#id_num_'+id_num)
+		.resizable({minHeight:24,maxHeight:24, handles: "e"})
+		.css({position:'absolute'});
+		if (snap_val == 1){
+			$('#id_num_'+id_num).draggable({snap:'.container,.time_column', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'});
+			left_position();
+		}else{
+			$('#id_num_'+id_num).draggable({snap:'.container', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'});
+			$('#id_num_'+id_num).offset({top: ((Math.ceil(mouse_pos/25) * 25)) + $('.piano_roll').offset().top -23, left: e.pageX - 10});
+		}
+
+		$('.note').contextmenu(function(){
+			if ($(this).is('.ui-selected')){
+				$('.ui-selected').remove();
+			}else{
+				$(this).remove()
+		}})
+		.each(function(){ //init placement
+			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+			.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+		})
+		.on('resize', function(){
+			if ($(this).is('.ui-selected')){
+				$(this).resizable({alsoResize: '.ui-selected'})
+				$('.ui-selected').each(function(){
+				$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+				.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+				});
+			}
+		})
+
+		.draggable({drag: function(e, ui){
+			if ($(this).is('.ui-selected')){
+				if (variablelol == 1){
+					$(this).addClass("drag_start");
+					drag_start_position_x = $(this).position().left
+					drag_start_position_y = $(this).position().top
+					variablelol = 0;
+					$('.ui-selected').each(function(e, ui){
+						$(this).data("positionz_x", $(this).position().left);
+						$(this).data("positionz_y", $(this).position().top);
+					});
+				}
+				$('.ui-selected').each(function(e, ui){
+					$(this).css({left: $('.drag_start').position().left + ($(this).data("positionz_x") - drag_start_position_x), top: $('.drag_start').position().top + ($(this).data("positionz_y") - drag_start_position_y)});
+				});
+			}
+			}})
+		.draggable({stop: function(e, ui){
+			variablelol = 1;
+			$('.drag_start').removeClass("drag_start")
+			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+			.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+			if ($(this).is('.ui-selected')){
+				$('.ui-selected').each(function(){
+				$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+				.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+				});
+			}
+		}})
+		.mousedown(function(){
+			if ($(this).is('.ui-selected')){
+				$('.ui-selected').trigger('resize');
+			}
+		})
+		.resizable({stop: function(e, ui){
+			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+			.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+		}});
+	}
+});	
+
+var select_val = 0;
+$('#select_tool').click(function(){
+	select_val = (select_val + 1) % 2;
+	if (select_val==1){
+		$('#select_tool').css('background-color', 'yellow');
+		$('.piano_roll').selectable({filter: '.note'});
+		
+	}else{
+		$('#select_tool').css('background-color', 'gray');
+		$('#selectable').selectable("destroy");
+		$('.note').removeClass('ui-selected');
+	}
+});
+
+var snap_val = 0
+$('#snap_tool').click(function(){
+	snap_val = (snap_val + 1) % 2;
+	if (snap_val==1){
+		$('#snap_tool').css('background-color', 'yellow');
+		$('.note').draggable({snap:'.container,.time_column', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'});
+	}else{
+		$('#snap_tool').css('background-color', 'gray');
+		$('.note').draggable({snap:'.container', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'})
+	}
+});
+
+$('#windowresize').resizable({alsoResize: '#window,#windowdrag', minWidth: "311", minHeight: "311"});
+$('#windowdrag').draggable({cancel: '#windowresize', containment: 'document'});
+
+
+$('.container').css("width", container_width_default);
+$('#zoom_slider').slider({min: 5, max: 50, step: 5, value:25})
+.slider({change: function(e, ui){
+	$('.note').each(function(e, ui){
+		zoom_width = $('#zoom_slider').slider("value") * (zoom_const / 100) * $(this).data("length");
+		
+		zoom_width = zoom_width.toString();
+		$(this).css("width", zoom_width)
+		.css({left: $('#zoom_slider').slider("value") * (zoom_const / 100) * $(this).data("positionx")})
+		});
+	container_width = ($('#zoom_slider').slider("value") * (zoom_const / 100) * container_width_const);
+	container_width = container_width.toString();
+	$('.container').css("width", container_width);
+	$('.piano_roll').css("width", container_width);
+	container_width = container_width.toString();
+	
+	$('.time_column').each(function(e, ui){
+		zoom_time_width = $('#zoom_slider').slider("value") * (zoom_const / 100) * 30;
+		zoom_time_width = zoom_time_width.toString();
+		$(this).css("width", zoom_time_width)
+		.css({left: Math.round($('#zoom_slider').slider("value") * (zoom_const / 100) * $(this).data("positionx"))});
+	});
+}});
+
+</script>
+</body>
+</html>
