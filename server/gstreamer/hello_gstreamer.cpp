@@ -6,7 +6,6 @@
 #include <gst/app/gstappsrc.h>
 #include <boost/python.hpp>
 
-
 const int sample_rate = 44100;
 const char * format = "S16LE";
 const int width = 16;
@@ -68,7 +67,7 @@ static void cb_enough_data(GstElement *appsrc)
     }
 }
 
-int go(int argc, char** argv)
+int go()
 {
     GstElement *pipeline, *appsrc, *conv, *audiosink;
 
@@ -90,8 +89,10 @@ int go(int argc, char** argv)
     }
 
     /* init GStreamer */
+    int argc=0;
+    char ** argv;
     cout<<"gstreamer init."<<endl;
-    gst_init (&argc, &argv);
+    gst_init (&argc,&argv);
     loop = g_main_loop_new (NULL, FALSE);
     
 
@@ -134,8 +135,7 @@ int go(int argc, char** argv)
 
     return 0;
 }
-
-gint main (gint argc, gchar *argv[])
+BOOST_PYTHON_MODULE(hello_gstreamer)
 {
-    return go(argc,argv);
+    boost::python::def("go",go);
 }
