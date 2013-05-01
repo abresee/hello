@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
+#include <boost/python.hpp>
+
 
 const int sample_rate = 44100;
 const char * format = "S16LE";
@@ -66,7 +68,7 @@ static void cb_enough_data(GstElement *appsrc)
     }
 }
 
-gint main (gint argc, gchar *argv[])
+int go(int argc, char** argv)
 {
     GstElement *pipeline, *appsrc, *conv, *audiosink;
 
@@ -131,4 +133,9 @@ gint main (gint argc, gchar *argv[])
     g_main_loop_unref (loop);
 
     return 0;
+}
+
+gint main (gint argc, gchar *argv[])
+{
+    return go(argc,argv);
 }
