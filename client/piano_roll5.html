@@ -101,21 +101,23 @@ div.select {background-color:gray;
 #selectable .ui-selected { background: #330066; z-index: 4}
 
 div.track_info{
-	width: 148px;
+	width: 149px;
 	height: 75px;
 	top: 0px; left: 0px;
 	position: static;
-	border-style: solid;
+	border-bottom-style: solid;
+	border-right-style: solid;
 	border-width: 1px;
 	background: green;
 	z-index: 1
 }
 div.track_window{
 	width: 4850px;
-	height: 77px;
+	height: 76px;
 	top: 91px;
-	position: absolute;
-	left: 150px;
+	position: static;
+	float: left;
+	
 	z-index: 0;
 }
 #track_pane{
@@ -158,7 +160,7 @@ div.track_window{
 <div id='snap_tool_project' class='select' style="bottom: 0px; left: 40px;">snap</div>
 </div>
 
-<div id='timeline_black' style="width: 150px; height: 20px; background: white; z-index: 2; position: fixed; left: 0px; top: 71px;">
+<div id='timeline_black' style="width: 150px; height: 20px; border-bottom-style: solid; border-width: 1px; background: white; z-index: 2; position: fixed; left: 0px; top: 71px;">
 <div id='create_track' style="width: 20px; height: 12px; background: gray; position: absolute; left: 4px; top: 4px;"></div>
 <div id='delete_track' style="width: 20px; height: 12px; background: gray; position: absolute; left: 28px; top: 4px;"></div>
 </div>
@@ -166,10 +168,25 @@ div.track_window{
 <canvas id='timeline' width="5000" height="20" style="z-index: 1;"></canvas>
 
 <div id='track_pane'>
-
-<div class='track_info'>track info</div>
 </div>
-<div class='track_window'></div>
+
+<div id='track_project_window'>
+<div id='track_window_offset' style="height: 6px"></div>
+<div id='track_num_1' class='track_window'></div>
+<div id='track_num_2' class='track_window'></div>
+<div id='track_num_3' class='track_window'></div>
+<div id='track_num_4' class='track_window'></div>
+<div id='track_num_5' class='track_window'></div>
+<div id='track_num_6' class='track_window'></div>
+<div id='track_num_7' class='track_window'></div>
+<div id='track_num_8' class='track_window'></div>
+<div id='track_num_9' class='track_window'></div>
+<div id='track_num_10' class='track_window'></div>
+<div id='track_num_11' class='track_window'></div>
+<div id='track_num_12' class='track_window'></div>
+<div id='track_num_13' class='track_window'></div>
+<div id='track_num_14' class='track_window'></div>
+</div>
 
 
 
@@ -391,11 +408,6 @@ $('#zoom_slider').slider({min: 5, max: 50, step: 5, value:25})
 $('#windowdrag').hide()
 
 //********************************************************************
-$('.track_window').mouseenter(function(){
-	$(this).css("background", "#ffffcc");
-}).mouseleave(function(){
-	$(this).css("background", "white");
-});
 $('.track_window').dblclick(function(){
 	$('#windowdrag').show()
 });
@@ -416,12 +428,16 @@ $('#select_tool_project').click(function(){
 	if (select_val_project==1){
 		$('#select_tool_project').css('background-color', 'yellow');
 		$('#track_pane').selectable({filter: ".track_info", selected: function(e, ui){
-			$('.ui-selected').css('background-color', 'yellow');
+			$('.ui-selected').css('background-color', 'yellow')
+			.each(function(){
+				$('#track_num_'+($(this).data("track_number") + 1)).css('background', "#ffffcc");
+			});
 		},
 		start: function(e, ui){
 			$('.track_info').each(function(){
-				if ($(this).not('.ui-selected')){
+				if ($(this).not('.track_info')){
 					$(this).css('background-color', 'green');
+					$('#track_num_'+($(this).data("track_number") + 1)).css('background', "white");
 				}
 			});		
 		}});
@@ -456,8 +472,15 @@ while (timeline_x_count < 5010){
 
 //TRACK PANE STUFF**************************************************
 var track_info_html = '<div id="okcool" class="track_info">track info</div>';
+var track_num = 1;
 $('#create_track').click(function(){
 	$('#track_pane').append(track_info_html);
+	track_num = 1;
+	$('.track_info').each(function(){
+		$(this).data("track_number", track_num);
+		track_num += 1;
+	});
+	
 	$('.track_info').click(function(){
 		$('.track_info').each(function(){
 			if (select_val_project == 0){
@@ -466,6 +489,10 @@ $('#create_track').click(function(){
 		});
 		$(this).addClass('ui-selected')
 		.css('background-color', 'yellow');
+		$('.track_window').each(function(){
+			$(this).css('background', 'white');
+		});
+		$('#track_num_'+($(this).data("track_number") + 1)).css('background', "#ffffcc");
 		
 	});
 });
@@ -475,6 +502,14 @@ $('#delete_track').click(function(){
 		if ($(this).is('.ui-selected')){
 			$(this).remove();
 		}
+	});
+	track_num = 1;
+	$('.track_info').each(function(){
+		$(this).data("track_number", track_num);
+		track_num += 1;
+	});
+	$('.track_window').each(function(){
+		$(this).css('background', 'white');
 	});
 });
 	
