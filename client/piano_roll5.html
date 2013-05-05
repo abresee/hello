@@ -113,9 +113,12 @@ div.track_info{
 }
 div.track_window{
 	width: 4850px;
-	height: 76px;
+	height: 75px;
 	top: 91px;
 	position: static;
+	border-bottom-style: solid;
+	border-width: 1px;
+	border-color: white;
 	float: left;
 	
 	z-index: 0;
@@ -171,21 +174,7 @@ div.track_window{
 </div>
 
 <div id='track_project_window'>
-<div id='track_window_offset' style="height: 6px"></div>
-<div id='track_num_1' class='track_window'></div>
-<div id='track_num_2' class='track_window'></div>
-<div id='track_num_3' class='track_window'></div>
-<div id='track_num_4' class='track_window'></div>
-<div id='track_num_5' class='track_window'></div>
-<div id='track_num_6' class='track_window'></div>
-<div id='track_num_7' class='track_window'></div>
-<div id='track_num_8' class='track_window'></div>
-<div id='track_num_9' class='track_window'></div>
-<div id='track_num_10' class='track_window'></div>
-<div id='track_num_11' class='track_window'></div>
-<div id='track_num_12' class='track_window'></div>
-<div id='track_num_13' class='track_window'></div>
-<div id='track_num_14' class='track_window'></div>
+<div id='track_window_offset' style="height: 7px"></div>
 </div>
 
 
@@ -242,6 +231,12 @@ while (count < 1000){
 	$('.piano_roll').after(theHtml_time);
 	count += 1
 	}
+	
+count = 0;
+while (count < 30){
+	$('#track_project_window').append('<div id="track_num_' + (count + 1) + '" class="track_window"></div>');
+	count += 1;
+}
 
 function time_position(){
 $('.time_column').each(function(e, ui){
@@ -473,9 +468,12 @@ while (timeline_x_count < 5010){
 //TRACK PANE STUFF**************************************************
 var track_info_html = '<div id="okcool" class="track_info">track info</div>';
 var track_num = 1;
+var track_window = 0;
 $('#create_track').click(function(){
 	$('#track_pane').append(track_info_html);
 	track_num = 1;
+	track_window += 1;
+	$('#track_num_'+ (track_window + 1)).css("border-color", "black");
 	$('.track_info').each(function(){
 		$(this).data("track_number", track_num);
 		track_num += 1;
@@ -504,13 +502,22 @@ $('#delete_track').click(function(){
 		}
 	});
 	track_num = 1;
+	track_window = 0;
 	$('.track_info').each(function(){
 		$(this).data("track_number", track_num);
 		track_num += 1;
+		track_window += 1;
 	});
 	$('.track_window').each(function(){
-		$(this).css('background', 'white');
+		$(this).css('background', 'white')
+		.css('border-color', 'white');
 	});
+	count = 0;
+	while (count <= track_num){
+		$('#track_num_'+ count).css('border-color', "black");
+		count += 1
+	}
+	
 });
 	
 	
