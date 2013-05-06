@@ -29,6 +29,17 @@ div.note {background-color: #9999cc;
 	white-space: nowrap;
 	cursor: move;
 	z-index:3}
+div.music_container {background-color: blue;
+	width:59px;
+	height:75px;
+	position:absolute;
+	top:0px;
+	left:0px;
+	border-left-style: solid;
+	border-bottom-style: solid;
+	border-width:1px;
+	cursor: move;
+	z-index:1}
 div.piano_roll {
 	width:10002px;
 	height:2700px;
@@ -95,7 +106,7 @@ div.select {background-color:gray;
 	top:200px;
 	left:300px;
 	background: blue;
-	z-index: 2;
+	z-index: 3;
 }	
 #selectable .ui-selecting{ background: #663399; }
 #selectable .ui-selected { background: #330066; z-index: 4}
@@ -121,7 +132,7 @@ div.track_window{
 	border-color: white;
 	float: left;
 	
-	z-index: 0;
+	z-index: 2;
 }
 #track_pane{
 	width: 149px;
@@ -132,14 +143,14 @@ div.track_window{
 	border-width: 1px;
 	background: gray;
 	float: left;
-	z-index: 1;
+	z-index: 2;
 }
 #transport_pane{
 	width: 1905px;
 	height: 70px;
 	position: fixed;
 	top: 0px; left: 0px;
-	z-index: 2;
+	z-index: 3;
 	border-bottom-style: solid;
 	border-width: 1px;
 	background: white;
@@ -150,7 +161,17 @@ div.track_window{
 	left: 0px; top: 71px;
 	border-bottom-style: solid;
 	border-width: 1px;
-	z-index: 1;
+	z-index: 4;
+}
+div.track_times{
+	width: 15px;
+	height: 840px;
+	position: absolute;
+	top: 92px;
+	left: 300px;
+	border-right-style: solid;
+	border-width: 2px;
+	z-index: 0;
 }
 
 </style>
@@ -161,9 +182,10 @@ div.track_window{
 <div id='transport_pane'>transport info
 <div id='select_tool_project' class='select' style="bottom: 0px;">select</div>
 <div id='snap_tool_project' class='select' style="bottom: 0px; left: 40px;">snap</div>
+<div id='pencil_tool_project' class='select' style="bottom: 0px; left: 80px;">pencil</div>
 </div>
 
-<div id='timeline_black' style="width: 150px; height: 20px; border-bottom-style: solid; border-width: 1px; background: white; z-index: 2; position: fixed; left: 0px; top: 71px;">
+<div id='timeline_black' style="width: 150px; height: 20px; border-bottom-style: solid; border-width: 1px; background: white; z-index: 3; position: fixed; left: 0px; top: 71px;">
 <div id='create_track' style="width: 20px; height: 12px; background: gray; position: absolute; left: 4px; top: 4px;"></div>
 <div id='delete_track' style="width: 20px; height: 12px; background: gray; position: absolute; left: 28px; top: 4px;"></div>
 </div>
@@ -175,6 +197,8 @@ div.track_window{
 
 <div id='track_project_window'>
 <div id='track_window_offset' style="height: 7px"></div>
+
+
 </div>
 
 
@@ -185,6 +209,7 @@ div.track_window{
 <div id='closer'></div>
 <div id='select_tool' class='select'>select</div>
 <div id='snap_tool' class='select'>snap</div>
+<div id='select_tool' class='select'>select</div>
 <div id='zoom_slider' style="width: 300px; position: absolute; bottom: -20px; right:5px"></div>
 <div id='window'>
 <div id='selectable' class='piano_roll'>
@@ -231,12 +256,26 @@ while (count < 1000){
 	$('.piano_roll').after(theHtml_time);
 	count += 1
 	}
+
+count = 0;
+while (count < 30){
+	$('#track_project_window').prepend('<div class="track_times" style="left: '+((160 * count) + 294)+'px"></div>');
+	count += 1;
+}
 	
 count = 0;
 while (count < 30){
 	$('#track_project_window').append('<div id="track_num_' + (count + 1) + '" class="track_window"></div>');
 	count += 1;
 }
+
+
+
+/*count = 0;
+$('.track_times').each(function(){
+	$(this).css({left: (count * 160)});
+	count += 1;
+});*/
 
 function time_position(){
 $('.time_column').each(function(e, ui){
@@ -403,18 +442,17 @@ $('#zoom_slider').slider({min: 5, max: 50, step: 5, value:25})
 $('#windowdrag').hide()
 
 //********************************************************************
-$('.track_window').dblclick(function(){
-	$('#windowdrag').show()
-});
-
+	
 $('#closer').click(function(){
 	$('#windowdrag').hide()
 });
 
-$('#timeline').scrollToFixed({marginTop: 71, zIndex: 1});
+$('#timeline').scrollToFixed({marginTop: 71, zIndex: 2});
+//$('.track_times').scrollToFixed({marginTop: 92, zIndex: 1});
 
 $(window).scroll(function(){
 	$('#track_pane').offset({left: $(window).scrollLeft()});
+	$('.track_times').css({top: $(window).scrollTop() + 92});
 });
 
 var select_val_project = 0;
@@ -443,6 +481,35 @@ $('#select_tool_project').click(function(){
 	}
 });
 
+//PROJECT DRAW********************************************************
+var pencil_val_project = 0;
+$('#pencil_tool_project').click(function(){
+	pencil_val_project = (pencil_val_project + 1) % 2;
+	if (pencil_val_project==1){
+		$('#pencil_tool_project').css('background-color', 'yellow');
+	}else{
+		$('#pencil_tool_project').css('background-color', 'gray');
+	}
+});
+container_num = 1;
+$('.track_window').click(function(e){
+	if (pencil_val_project == 1){
+		container_num += 1;
+		var music_container_html = '<div id="container_num_'+container_num+'" class="music_container"></div>';
+		$(this).append(music_container_html);
+		$('#container_num_'+container_num).draggable({containment: [149, 99, $('.track_window').width(), 1000], snap: '.track_window', snapMode:'outer', snapTolerance:70})
+		.offset({top: ((Math.ceil(e.pageY/76) * 76) -61), left: e.pageX - 10})
+		.contextmenu(function(){
+			$(this).remove();
+		})
+		.dblclick(function(){
+			$('#windowdrag').show();
+		});
+	}
+	
+});
+
+
 //CANVAS TIMELINE*****************************************************
 var c=document.getElementById("timeline");
 var ctx=c.getContext("2d");
@@ -457,8 +524,9 @@ timeline_y[3] = 13;
 
 while (timeline_x_count < 5010){
 	timeline_y_count %= 4;
-	ctx.lineWidth = 1;
+	ctx.lineWidth = 2;
 	ctx.moveTo(timeline_x_count, 20);
+	//ctx.lineTo(timeline_x_count, timeline_y[timeline_y_count]);
 	ctx.lineTo(timeline_x_count, timeline_y[timeline_y_count]);
 	ctx.stroke();
 	timeline_x_count += 10;
