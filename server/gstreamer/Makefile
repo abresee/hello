@@ -19,6 +19,7 @@ SNAMES = hello_gstreamer
 SOBJ = $(addsuffix .so, $(SNAMES))
 ONAMES = player
 OBJ = $(addsuffix .o, $(ONAMES))
+SRCS = $(addsuffix .cpp, $(SNAMES) $(ONAMES))
 
 python_library: $(SOBJ) $(OBJ) 
 
@@ -32,4 +33,4 @@ test: $(OBJ) main.o
 clean:
 	rm -rf $(SOBJ) $(OBJ) main.o test
 
-
+player.o: player.h

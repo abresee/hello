@@ -39,4 +39,4 @@ nosetests.xml
 *.swp
 # specific files
 #
-server/gstreamer/hello_gstreamer
+server/gstreamer/test

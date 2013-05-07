@@ -3,26 +3,8 @@
 using std::cout;
 using std::endl;
 
-void Player::initdata() {
-    for(int i=0; i < signal_length/4; ++i)
-    {
-        data[i]=amplitude*sin(frequency*M_PI*2*i/sample_rate);
-    }
-
-    for(int i=signal_length/4; i < signal_length/2; ++i)
-    {
-        data[i]=amplitude*sin(1.5*frequency*M_PI*2*i/sample_rate);
-    }
-
-    for(int i=signal_length/2; i < signal_length; ++i)
-    {
-        data[i]=amplitude*sin(2*frequency*M_PI*2*i/sample_rate);
-    }
-}
-
 Player::Player(int * argc, char *** argv)
 {
-    initdata();
     gst_init(argc,argv);
     pipeline = gst_pipeline_new ("pipeline");
 
@@ -46,6 +28,9 @@ Player::Player(int * argc, char *** argv)
     gst_element_link_many (appsrc, conv, audiosink, NULL);
     g_signal_connect (appsrc, "need-data", G_CALLBACK (cb_need_data),this);
     g_signal_connect (appsrc, "enough-data", G_CALLBACK (cb_enough_data),this);
+    
+    instruments.push_back(spInstrument(new SinGenerator(std::numeric_limits<sample_t>::max(),
+                    sample_rate*2*M_PI*frequency)));
 }
 
 void Player::play()
@@ -71,20 +56,23 @@ gboolean cb_push_data(gpointer instance)
 {
     Player * this_ = static_cast<Player *>(instance);
 
+    packet_t data=*(*this_->instruments.begin())->get_samples(Player::packet_size);
+
     GstBuffer * buffer = gst_buffer_new_allocate (NULL, Player::buffer_length, NULL);
-    gst_buffer_fill(buffer,0,this_->data+this_->offset, Player::buffer_length);
+    gst_buffer_fill(buffer,0,std::begin(data), Player::buffer_length);
 
     this_->offset+=Player::buffer_length/Player::word_size;
+
     if(this_->offset > Player::signal_length)
     {
         this_->quit();
         return false;
     }
+
     GstFlowReturn ret;
     g_signal_emit_by_name (this_->appsrc, "push-buffer", buffer, &ret);
 
     if (ret != GST_FLOW_OK) {
-      /* something wrong, stop pushing */
       g_main_loop_quit (this_->loop);
       return false;
     }
@@ -108,4 +96,16 @@ void cb_enough_data(GstElement* src, gpointer instance)
         g_source_remove(this_->sourceid);
         this_->sourceid=0;
     }
+}
+
+boost::shared_ptr<packet_t> SinGenerator::get_samples(int sample_count)
+{
+    boost::shared_ptr<packet_t> ret(new packet_t(sample_count));    
+    for(int i=0; i < sample_count; ++i)
+    {
+       sample_t sample=amplitude*sin(omega*(i+total_samples));
+       (*ret)[i]=sample;
+    }
+    total_samples+=sample_count;
+    return ret;
 }
