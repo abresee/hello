@@ -129,7 +129,7 @@ div.track_window{
 	position: static;
 	border-bottom-style: solid;
 	border-width: 1px;
-	border-color: white;
+	border-color: black;
 	float: left;
 	
 	z-index: 2;
@@ -196,7 +196,7 @@ div.track_times{
 </div>
 
 <div id='track_project_window'>
-<div id='track_window_offset' style="height: 7px"></div>
+<div id='track_window_offset' style="height: 83px"></div>
 
 
 </div>
@@ -209,7 +209,7 @@ div.track_times{
 <div id='closer'></div>
 <div id='select_tool' class='select'>select</div>
 <div id='snap_tool' class='select'>snap</div>
-<div id='select_tool' class='select'>select</div>
+
 <div id='zoom_slider' style="width: 300px; position: absolute; bottom: -20px; right:5px"></div>
 <div id='window'>
 <div id='selectable' class='piano_roll'>
@@ -259,15 +259,15 @@ while (count < 1000){
 
 count = 0;
 while (count < 30){
-	$('#track_project_window').prepend('<div class="track_times" style="left: '+((160 * count) + 294)+'px"></div>');
+	$('#track_project_window').append('<div class="track_times" style="left: '+((160 * count) + 294)+'px"></div>');
 	count += 1;
 }
 	
-count = 0;
+/*count = 0;
 while (count < 30){
 	$('#track_project_window').append('<div id="track_num_' + (count + 1) + '" class="track_window"></div>');
 	count += 1;
-}
+}*/
 
 
 
@@ -463,14 +463,14 @@ $('#select_tool_project').click(function(){
 		$('#track_pane').selectable({filter: ".track_info", selected: function(e, ui){
 			$('.ui-selected').css('background-color', 'yellow')
 			.each(function(){
-				$('#track_num_'+($(this).data("track_number") + 1)).css('background', "#ffffcc");
+				$('#track_num_'+ $(this).data("track_number")).css('background', "#ffffcc");
 			});
 		},
 		start: function(e, ui){
 			$('.track_info').each(function(){
 				if ($(this).not('.track_info')){
 					$(this).css('background-color', 'green');
-					$('#track_num_'+($(this).data("track_number") + 1)).css('background', "white");
+					$('#track_num_'+ $(this).data("track_number")).css('background', "white");
 				}
 			});		
 		}});
@@ -491,12 +491,15 @@ $('#pencil_tool_project').click(function(){
 		$('#pencil_tool_project').css('background-color', 'gray');
 	}
 });
-container_num = 1;
-$('.track_window').click(function(e){
+container_num = 0;
+var track_window_count = 0;
+var music_container_html;
+/*$('.track_window').click(function(e){
 	if (pencil_val_project == 1){
 		container_num += 1;
 		var music_container_html = '<div id="container_num_'+container_num+'" class="music_container"></div>';
 		$(this).append(music_container_html);
+		//$('#container_num_'+container_num).data("track_number", $(this).get("track_number"));
 		$('#container_num_'+container_num).draggable({containment: [149, 99, $('.track_window').width(), 1000], snap: '.track_window', snapMode:'outer', snapTolerance:70})
 		.offset({top: ((Math.ceil(e.pageY/76) * 76) -61), left: e.pageX - 10})
 		.contextmenu(function(){
@@ -506,8 +509,7 @@ $('.track_window').click(function(e){
 			$('#windowdrag').show();
 		});
 	}
-	
-});
+});*/
 
 
 //CANVAS TIMELINE*****************************************************
@@ -536,16 +538,27 @@ while (timeline_x_count < 5010){
 //TRACK PANE STUFF**************************************************
 var track_info_html = '<div id="okcool" class="track_info">track info</div>';
 var track_num = 1;
-var track_window = 0;
+var track_window = 1;
+var track_num_str;
+var attr_name;
 $('#create_track').click(function(){
 	$('#track_pane').append(track_info_html);
+	$('#track_project_window').append('<div id="track_num_' + (track_window) + '" class="track_window"></div>');
 	track_num = 1;
 	track_window += 1;
-	$('#track_num_'+ (track_window + 1)).css("border-color", "black");
 	$('.track_info').each(function(){
 		$(this).data("track_number", track_num);
 		track_num += 1;
 	});
+	track_num = 1;
+	$('.track_window').each(function(){
+		$(this).data("track_number", track_num);
+		track_num_str = track_num.toString();
+		attr_name = ("track_num_" + track_num_str);
+		$(this).attr("id", attr_name);
+		track_num += 1;
+	});
+	var max_y = track_num * $('.track_window').height();
 	
 	$('.track_info').click(function(){
 		$('.track_info').each(function(){
@@ -558,34 +571,54 @@ $('#create_track').click(function(){
 		$('.track_window').each(function(){
 			$(this).css('background', 'white');
 		});
-		$('#track_num_'+($(this).data("track_number") + 1)).css('background', "#ffffcc");
+		$('#track_num_'+($(this).data("track_number") )).css('background', "#ffffcc");
 		
 	});
+	
+	$('.track_window').click(function(e){
+	if (pencil_val_project == 1){
+		container_num += 1;
+		var music_container_html = '<div id="container_num_'+container_num+'" class="music_container"></div>';
+		$(this).append(music_container_html);
+		$('#container_num_'+container_num).data("track_number", $(this).data("track_number"));
+		$('#container_num_'+container_num).draggable({containment: [149, 90, $('.track_window').width(), max_y], snap: '.track_window', snapMode:'outer', snapTolerance:70})
+		.offset({top: ((Math.ceil(e.pageY/76) * 76) -61), left: e.pageX - 10})
+		.contextmenu(function(){
+			$(this).remove();
+		})
+		.dblclick(function(){
+			$('#windowdrag').show();
+		});
+	}
+});
 });
 
 $('#delete_track').click(function(){
 	$('.track_info').each(function(){
 		if ($(this).is('.ui-selected')){
+			var track_data = $(this).data("track_number");
+			$('.track_window').each(function(){
+				if ($(this).data("track_number") == (track_data)){
+					$(this).remove();
+				}
+			});
 			$(this).remove();
 		}
 	});
 	track_num = 1;
-	track_window = 0;
 	$('.track_info').each(function(){
 		$(this).data("track_number", track_num);
 		track_num += 1;
-		track_window += 1;
 	});
-	$('.track_window').each(function(){
-		$(this).css('background', 'white')
-		.css('border-color', 'white');
-	});
-	count = 0;
-	while (count <= track_num){
-		$('#track_num_'+ count).css('border-color', "black");
-		count += 1
-	}
 	
+	track_num = 1;
+	$('.track_window').each(function(){
+		$(this).data("track_number", track_num);
+		track_num_str = track_num.toString();
+		attr_name = ("track_num_" + track_num_str);
+		$(this).attr("id", attr_name);
+		track_num += 1;
+	});
 });
 	
 	
