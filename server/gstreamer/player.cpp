@@ -30,7 +30,7 @@ Player::Player(int * argc, char *** argv)
     g_signal_connect (appsrc, "enough-data", G_CALLBACK (cb_enough_data),this);
     
     instruments.push_back(spInstrument(new SinGenerator(std::numeric_limits<sample_t>::max(),
-                    sample_rate*2*M_PI*frequency)));
+                    2*M_PI*frequency/sample_rate)));
 }
 
 void Player::play()
@@ -105,6 +105,7 @@ boost::shared_ptr<packet_t> SinGenerator::get_samples(int sample_count)
     {
        sample_t sample=amplitude*sin(omega*(i+total_samples));
        (*ret)[i]=sample;
+       cout<<sample<<" "<<amplitude<<" "<<omega<<endl;
     }
     total_samples+=sample_count;
     return ret;
