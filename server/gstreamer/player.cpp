@@ -1,13 +1,12 @@
 #include "player.h"
 
-using std::cout;
-using std::endl;
-
+//ctor for Player objects. takes argc and argv so that gst can internally react to command line args.
+//default ctor chains to this one with NULL as both args.
 Player::Player(int * argc, char *** argv)
 {
     gst_init(argc,argv);
-    pipeline = gst_pipeline_new ("pipeline");
 
+    pipeline = gst_pipeline_new ("pipeline");
     appsrc = gst_element_factory_make ("appsrc", "source");
     conv = gst_element_factory_make ("audioconvert", "conv");
     audiosink = gst_element_factory_make ("autoaudiosink", "audio-output");
@@ -24,13 +23,23 @@ Player::Player(int * argc, char *** argv)
             NULL);
 
     loop = g_main_loop_new (NULL, FALSE);
+
     gst_bin_add_many (GST_BIN (pipeline), appsrc, conv, audiosink, NULL);
     gst_element_link_many (appsrc, conv, audiosink, NULL);
+
     g_signal_connect (appsrc, "need-data", G_CALLBACK (cb_need_data),this);
     g_signal_connect (appsrc, "enough-data", G_CALLBACK (cb_enough_data),this);
     
-    instruments.push_back(spInstrument(new SinGenerator(std::numeric_limits<sample_t>::max(),
+    instruments.push_back(spInstrument(new SinGenerator(std::numeric_limits<sample_t>::max()/4,
                     2*M_PI*frequency/sample_rate)));
+    instruments.push_back(spInstrument(new SinGenerator(std::numeric_limits<sample_t>::max()/4,
+                    2*M_PI*(5.0/4)*frequency/sample_rate)));
+    instruments.push_back(spInstrument(new SinGenerator(std::numeric_limits<sample_t>::max()/4,
+                    2*M_PI*(3.0/2)*frequency/sample_rate)));
+    instruments.push_back(spInstrument(new SinGenerator(std::numeric_limits<sample_t>::max()/4,
+                    2*M_PI*(15.0/8)*frequency/sample_rate)));
+    instruments.push_back(spInstrument(new SinGenerator(std::numeric_limits<sample_t>::max()/4,
+                    2*M_PI*2*frequency/sample_rate)));
 }
 
 void Player::play()
@@ -38,6 +47,7 @@ void Player::play()
     gst_element_set_state (pipeline, GST_STATE_PLAYING);
     g_main_loop_run (loop);
 }
+
 void Player::quit()
 {
     gst_element_set_state(pipeline, GST_STATE_NULL);
@@ -55,8 +65,13 @@ const char * Player::format = "S16LE";
 gboolean cb_push_data(gpointer instance)
 {
     Player * this_ = static_cast<Player *>(instance);
-
-    packet_t data=*(*this_->instruments.begin())->get_samples(Player::packet_size);
+    packet_t data(Player::packet_size);
+    for(std::vector<boost::shared_ptr<Instrument>>::iterator it = this_->instruments.begin();
+            it != this_->instruments.end();
+            ++it)
+    {
+        data+=*(*it)->get_samples(Player::packet_size);
+    }
 
     GstBuffer * buffer = gst_buffer_new_allocate (NULL, Player::buffer_length, NULL);
     gst_buffer_fill(buffer,0,std::begin(data), Player::buffer_length);
@@ -72,10 +87,12 @@ gboolean cb_push_data(gpointer instance)
     GstFlowReturn ret;
     g_signal_emit_by_name (this_->appsrc, "push-buffer", buffer, &ret);
 
-    if (ret != GST_FLOW_OK) {
-      g_main_loop_quit (this_->loop);
-      return false;
+    if (ret != GST_FLOW_OK)
+    {
+        g_main_loop_quit (this_->loop);
+        return false;
     }
+
     return true;
 }
 
@@ -105,7 +122,6 @@ boost::shared_ptr<packet_t> SinGenerator::get_samples(int sample_count)
     {
        sample_t sample=amplitude*sin(omega*(i+total_samples));
        (*ret)[i]=sample;
-       cout<<sample<<" "<<amplitude<<" "<<omega<<endl;
     }
     total_samples+=sample_count;
     return ret;

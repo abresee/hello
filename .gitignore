@@ -40,3 +40,4 @@ nosetests.xml
 # specific files
 #
 server/gstreamer/test
+docs/*
