@@ -13,13 +13,14 @@
 
 class Player;
 class Instrument;
+
 typedef boost::shared_ptr<Instrument> spInstrument;
 typedef int16_t sample_t;
-
-gboolean cb_push_data(gpointer);
-void cb_need_data(GstElement*, guint,gpointer);
-void cb_enough_data(GstElement*,gpointer);
-
+/*
+gboolean push_data_g(gpointer);
+void need_data_g(GstElement*, guint,gpointer);
+void enough_data_g(GstElement*,gpointer);
+*/
 class Player {
     GstElement * pipeline;
     GstElement * appsrc;
@@ -28,14 +29,19 @@ class Player {
     GMainLoop * loop;
 
     std::vector<spInstrument> instruments;
-
+    typedef std::vector<boost::shared_ptr<Instrument>>::iterator instruments_iter;
     const int amplitude = std::numeric_limits<int16_t>::max();
 
     int offset=0;
     guint sourceid=0;
-    friend gboolean cb_push_data(gpointer);
-    friend void cb_need_data(GstElement*, guint, gpointer);
-    friend void cb_enough_data(GstElement*, gpointer);
+
+    static gboolean push_data_g(gpointer);
+    static void need_data_g(GstElement*,guint,gpointer);
+    static void enough_data_g(GstElement*,gpointer);
+
+    gboolean push_data();
+    void need_data();
+    void enough_data();
 
 public:
     static const int sample_rate = 44100;
@@ -47,8 +53,14 @@ public:
     static const int frequency = 440;
     static const int seconds = 10;
     static const int signal_length = sample_rate*seconds;
+    static const int max_volume = std::numeric_limits<sample_t>::max();
+
     Player(int *, char ***);
     Player(): Player(NULL,NULL){}
+
+    void add_instrument(spInstrument);
+    void add_instrument(Instrument *);
+
     void play();
     void quit();
     ~Player();
@@ -67,6 +79,7 @@ class SinGenerator : public Instrument
     int amplitude;
     double omega;
     int total_samples;
+
 public:
     SinGenerator(int amplitude_, double omega_) : amplitude(amplitude_), omega(omega_) {}
     SinGenerator() : amplitude(0), omega(0.0) {}
@@ -75,9 +88,5 @@ public:
     void set_omega(double omega_){omega=omega_;}
     void set_frequency(double frequency){omega=2*M_PI*frequency;}
 };
-
-gboolean cb_push_data(gpointer);
-void cb_need_data(GstElement*, guint, gpointer);
-void cb_enough_data(GstElement*,gpointer);
 
 #endif /* PLAYER_H */
