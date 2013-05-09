@@ -62,11 +62,11 @@ Player::Player(int * argc, char *** argv)
     g_signal_connect (appsrc, "need-data", G_CALLBACK (need_data_g),this);
     g_signal_connect (appsrc, "enough-data", G_CALLBACK (enough_data_g),this);
     
-    add_instrument(new SinGenerator(max_volume/4,2*M_PI*frequency/sample_rate));
-    add_instrument(new SinGenerator(max_volume/4,2*M_PI*(5.0/4)*frequency/sample_rate));
-    add_instrument(new SinGenerator(max_volume/4,2*M_PI*(3.0/2)*frequency/sample_rate));
-    add_instrument(new SinGenerator(max_volume/4,2*M_PI*(15.0/8)*frequency/sample_rate));
-    add_instrument(new SinGenerator(max_volume/4,2*M_PI*2*frequency/sample_rate));
+    add_instrument(new SinGenerator(max_volume/5,2*M_PI*frequency/sample_rate));
+    add_instrument(new SinGenerator(max_volume/5,2*M_PI*(5.0/4)*frequency/sample_rate));
+    add_instrument(new SinGenerator(max_volume/5,2*M_PI*(3.0/2)*frequency/sample_rate));
+    add_instrument(new SinGenerator(max_volume/5,2*M_PI*(15.0/8)*frequency/sample_rate));
+    add_instrument(new SinGenerator(max_volume/5,2*M_PI*2*frequency/sample_rate));
 }
 
 void Player::add_instrument(Instrument * instrument)
