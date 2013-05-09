@@ -16,12 +16,12 @@ class Instrument;
 
 typedef boost::shared_ptr<Instrument> spInstrument;
 typedef int16_t sample_t;
-/*
-gboolean push_data_g(gpointer);
-void need_data_g(GstElement*, guint,gpointer);
-void enough_data_g(GstElement*,gpointer);
-*/
 class Player {
+    class static_init{
+        static_init(int*,char***);
+    };
+    static static_init _0;
+
     GstElement * pipeline;
     GstElement * appsrc;
     GstElement * conv;
@@ -43,6 +43,9 @@ class Player {
     void need_data();
     void enough_data();
 
+    void build_gst_element(GstElement**,const char*,const char*);
+    void initialize_gst(int*,char***);
+
 public:
     static const int sample_rate = 44100;
     static const char * format;
@@ -59,7 +62,7 @@ public:
     Player(): Player(NULL,NULL){}
 
     void add_instrument(spInstrument);
-    void add_instrument(Instrument *);
+    void add_instrument(Instrument*);
 
     void play();
     void quit();

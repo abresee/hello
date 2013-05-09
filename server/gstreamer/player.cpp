@@ -2,16 +2,44 @@
 
 const char * Player::format = "S16LE";
 
+void Player::build_gst_element(GstElement ** element, const char * kind, const char * name)
+{
+    assert(element!=NULL);
+    if(*element = gst_element_factory_make(kind,name),*element==NULL)
+    {
+        std::cerr<<"couldn't make "<<name<<std::endl;
+        std::exit(EXIT_FAILURE);
+    };
+}
+
+void Player::initialize_gst(int * argc, char *** argv)
+{
+        GError *err = NULL;
+        if(!gst_init_check(argc,argv,&err))
+        {
+            std::cerr<<"gst failed to init"<<std::endl;
+            std::cerr<<err->message<<std::endl;
+            std::exit(err->code);
+        };
+}
+
 //ctor for Player objects. takes argc and argv so that gst can internally react to command line args.
 //default ctor chains to this one with NULL as both args.
 Player::Player(int * argc, char *** argv)
 {
-    gst_init(argc,argv);
+    if(!gst_is_initialized())
+    {
+        initialize_gst(argc,argv);
+    }
+    if(pipeline = gst_pipeline_new ("pipeline"),pipeline==NULL)
+    {
+        std::cerr<<"couldn't make pipeline"<<std::endl;
+        std::exit(EXIT_FAILURE);
+    };
 
-    pipeline = gst_pipeline_new ("pipeline");
-    appsrc = gst_element_factory_make ("appsrc", "source");
-    conv = gst_element_factory_make ("audioconvert", "conv");
-    audiosink = gst_element_factory_make ("autoaudiosink", "audio-output");
+    build_gst_element(&appsrc,"appsrc","source");
+    build_gst_element(&conv,"audioconvert","conv");
+    build_gst_element(&audiosink,"autoaudiosink","audio-output");
 
     g_object_set (G_OBJECT (appsrc), "caps",
             gst_caps_new_simple (
