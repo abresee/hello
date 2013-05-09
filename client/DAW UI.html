@@ -52,6 +52,7 @@ div.time_column {
 	height:2700px;
 	position:absolute;
 	border-right-style:solid;
+	border-color: black;
 	border-width:1px;
 	top:0px;
 	left:0px;
@@ -105,7 +106,7 @@ div.select {background-color:gray;
 	position:fixed;
 	top:200px;
 	left:300px;
-	background: blue;
+	background: purple;
 	z-index: 3;
 }	
 #selectable .ui-selecting{ background: #663399; }
@@ -245,6 +246,8 @@ var container_width;
 var width = 0;
 var height = "2700px";
 var px = "px";
+var active_piano_roll;
+var music_container_offset = 0;
 
 while (count < max_notes){
 	$('.piano_roll').prepend(theHtml_container);
@@ -262,36 +265,34 @@ while (count < 30){
 	$('#track_project_window').append('<div class="track_times" style="left: '+((160 * count) + 294)+'px"></div>');
 	count += 1;
 }
-	
-/*count = 0;
-while (count < 30){
-	$('#track_project_window').append('<div id="track_num_' + (count + 1) + '" class="track_window"></div>');
-	count += 1;
-}*/
-
-
-
-/*count = 0;
-$('.track_times').each(function(){
-	$(this).css({left: (count * 160)});
-	count += 1;
-});*/
 
 function time_position(){
+var count_column_border = 1;
 $('.time_column').each(function(e, ui){
 		zoom_time_width = 25 * (zoom_const / 100) * 30;
 		zoom_time_width = zoom_time_width.toString();
 		$(this).css("width", zoom_time_width)
 		.css({left: Math.round(25 * (zoom_const / 100) * $(this).data("positionx"))});
+		if (count_column_border % 16 == 0){
+			$(this).css('border-color', 'red')
+			.css('border-width', '2px');
+		}
+		count_column_border += 1;
 	});
 }
 
 count = 0;
-var left_offset;	
+var left_offset;
+var attr_name_column;
+var column_num;	
 $('.time_column').each(function(){
+	column_num = (count + 1);
+	column_num_str = column_num.toString();
+	attr_name_column = ("column_num_" + column_num_str)
 	left_offset = (30 * count);
 	$(this).css({left: left_offset})
-	.data("positionx", left_offset);
+	.data("positionx", left_offset)
+	.attr("id", attr_name_column);
 	count += 1;
 });
 time_position()
@@ -316,7 +317,9 @@ $('.container').click(function(e){
 		
 		$('#id_num_'+id_num)
 		.resizable({minHeight:24,maxHeight:24, handles: "e"})
-		.css({position:'absolute'});
+		.css({position:'absolute'})
+		.data("piano_roll", active_piano_roll);
+		
 		if (snap_val == 1){
 			$('#id_num_'+id_num).draggable({snap:'.container,.time_column', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'});
 			left_position();
@@ -334,6 +337,7 @@ $('.container').click(function(e){
 		.each(function(){ //init placement
 			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
 			.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+			.data("position_left", $(this).position().left);
 		})
 		.on('resize', function(){
 			if ($(this).is('.ui-selected')){
@@ -366,11 +370,13 @@ $('.container').click(function(e){
 			variablelol = 1;
 			$('.drag_start').removeClass("drag_start")
 			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-			.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+			.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+			.data("position_left", $(this).position().left);
 			if ($(this).is('.ui-selected')){
 				$('.ui-selected').each(function(){
 				$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-				.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+				.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+				.data("position_left", $(this).position().left);
 				});
 			}
 		}})
@@ -420,10 +426,10 @@ $('#zoom_slider').slider({min: 5, max: 50, step: 5, value:25})
 .slider({change: function(e, ui){
 	$('.note').each(function(e, ui){
 		zoom_width = $('#zoom_slider').slider("value") * (zoom_const / 100) * $(this).data("length");
-		
 		zoom_width = zoom_width.toString();
 		$(this).css("width", zoom_width)
 		.css({left: $('#zoom_slider').slider("value") * (zoom_const / 100) * $(this).data("positionx")})
+		.data("position_left", $(this).position().left);
 		});
 	container_width = ($('#zoom_slider').slider("value") * (zoom_const / 100) * container_width_const);
 	container_width = container_width.toString();
@@ -511,7 +517,6 @@ while (timeline_x_count < 5010){
 	timeline_y_count %= 4;
 	ctx.lineWidth = 2;
 	ctx.moveTo(timeline_x_count, 20);
-	//ctx.lineTo(timeline_x_count, timeline_y[timeline_y_count]);
 	ctx.lineTo(timeline_x_count, timeline_y[timeline_y_count]);
 	ctx.stroke();
 	timeline_x_count += 10;
@@ -525,6 +530,10 @@ var track_window = 1;
 var track_num_str;
 var attr_name;
 var max_y;
+var container_count = 0;
+var track_num_data;
+
+
 $('#create_track').click(function(){
 	$('#track_pane').append(track_info_html);
 	$('#track_project_window').append('<div id="track_num_' + (track_window) + '" class="track_window"></div>');
@@ -540,42 +549,106 @@ $('#create_track').click(function(){
 				$(this).detach();
 				$('#track_num_'+ drag_stop_window_number).append($(this));
 				$('#container_num_'+container_num).removeData("track_number");
-				$('#container_num_'+container_num).data("track_number", drag_stop_window_number);
+				$('#container_num_'+container_num).data("track_number", drag_stop_window_number)
+				.data("position_left", (Math.ceil($(this).position.left / 10)) - 15);
+				
+				$(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+				music_container_offset = $(this).data("music_container_offset");
+				music_container_offset_previous = $(this).data("music_container_offset_previous");
+				active_piano_roll = $(this).attr("id");
+				$('.note').each(function(e, ui){
+					if ($(this).data("piano_roll") == active_piano_roll){
+						$(this).css({left: ($(this).data("position_left") + ((music_container_offset - music_container_offset_previous) * $('.time_column').width()))})
+						.css('background-color', '#9999cc')
+						.css('opacity', '1.0')
+						.data("position_left", $(this).position().left)
+						.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+					}else{
+						$(this).css('background-color', 'gray')
+						.css('opacity', '0.4');
+					}
+				});
+				$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
+					
+				//DOUBLE-CLICK FUNCTION*******************************
+				track_num_data = $(this).data("track_number");
+				$('.time_column').each(function(){
+					$(this)
+					.css('background-color', '#cccccc')
+					.css('opacity', '0.5');
+				});
+				count = 0;
+				while (count < 500){
+					if (count > (Math.ceil($(this).position().left / 10)) - 15){
+						if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+							$('#column_num_'+ count)
+							.css('background-color', 'transparent')
+							.css('opacity', '1.0');
+						}
+					}
+					count += 1;
+				}
+				
 			})
 			.offset({top: ((Math.ceil(e.pageY/76) * 76) -61), left: e.pageX - 10})
 			.contextmenu(function(){
 				$(this).remove();
 			})
-			.resizable({minHeight:76,maxHeight:76, handles: "e"})
-			.dblclick(function(){
-				$('.time_container').each(function(){
-					$(this).remove();
-				});
-				count = 0;
-				while (count < Math.ceil($(this).width() / 10)){
-					$('.piano_roll').after(theHtml_time);
-					count += 1;
-				}
-				count = 0;	
-				$('.time_column').each(function(){
-					left_offset = (30 * count);
-					$(this).css({left: left_offset})
-					.data("positionx", left_offset);
-					count += 1;
-				});
-				time_position()
-				$('#windowdrag').show();
-			});
+			.resizable({minHeight:76, maxHeight:76, handles: "e"});
+			
 			track_num = 1;
 			$('.track_window').each(function(){
 				track_num += 1;
 			});
+			
 			max_y = track_num * $('.track_window').height();
 			$('.music_container').each(function(){
 				$(this).draggable({containment: [149, 90, $('.track_window').width(), max_y]});
+			}).dblclick(function(){
+				//DOUBLE CLICK FUNCTION AGAIN LOLLLL************************
+				$(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+				music_container_offset = $(this).data("music_container_offset");
+				music_container_offset_previous = $(this).data("music_container_offset_previous");
+				active_piano_roll = $(this).attr("id");
+				$('.note').each(function(e, ui){
+					if ($(this).data("piano_roll") == active_piano_roll){
+						$(this).css({left: ($(this).data("position_left") + ((music_container_offset - music_container_offset_previous) * $('.time_column').width()))})
+						.css('background-color', '#9999cc')
+						.css('opacity', '1.0')
+						.data("position_left", $(this).position().left)
+						.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+					}else{
+						$(this).css('background-color', 'gray')
+						.css('opacity', '0.4');
+					}
+				});
+				$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
+					
+				
+				track_num_data = $(this).data("track_number");
+				$('.time_column').each(function(){
+					$(this)
+					.css('background-color', '#cccccc')
+					.css('opacity', '0.5');
+				});
+				count = 0;
+				while (count < 500){
+					if (count > (Math.ceil($(this).position().left / 10)) - 15){
+						if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+							$('#column_num_'+ count)
+							.css('background-color', 'transparent')
+							.css('opacity', '1.0');
+						}
+					}
+					count += 1;
+				}
+				$('#windowdrag').show();
 			});
 		}
+			
+		
 	});
+	
 	track_num = 1;
 	track_window += 1;
 	$('.track_info').each(function(){
@@ -594,6 +667,7 @@ $('#create_track').click(function(){
 	$('.music_container').each(function(){
 		$(this).draggable({containment: [149, 90, $('.track_window').width(), max_y]})
 	});
+		
 	
 	$('.track_info').click(function(){
 		$('.track_info').each(function(){
@@ -604,7 +678,7 @@ $('#create_track').click(function(){
 		$(this).addClass('ui-selected')
 		.css('background-color', 'yellow');
 		$('.track_window').each(function(){
-			$(this).css('background', 'white');
+			$(this).css({'border-right': 'blue'});
 		});
 		$('#track_num_'+($(this).data("track_number") )).css('background', "#ffffcc");
 		
@@ -660,7 +734,7 @@ $('#delete_track').click(function(){
 	//track_data = 1000;
 });
 	
-	
+
 
 
 
