@@ -2,45 +2,43 @@
 
 const char * Player::format = "S16LE";
 
-void Player::build_gst_element(GstElement ** element, const char * kind, const char * name)
+void Player::build_gst_element(GstElement* &element, const char * kind, const char * name)
 {
-    assert(element!=NULL);
-    if(*element = gst_element_factory_make(kind,name),*element==NULL)
+    assert(element!=nullptr);
+    if(element = gst_element_factory_make(kind,name),element==nullptr)
     {
         std::cerr<<"couldn't make "<<name<<std::endl;
         std::exit(EXIT_FAILURE);
     };
 }
 
-void Player::initialize_gst(int * argc, char *** argv)
+void Player::initialize_gst()
 {
-        GError *err = NULL;
-        if(!gst_init_check(argc,argv,&err))
+        GError *err;
+        if(!gst_init_check(nullptr,nullptr,&err))
         {
             std::cerr<<"gst failed to init"<<std::endl;
-            std::cerr<<err->message<<std::endl;
+            std::cerr<<(err?err->message:"unknown error")<<std::endl;
             std::exit(err->code);
         };
 }
 
-//ctor for Player objects. takes argc and argv so that gst can internally react to command line args.
-//default ctor chains to this one with NULL as both args.
-Player::Player(int * argc, char *** argv)
+Player::Player()
 {
     if(!gst_is_initialized())
     {
-        initialize_gst(argc,argv);
+        initialize_gst();
     }
-    if(pipeline = gst_pipeline_new ("pipeline"),pipeline==NULL)
+    if(pipeline = gst_pipeline_new ("pipeline"),pipeline==nullptr)
     {
         std::cerr<<"couldn't make pipeline"<<std::endl;
         std::exit(EXIT_FAILURE);
     };
 
-    build_gst_element(&pipeline,"pipeline","pipe");
-    build_gst_element(&appsrc,"appsrc","source");
-    build_gst_element(&conv,"audioconvert","conv");
-    build_gst_element(&audiosink,"autoaudiosink","output");
+    build_gst_element(pipeline,"pipeline","pipe");
+    build_gst_element(appsrc,"appsrc","source");
+    //build_gst_element(conv,"audioconvert","conv");
+    build_gst_element(audiosink,"autoaudiosink","output");
 
     g_object_set (G_OBJECT (appsrc), "caps",
             gst_caps_new_simple (
@@ -56,8 +54,8 @@ Player::Player(int * argc, char *** argv)
     //the gstreamer main loop is the main event loop for audio generation
     loop = g_main_loop_new (NULL, FALSE);
 
-    gst_bin_add_many (GST_BIN (pipeline), appsrc, conv, audiosink, NULL);
-    gst_element_link_many (appsrc, conv, audiosink, NULL);
+    gst_bin_add_many (GST_BIN (pipeline), appsrc,/* conv,*/ audiosink, NULL);
+    gst_element_link_many (appsrc, /* conv, */audiosink, NULL);
 
     //need_data_g and enough_data_g are wrappers for member functions in Player
     g_signal_connect (appsrc, "need-data", G_CALLBACK (need_data_g),this);

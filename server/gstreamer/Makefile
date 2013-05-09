@@ -11,7 +11,7 @@ LDFLAGS += $(GSTREAMERLDFLAGS) $(PYTHONLDFLAGS)
 
 default: python_library
 
-SOFLAGS = -shared -Wl,-soname,"$@",--export-dynamic -lboost_python3 
+SOFLAGS = -shared -Wl,-install_name,"$@",--export-dynamic -lboost_python3 
 
 SNAMES = hello_gstreamer
 SOBJ = $(addsuffix .so, $(SNAMES))

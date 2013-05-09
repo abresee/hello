@@ -24,7 +24,7 @@ class Player {
 
     GstElement * pipeline;
     GstElement * appsrc;
-    GstElement * conv;
+    //GstElement * conv;
     GstElement * audiosink;
     GMainLoop * loop;
 
@@ -35,6 +35,9 @@ class Player {
     int offset=0;
     guint sourceid=0;
 
+    void static build_gst_element(GstElement*&,const char*,const char*);
+    void static initialize_gst();
+
     static gboolean push_data_g(gpointer);
     static void need_data_g(GstElement*,guint,gpointer);
     static void enough_data_g(GstElement*,gpointer);
@@ -43,8 +46,6 @@ class Player {
     void need_data();
     void enough_data();
 
-    void build_gst_element(GstElement**,const char*,const char*);
-    void initialize_gst(int*,char***);
 
 public:
     static const int sample_rate = 44100;
@@ -58,9 +59,7 @@ public:
     static const int signal_length = sample_rate*seconds;
     static const int max_volume = std::numeric_limits<sample_t>::max();
 
-    Player(int *, char ***);
-    Player(): Player(NULL,NULL){}
-
+    Player();
     void add_instrument(spInstrument);
     void add_instrument(Instrument*);
 
