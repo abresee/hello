@@ -1,8 +1,8 @@
 PYTHONCXXFLAGS = `python3.3-config --cflags`
 PYTHONLDFLAGS = `python3.3-config --ldflags`
 
-GSTREAMERCXXFLAGS = `pkg-config --cflags gstreamer-{,{,plugins-}base-}1.0`
-GSTREAMERLDFLAGS = `pkg-config --libs gstreamer-{,base-}1.0`
+GSTREAMERCXXFLAGS = `pkg-config --cflags gstreamer-{,plugins-base-}1.0`
+GSTREAMERLDFLAGS = `pkg-config --libs gstreamer-1.0`
 
 CXXFLAGS = -std=gnu++11
 

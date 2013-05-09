@@ -37,9 +37,10 @@ Player::Player(int * argc, char *** argv)
         std::exit(EXIT_FAILURE);
     };
 
+    build_gst_element(&pipeline,"pipeline","pipe");
     build_gst_element(&appsrc,"appsrc","source");
     build_gst_element(&conv,"audioconvert","conv");
-    build_gst_element(&audiosink,"autoaudiosink","audio-output");
+    build_gst_element(&audiosink,"autoaudiosink","output");
 
     g_object_set (G_OBJECT (appsrc), "caps",
             gst_caps_new_simple (
