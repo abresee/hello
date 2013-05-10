@@ -1,0 +1,10 @@
+PROJECT(hello CXX)
+CMAKE_MINIMUM_REQUIRED( VERSION 2.6 )
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
+find_package(gstreamer)
+ADD_EXECUTABLE(test main.cpp)
+if (GSTREAMER_FOUND)
+    include_directories(${GSTREAMER_INCLUDE_DIRS})
+    target_link_libraries(test ${GSTREAMER_LIBRARIES})
+endif(GSTREAMER_FOUND)

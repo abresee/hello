@@ -1,5 +1,4 @@
-PYTHONCXXFLAGS := $(filter-out -Wstrict-prototypes, $(shell python3.3-config --cflags))
-PYTHONLDFLAGS := $(shell python3.3-config --ldflags)
+PYTHONCXXFLAGS := $(filter-out -Wstrict-prototypes, $(shell python3.3-config --cflags)) PYTHONLDFLAGS := $(shell python3.3-config --ldflags)
 
 GSTREAMERCXXFLAGS := $(filter-out -Wstring-prototypes, $(shell pkg-config --cflags gstreamer-{,plugins-base-}1.0))
 GSTREAMERLDFLAGS := $(shell pkg-config --libs gstreamer-1.0)
@@ -20,7 +19,6 @@ OBJ = $(addsuffix .o, $(ONAMES))
 SRCS = $(addsuffix .cpp, $(SNAMES) $(ONAMES))
 
 python_library: $(SOBJ) $(OBJ) 
-	@echo $(PYTHONCXXFLAGS) $(GSTREAMERCXXFLAGS)
 
 test: $(OBJ) main.o 
 	$(CXX) -o test $(OBJ) main.o $(GSTREAMERLDFLAGS)
