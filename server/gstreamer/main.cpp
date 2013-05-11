@@ -2,6 +2,6 @@
 
 int main(int argc, char ** argv)
 {
-    Player p(&argc, &argv);
+    Player p;
     p.play();
 }
