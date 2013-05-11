@@ -1,4 +1,5 @@
-PYTHONCXXFLAGS := $(filter-out -Wstrict-prototypes, $(shell python3.3-config --cflags)) PYTHONLDFLAGS := $(shell python3.3-config --ldflags)
+PYTHONCXXFLAGS := $(filter-out -Wstrict-prototypes, $(shell python3.3-config --cflags)) 
+PYTHONLDFLAGS := $(shell python3.3-config --ldflags)
 
 GSTREAMERCXXFLAGS := $(filter-out -Wstring-prototypes, $(shell pkg-config --cflags gstreamer-{,plugins-base-}1.0))
 GSTREAMERLDFLAGS := $(shell pkg-config --libs gstreamer-1.0)
@@ -10,7 +11,7 @@ LDFLAGS += $(GSTREAMERLDFLAGS) $(PYTHONLDFLAGS)
 
 default: python_library
 
-SOFLAGS = -shared -Wl,-install_name,"$@",--export-dynamic -lboost_python3 
+SOFLAGS = -shared -Wl,-install_name,"$@" -lboost_python-mt 
 
 SNAMES = hello_gstreamer
 SOBJ = $(addsuffix .so, $(SNAMES))

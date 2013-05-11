@@ -41,3 +41,7 @@ nosetests.xml
 #
 server/gstreamer/test
 docs/*
+server/gstreamer/CMakeCache.txt
+server/gstreamer/CMakeFiles/
+server/gstreamer/Makefile
+server/gstreamer/cmake_install.cmake
