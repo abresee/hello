@@ -1,6 +1,5 @@
 #ifndef PLAYER_H
 #define PLAYER_H 
-#include <iostream>
 #include <vector>
 #include <limits>
 #include <cmath>
@@ -11,10 +10,9 @@
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
 
-class Player;
 class Instrument;
-
 typedef boost::shared_ptr<Instrument> spInstrument;
+
 typedef int16_t sample_t;
 class Player {
     class static_init{
@@ -24,7 +22,7 @@ class Player {
 
     GstElement * pipeline;
     GstElement * appsrc;
-    //GstElement * conv;
+    GstElement * conv;
     GstElement * audiosink;
     GMainLoop * loop;
 
@@ -57,7 +55,7 @@ public:
     static const int frequency = 440;
     static const int seconds = 10;
     static const int signal_length = sample_rate*seconds;
-    static const int max_volume = std::numeric_limits<sample_t>::max();
+    static const int max_volume;
 
     Player();
     void add_instrument(spInstrument);
@@ -74,6 +72,7 @@ class Instrument
 {
 public:
     virtual boost::shared_ptr<packet_t> get_samples(int sample_count)=0; 
+    virtual ~Instrument(){}
 };
 
 class SinGenerator : public Instrument

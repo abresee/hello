@@ -1,0 +1,44 @@
+use-project boost : 
+    /Users/allie/boost/ 
+    ;
+
+project hello_gstreamer :
+    requirements <library>/boost/python//boost_python 
+    <cxxflags>-std=c++11 
+    :
+    ;
+
+# Make the definition of the python-extension rule available
+import python ;
+
+python-extension hello_gstreamer : 
+    hello_gstreamer.cpp
+    player.o
+    gstreamer-1.0 
+    gobject-2.0
+    gmodule-2.0
+    gthread-2.0
+    glib-2.0
+    :
+    ;
+
+obj player.o : player.cpp ;
+
+lib gstreamer-1.0  
+    :
+    :
+    :
+    <cxxflags>"`pkg-config gstreamer-1.0 --cflags"` 
+    <linkflags>"`pkg-config gstreamer-1.0 --libs`" ; 
+lib gobject-2.0 : : :
+    <cxxflags>"`pkg-config gobject-2.0 --cflags`"
+    <linkflags>"`pkg-config gobject-2.0 --libs`" ;
+lib gmodule-2.0 : : :
+    <cxxflags>"`pkg-config gmodule-2.0 --cflags`"
+    <linkflags>"`pkg-config gmodule-2.0 --libs`" ;
+lib gthread-2.0 : : : 
+    <cxxflags>"`pkg-config gthread-2.0 --cflags`"
+    <linkflags>"`pkg-config gthread-2.0 --libs`" ;
+lib glib-2.0 : : :
+    <cxxflags>"`pkg-config glib-2.0 --cflags`" 
+    <linkflags>"`pkg-config glib-2.0 --libs`" ;

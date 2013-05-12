@@ -1,13 +1,14 @@
+#include <iterator>
+#include <iostream>
 #include "player.h"
 
 const char * Player::format = "S16LE";
-
+const int Player::max_volume = std::numeric_limits<sample_t>::max();
 void Player::build_gst_element(GstElement* &element, const char * kind, const char * name)
 {
     assert(element!=nullptr);
     if(element = gst_element_factory_make(kind,name),element==nullptr)
     {
-        std::cerr<<"couldn't make "<<name<<std::endl;
         std::exit(EXIT_FAILURE);
     };
 }
@@ -17,8 +18,6 @@ void Player::initialize_gst()
         GError *err;
         if(!gst_init_check(nullptr,nullptr,&err))
         {
-            std::cerr<<"gst failed to init"<<std::endl;
-            std::cerr<<(err?err->message:"unknown error")<<std::endl;
             std::exit(err->code);
         };
 }
@@ -31,13 +30,12 @@ Player::Player()
     }
     if(pipeline = gst_pipeline_new ("pipeline"),pipeline==nullptr)
     {
-        std::cerr<<"couldn't make pipeline"<<std::endl;
         std::exit(EXIT_FAILURE);
     };
 
     build_gst_element(pipeline,"pipeline","pipe");
     build_gst_element(appsrc,"appsrc","source");
-    //build_gst_element(conv,"audioconvert","conv");
+    build_gst_element(conv,"audioconvert","conv");
     build_gst_element(audiosink,"autoaudiosink","output");
 
     g_object_set (G_OBJECT (appsrc), "caps",
@@ -54,8 +52,8 @@ Player::Player()
     //the gstreamer main loop is the main event loop for audio generation
     loop = g_main_loop_new (NULL, FALSE);
 
-    gst_bin_add_many (GST_BIN (pipeline), appsrc,/* conv,*/ audiosink, NULL);
-    gst_element_link_many (appsrc, /* conv, */audiosink, NULL);
+    gst_bin_add_many (GST_BIN (pipeline), appsrc, conv, audiosink, NULL);
+    gst_element_link_many (appsrc, conv, audiosink, NULL);
 
     //need_data_g and enough_data_g are wrappers for member functions in Player
     g_signal_connect (appsrc, "need-data", G_CALLBACK (need_data_g),this);
@@ -101,7 +99,7 @@ gboolean Player::push_data()
     }
 
     GstBuffer * buffer = gst_buffer_new_allocate (NULL, buffer_length, NULL);
-    gst_buffer_fill(buffer,0,std::begin(data), buffer_length);
+    gst_buffer_fill(buffer,0,&data[0], buffer_length);
 
     offset+=buffer_length/word_size;
 

@@ -4,21 +4,22 @@ PYTHONLDFLAGS := $(shell python3.3-config --ldflags)
 GSTREAMERCXXFLAGS := $(filter-out -Wstring-prototypes, $(shell pkg-config --cflags gstreamer-{,plugins-base-}1.0))
 GSTREAMERLDFLAGS := $(shell pkg-config --libs gstreamer-1.0)
 
-CXXFLAGS := -std=gnu++11 -fPIC
+BOOST_PYTHONCXXFLAGS := -I /Users/allie/boost
+BOOST_PYTHONLDFLAGS := -L/Users/allie/boost/stage/lib
+
+CXXFLAGS := -std=c++11 -stdlib=libstdc++ -fPIC
 
 CXXFLAGS += $(GSTREAMERCXXFLAGS) $(PYTHONCXXFLAGS)
 LDFLAGS += $(GSTREAMERLDFLAGS) $(PYTHONLDFLAGS)
 
 default: python_library
 
-<<<<<<< HEAD
-SOFLAGS = -shared -Wl,-install_name,"$@" -lboost_python-mt 
-=======
-SOFLAGS = -shared -Wl,-soname,"$@",--export-dynamic -lboost_python3 
->>>>>>> 6137881be46c6139dabdc485215b8dccad8e7ca6
+SOFLAGS = -single_module -dynamiclib -install_name "$@" -lboost_python 
+
+SUFFIX = dylib 
 
 SNAMES = hello_gstreamer
-SOBJ = $(addsuffix .so, $(SNAMES))
+SOBJ = $(addsuffix .$(SUFFIX), $(SNAMES))
 ONAMES = player
 OBJ = $(addsuffix .o, $(ONAMES))
 SRCS = $(addsuffix .cpp, $(SNAMES) $(ONAMES))
@@ -28,8 +29,8 @@ python_library: $(SOBJ) $(OBJ)
 test: $(OBJ) main.o 
 	$(CXX) -o test $(OBJ) main.o $(GSTREAMERLDFLAGS)
 
-%.so : %.o $(OBJ)
-	$(CXX) $(SOFLAGS) $(LDFLAGS) $^ -o $@ 
+%.$(SUFFIX) : %.o $(OBJ)
+	$(CXX)  $(LDFLAGS) $(BOOST_PYTHONLDFLAGS) $^ -o $(basename $@).so $(SOFLAGS)
 
 .PHONY: clean
 clean:
