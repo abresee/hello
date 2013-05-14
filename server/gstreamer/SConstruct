@@ -1,7 +1,8 @@
 # vim: set syntax=python
 import os
-boostincl=os.environ["BOOSTINCL"]
-boostlibs=os.environ["BOOSTLIBS"]
+
+boostincl=" -I"+os.environ.get("BOOSTINCL","")
+boostlibs=" -L"+os.environ.get("BOOSTLIBS","")
 
 env=Environment()
 env["CXXFLAGS"]="--std=c++11"
@@ -11,10 +12,8 @@ env.ParseConfig("pkg-config gstreamer-1.0 gstreamer-plugins-base-1.0 --cflags --
 
 env_py=env.Clone()
 env_py.ParseConfig("python3.3-config --cflags --ldflags")
-env_py.MergeFlags(env.ParseFlags("-fPIC -I"+boostincl+" -L"+boostlibs+" -lboost_python3"))
+env_py.MergeFlags(env.ParseFlags("-fPIC "+boostincl+" "+boostlibs+" -lboost_python3"))
 
 test=env.Program('test',['player.cpp','main.cpp'])
 
-env["SHLIBPREFIX"]=""
-env["SHLIBSUFFIX"]=".so"
-hello_gstreamer_so=env_py.SharedLibrary('hello_gstreamer',['player.cpp','hello_gstreamer.cpp'])
+hello_gstreamer_so=env_py.SharedLibrary('hello_gstreamer',['player.cpp','hello_gstreamer.cpp'],SHLIBPREFIX="",SHLIBSUFFIX=".so")
