@@ -1,4 +1,4 @@
 #!/usr/bin/env python
-from hello_gstreamer import Player
+from core_py import Player
 p=Player()
 p.play()
