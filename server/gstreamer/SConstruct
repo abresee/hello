@@ -13,6 +13,6 @@ env_py=env.Clone()
 env_py.ParseConfig("python3.3-config --cflags --ldflags")
 env_py.MergeFlags(env.ParseFlags("-fPIC "+boostincl+" "+boostlibs+" -lboost_python3"))
 
-test=env.Program('test',['player.cpp','main.cpp'])
+test=env.Program('test',['player.cpp','test.cpp'])
 
 hello_gstreamer_so=env_py.SharedLibrary('core_py',['player.cpp','core_py.cpp'],SHLIBPREFIX="",SHLIBSUFFIX=".so")
