@@ -6,8 +6,7 @@ boostlibs=" -L"+os.environ.get("BOOSTLIBS","")
 
 env=Environment()
 env["CXXFLAGS"]="--std=c++11"
-env["CXX"]="clang++"
-
+env["CXX"]=os.environ.get("CXX","g++")
 env.ParseConfig("pkg-config gstreamer-1.0 gstreamer-plugins-base-1.0 --cflags --libs")
 
 env_py=env.Clone()
