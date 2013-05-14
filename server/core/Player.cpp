@@ -1,10 +1,11 @@
 #include <iterator>
 #include <iostream>
-#include "player.h"
+#include "Player.h"
+#include "SinGenerator.h"
 
 const char * Player::format = "S16LE";
 
-//const sample_t Player::max_volume = std::numeric_limits<sample_t>::max();
+const Player::sample_t Player::max_volume = std::numeric_limits<Player::sample_t>::max();
 
 void Player::build_gst_element(GstElement* &element, const char * kind, const char * name)
 {
@@ -62,6 +63,7 @@ Player::Player()
     g_signal_connect (appsrc, "need-data", G_CALLBACK (need_data_g),this);
     g_signal_connect (appsrc, "enough-data", G_CALLBACK (enough_data_g),this);
     
+    const double frequency = 440.0;
     add_instrument(new SinGenerator(max_volume/5,2*M_PI*frequency/sample_rate));
     add_instrument(new SinGenerator(max_volume/5,2*M_PI*(5.0/4)*frequency/sample_rate));
     add_instrument(new SinGenerator(max_volume/5,2*M_PI*(3.0/2)*frequency/sample_rate));
@@ -94,7 +96,7 @@ void Player::quit()
 gboolean Player::push_data()
 {
     packet_t data(packet_size);
-    for(instruments_iter it = instruments.begin();
+    for(itInstruments it = instruments.begin();
             it != instruments.end();
             ++it)
     {
@@ -166,14 +168,3 @@ void Player::enough_data_g(GstElement* src, gpointer instance)
     this_->enough_data();
 }
 
-boost::shared_ptr<packet_t> SinGenerator::get_samples(int sample_count)
-{
-    boost::shared_ptr<packet_t> ret(new packet_t(sample_count));    
-    for(int i=0; i < sample_count; ++i)
-    {
-       sample_t sample=amplitude*sin(omega*(i+total_samples));
-       (*ret)[i]=sample;
-    }
-    total_samples+=sample_count;
-    return ret;
-}

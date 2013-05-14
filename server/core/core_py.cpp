@@ -1,4 +1,4 @@
-#include "player.h"
+#include "Player.h"
 #include <boost/python.hpp>
 
 BOOST_PYTHON_MODULE(core_py)
