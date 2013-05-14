@@ -3,11 +3,14 @@
 #include "player.h"
 
 const char * Player::format = "S16LE";
-const int Player::max_volume = std::numeric_limits<sample_t>::max();
+
+//const sample_t Player::max_volume = std::numeric_limits<sample_t>::max();
+
 void Player::build_gst_element(GstElement* &element, const char * kind, const char * name)
 {
     assert(element!=nullptr);
-    if(element = gst_element_factory_make(kind,name),element==nullptr)
+    element = gst_element_factory_make(kind,name);
+    if(element==nullptr)
     {
         std::exit(EXIT_FAILURE);
     };

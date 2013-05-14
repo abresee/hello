@@ -5,5 +5,5 @@ BOOST_PYTHON_MODULE(core_py)
 {
     using namespace boost::python;
     class_<Player>("Player")
-       .def("play",&Player::play); 
+        .def("play",&Player::play); 
 }

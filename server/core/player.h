@@ -33,6 +33,7 @@ class Player {
     int offset=0;
     guint sourceid=0;
 
+    ///Helper function to build gst elements to centralize boilerplate error checking.
     void static build_gst_element(GstElement*&,const char*,const char*);
     void static initialize_gst();
 
@@ -44,10 +45,10 @@ class Player {
     void need_data();
     void enough_data();
 
-
-public:
-    static const int sample_rate = 44100;
+    ///This string constant is used to signal gstreamer what format our appsrc's data is in.
+    ///"S16LE" means "Signed, 16 bit, little endian"
     static const char * format;
+    static const int sample_rate = 44100;
     static const int word_size= sizeof(sample_t);
     static const int packet_size= 512;
     static const int buffer_length = packet_size*word_size;
@@ -55,7 +56,11 @@ public:
     static const int frequency = 440;
     static const int seconds = 10;
     static const int signal_length = sample_rate*seconds;
-    static const int max_volume;
+
+    ///Static constant representing the largest representable sample value
+    static const sample_t max_volume=std::numeric_limits<sample_t>::max();
+
+public:
 
     Player();
     void add_instrument(spInstrument);
