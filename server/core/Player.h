@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
+#include "note.h"
 
 class Instrument;
 
@@ -17,17 +18,29 @@ class Player {
 public:
     /// @brief type of each individual sample
     typedef int16_t sample_t;
+    /// @brief typedef for convenience
     typedef boost::shared_ptr<Instrument> spInstrument;
+
+    /// @brief typedef for convenience
+    typedef boost::shared_ptr<Note> spNote;
     /// @brief type of each packet
     typedef std::valarray<sample_t> packet_t;
+    /// @brief typedef for convenience
     typedef boost::shared_ptr<packet_t> spPacket;
 
+    /// @brief default ctor
     Player();
+    /// @brief add an instrument by a boost::shared_ptr pointing to it
     void add_instrument(spInstrument);
+    /// @brief add an instrument by normal pointer
     void add_instrument(Instrument*);
 
+    /// @brief start playback
     void play();
+    /// @brief stop playback
     void quit();
+
+    /// @brief dtor
     ~Player();
 
 private:
@@ -67,11 +80,14 @@ private:
 
     /// @brief container for the player object's instruments
     std::vector<spInstrument> instruments;
+
+    std::vector<spNote> notes;
     /// @brief private typedef to more easily iterate over the instruments
     typedef std::vector<spInstrument>::iterator itInstruments;
 
     /// TODO: get rid of offset
     int offset=0;
+    /// @brief gst internal id for the push_data idle handler
     guint sourceid=0;
 
     /// @brief Helper function to build gst elements to centralize boilerplate error checking.

@@ -4,7 +4,7 @@ import os
 boostincl=" -I"+os.environ.get("BOOSTINCL","")
 boostlibs=" -L"+os.environ.get("BOOSTLIBS","")
 
-core_sources = ['Player.cpp', 'SinGenerator.cpp']
+core_sources = ['Player.cpp', 'SinGenerator.cpp', 'Note.cpp']
 
 env=Environment()
 env["CXXFLAGS"]="--std=c++11"

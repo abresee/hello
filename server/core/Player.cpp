@@ -9,21 +9,20 @@ const Player::sample_t Player::max_volume = std::numeric_limits<Player::sample_t
 
 void Player::build_gst_element(GstElement* &element, const char * kind, const char * name)
 {
-    assert(element!=nullptr);
     element = gst_element_factory_make(kind,name);
     if(element==nullptr)
     {
         std::exit(EXIT_FAILURE);
-    };
+    }
 }
 
 void Player::initialize_gst()
 {
-        GError *err;
-        if(!gst_init_check(nullptr,nullptr,&err))
-        {
-            std::exit(err->code);
-        };
+    GError *err;
+    if(!gst_init_check(nullptr,nullptr,&err))
+    {
+        std::exit(err->code);
+    }
 }
 
 Player::Player()
