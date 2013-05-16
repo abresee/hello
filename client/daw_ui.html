@@ -133,7 +133,7 @@ div.track_window{
 	border-color: black;
 	float: left;
 	
-	z-index: 2;
+	z-index: 3;
 }
 #track_pane{
 	width: 149px;
@@ -166,7 +166,7 @@ div.track_window{
 }
 div.track_times{
 	width: 15px;
-	height: 840px;
+	height: 4000px;
 	position: absolute;
 	top: 92px;
 	left: 300px;
@@ -174,6 +174,30 @@ div.track_times{
 	border-width: 2px;
 	z-index: 0;
 }
+.hider{
+	visibility: hidden;
+}
+
+div.transport_locator{
+	width: 2px;
+	height: 4020px;
+	position: absolute;
+	top:70px;
+	left:150px;
+	background: red;
+	z-index: 2;
+}
+
+#bpm{
+	position: absolute;
+	left: 300px;
+	top: -5px;
+}
+
+#input_bpm{
+	width: 40px;
+}
+
 
 </style>
 </head>
@@ -184,6 +208,16 @@ div.track_times{
 <div id='select_tool_project' class='select' style="bottom: 0px;">select</div>
 <div id='snap_tool_project' class='select' style="bottom: 0px; left: 40px;">snap</div>
 <div id='pencil_tool_project' class='select' style="bottom: 0px; left: 80px;">pencil</div>
+
+<div id='play' class='select' style="bottom: 30px; left: 200px;">play</div>
+
+<p id="bpm">
+	<label for="spinner">BPM</label>
+	<input id="input_bpm" name="value" />
+</p>
+
+
+
 </div>
 
 <div id='timeline_black' style="width: 150px; height: 20px; border-bottom-style: solid; border-width: 1px; background: white; z-index: 3; position: fixed; left: 0px; top: 71px;">
@@ -192,6 +226,7 @@ div.track_times{
 </div>
 
 <canvas id='timeline' width="5000" height="20" style="z-index: 1;"></canvas>
+<div id='locator' class='transport_locator'></div>
 
 <div id='track_pane'>
 </div>
@@ -251,6 +286,9 @@ var music_container_offset = 0;
 var music_container_previous = 0;
 var music_container_offset2 = 0;
 var music_container_previous2 = 0;
+var track_numberz;
+var container_num = 0;
+var track_time_width = 160;
 
 while (count < max_notes){
 	$('.piano_roll').prepend(theHtml_container);
@@ -321,7 +359,9 @@ $('.container').click(function(e){
 		$('#id_num_'+id_num)
 		.resizable({minHeight:24,maxHeight:24, handles: "e"})
 		.css({position:'absolute'})
-		.data("piano_roll", active_piano_roll);
+		.data("piano_roll", active_piano_roll)
+		//.removeData("track_number")
+		.data("track_number", track_numberz);
 		
 		if (snap_val == 1){
 			$('#id_num_'+id_num).draggable({snap:'.container,.time_column', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'});
@@ -400,12 +440,19 @@ $('#select_tool').click(function(){
 	select_val = (select_val + 1) % 2;
 	if (select_val==1){
 		$('#select_tool').css('background-color', 'yellow');
-		$('.piano_roll').selectable({filter: '.note'});
+		$('.piano_roll').selectable({filter: '.note', stop: function(){
+			$('.note').css('background-color', "#9999cc");
+			$('.ui-selected').css('background-color', '#330066');
+				}, selecting: function(){
+					$('.ui-selecting').css('background-color', '#663399')
+					}
+		});
 		
 	}else{
 		$('#select_tool').css('background-color', 'gray');
 		$('#selectable').selectable("destroy");
 		$('.note').removeClass('ui-selected');
+		$('.note').css('background-color', "#9999cc"); 
 	}
 });
 
@@ -459,11 +506,11 @@ $('#closer').click(function(){
 });
 
 $('#timeline').scrollToFixed({marginTop: 71, zIndex: 2});
+//$('.transport_locator').scrollToFixed({marginTop: 71, zIndex: 2});
 //$('.track_times').scrollToFixed({marginTop: 92, zIndex: 1});
 
 $(window).scroll(function(){
 	$('#track_pane').offset({left: $(window).scrollLeft()});
-	$('.track_times').css({top: $(window).scrollTop() + 92});
 });
 
 var select_val_project = 0;
@@ -502,7 +549,7 @@ $('#pencil_tool_project').click(function(){
 		$('#pencil_tool_project').css('background-color', 'gray');
 	}
 });
-container_num = 0;
+
 var track_window_count = 0;
 var music_container_html;
 
@@ -536,57 +583,105 @@ var track_num_str;
 var attr_name;
 var max_y;
 var container_count = 0;
-var track_num_data;
 
 
 $('#create_track').click(function(){
 	$('#track_pane').append(track_info_html);
 	$('#track_project_window').append('<div id="track_num_' + (track_window) + '" class="track_window"></div>');
-	$('#track_num_'+track_window).click(function(e){
+	track_num = 1;
+	track_window += 1;
+	$('.track_info').each(function(){
+		$(this).data("track_number", track_num);
+		track_num += 1;
+	});
+	track_num = 1;
+	$('.track_window').each(function(){
+		$(this).data("track_number", track_num);
+		track_num_str = track_num.toString();
+		attr_name = ("track_num_" + track_num_str);
+		$(this).attr("id", attr_name);
+		track_num += 1;
+	})
+	$('#track_num_'+ (track_window - 1)).click(function(e){
 		if (pencil_val_project == 1){
 			container_num += 1;
 			var music_container_html = '<div id="container_num_'+container_num+'" class="music_container"></div>';
+			var drag_stop_window_number = (($(this).position().top - 15) / 76);
 			$(this).append(music_container_html);
 			$('#container_num_'+container_num).data("track_number", $(this).data("track_number"));
-			$('#container_num_'+container_num).draggable({containment: [149, 90, $('.track_window').width(), max_y], snap: '.track_window', snapMode:'inner', snapTolerance:70})
-			
-			.offset({top: ((Math.ceil(e.pageY/76) * 76) -61), left: e.pageX - 10})
-			.contextmenu(function(){
-				$(this).remove();
-			})
-			.resizable({minHeight:76, maxHeight:76, handles: "e"})
-			.on("dragstop", function(e, ui){
-				var drag_stop_window_number = (($(this).position().top - 15) / 76);
-				$(this).detach();
-				$('#track_num_'+ drag_stop_window_number).append($(this));
-				$('#container_num_'+container_num).removeData("track_number");
-				$('#container_num_'+container_num).data("track_number", drag_stop_window_number)
-				.data("position_left", (Math.ceil($(this).position.left / 10)) - 15);
-				
-				//DOUBLE-CLICK FUNCTION*******************************
+				$('#container_num_'+container_num).draggable({containment: [149, 90, $('.track_window').width(), max_y], snap: '.track_window', snapMode:'inner', snapTolerance:70})
+				.offset({top: ((Math.ceil(e.pageY/76) * 76) -61), left: e.pageX - 10})
+				.resizable({minHeight:76, maxHeight:76, handles: "e"})
+				.contextmenu(function(){
+					$('.note').each(function(){
+						if ($(this).data("piano_roll") == active_piano_roll){
+							$(this).remove();
+						}
+					});
+					$(this).remove();
+				})	
+				.resizable({stop: function(e, ui){
+					$('.time_column').each(function(){
+						$(this).css('background-color', '#cccccc')
+						.css('opacity', '0.5');
+						});
+					count = 0;
+					while (count < 500){
+						if (count > (Math.ceil($(this).position().left / 10)) - 15){
+							if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+								$('#column_num_'+ count)
+								.css('background-color', 'transparent')
+								.css('opacity', '1.0');
+							}
+						}
+						count += 1;
+					}
+				}})			
+				.on("dragstop", function(e, ui){
+					var drag_stop_window_number = (($(this).position().top - 15) / 76);
+					$(this).detach();
+					$('#track_num_'+ drag_stop_window_number).append($(this));
+					$(this).removeData("track_number");
+					$(this).data("track_number", drag_stop_window_number)
+					.data("position_left", (Math.ceil($(this).position.left / 10)) - 15);		
+					//DOUBLE-CLICK FUNCTION*******************************
 					if (window_drag == 1){
+						$('#windowdrag').show();
+						track_numberz = $(this).data("track_number");
 						$(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
 						music_container_offset = $(this).data("music_container_offset");
 						music_container_offset_previous = $(this).data("music_container_offset_previous");
 						active_piano_roll = $(this).attr("id");
+						
 						$('.note').each(function(e, ui){
-							if ($(this).data("piano_roll") == active_piano_roll){
-								$(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
-								.css({left: ((music_container_offset * $('.time_column').width()) + $(this).data("offset"))})
-								.css('background-color', '#9999cc')
-								.css('opacity', '1.0')
-								.data("position_left", $(this).position().left)
-								.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-								
-							}else{
-								$(this).css('background-color', 'gray')
-								.css('opacity', '0.4');
-							}
+								$(this).css('visibility', 'visible')
+								.css('z-index', '3');
+								if ($(this).data("piano_roll") == active_piano_roll){
+									$(this).removeData("track_number")
+									.data("track_number", track_numberz);
+								}
+								if ($(this).data("track_number") == track_numberz){
+									if ($(this).data("piano_roll") == active_piano_roll){
+										$(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+										.css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
+										.css('background', '#9999cc')
+										.css('opacity', '1.0')
+										.data("position_left", $(this).position().left)
+										.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+										if ($(this).is('.ui-selected')){
+											$(this).css('background-color', '#330066');
+										}
+									}else{
+										$(this).css('background-color', 'gray')
+										.css('opacity', '0.4');
+									}
+								}else{
+									$(this).css('visibility', 'hidden')
+									.css('z-index', '-1'); 
+								}
 						});
-						track_num_data = $(this).data("track_number");
 						$('.time_column').each(function(){
-							$(this)
-							.css('background-color', '#cccccc')
+							$(this).css('background-color', '#cccccc')
 							.css('opacity', '0.5');
 						});
 						count = 0;
@@ -602,75 +697,59 @@ $('#create_track').click(function(){
 						}
 						$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
 					}
-			});
-			
-			track_num = 1;
-			$('.track_window').each(function(){
-				track_num += 1;
-			});
-			
-			max_y = track_num * $('.track_window').height();
-			$('.music_container').each(function(){
-				$(this).draggable({containment: [149, 90, $('.track_window').width(), max_y]});
-			}).dblclick(function(){
-				//DOUBLE CLICK FUNCTION AGAIN LOLLLL************************
-				$(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
-				music_container_offset = $(this).data("music_container_offset");
-				active_piano_roll = $(this).attr("id");
-				$('.note').each(function(e, ui){
-					if ($(this).data("piano_roll") == active_piano_roll){
-						$(this)//.data("offset", ($(this).data("position_left") - (music_container_offset * $('.time_column').width())))
-						.css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
-						.css('background-color', '#9999cc')
-						.css('opacity', '1.0')
-						.data("position_left", $(this).position().left)
-						.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-						
-					}else{
-						$(this).css('background-color', 'gray')
-						.css('opacity', '0.4');
-					}
-				});
-				track_num_data = $(this).data("track_number");
-				$('.time_column').each(function(){
-					$(this)
-					.css('background-color', '#cccccc')
-					.css('opacity', '0.5');
-				});
-				count = 0;
-				while (count < 500){
-					if (count > (Math.ceil($(this).position().left / 10)) - 15){
-						if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
-							$('#column_num_'+ count)
-							.css('background-color', 'transparent')
-							.css('opacity', '1.0');
+				})
+				.dblclick(function(){
+					//DOUBLE CLICK FUNCTION AGAIN LOLLLL************************
+					$('#windowdrag').show();
+					track_numberz = $(this).data("track_number");
+					$(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+					music_container_offset = $(this).data("music_container_offset");
+					music_container_offset_previous = $(this).data("music_container_offset_previous");
+					active_piano_roll = $(this).attr("id");
+					$('.note').each(function(e, ui){
+							$(this).css('visibility', 'visible')
+							.css('z-index', '3');
+							if ($(this).data("track_number") == track_numberz){
+								if ($(this).data("piano_roll") == active_piano_roll){
+									$(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+									.css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
+									.css('background', '#9999cc')
+									.css('opacity', '1.0')
+									.data("position_left", $(this).position().left)
+									.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+									if ($(this).is('.ui-selected')){
+										$(this).css('background-color', '#330066');
+									}
+								}else{
+									$(this).css('background-color', 'gray')
+									.css('opacity', '0.4');
+								}
+							}else{
+								$(this).css('visibility', 'hidden')
+								.css('z-index', '-1'); 
+							}
+					});
+					$('.time_column').each(function(){
+						$(this)
+						.css('background-color', '#cccccc')
+						.css('opacity', '0.5');
+					});
+					count = 0;
+					while (count < 500){
+						if (count > (Math.ceil($(this).position().left / 10)) - 15){
+							if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+								$('#column_num_'+ count)
+								.css('background-color', 'transparent')
+								.css('opacity', '1.0');
+							}
 						}
+						count += 1;
 					}
-					count += 1;
-				}
-				$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
-				$('#windowdrag').show();
-				window_drag = 1;
-			});
-		}
-			
-		
-	});
-	
-	track_num = 1;
-	track_window += 1;
-	$('.track_info').each(function(){
-		$(this).data("track_number", track_num);
-		track_num += 1;
-	});
-	track_num = 1;
-	$('.track_window').each(function(){
-		$(this).data("track_number", track_num);
-		track_num_str = track_num.toString();
-		attr_name = ("track_num_" + track_num_str);
-		$(this).attr("id", attr_name);
-		track_num += 1;
-	});
+					$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
+					window_drag = 1;
+				});
+			}
+		});
 	max_y = track_num * $('.track_window').height();
 	$('.music_container').each(function(){
 		$(this).draggable({containment: [149, 90, $('.track_window').width(), max_y]})
@@ -688,14 +767,22 @@ $('#create_track').click(function(){
 		$('.track_window').each(function(){
 			$(this).css({'border-right': 'blue'});
 		});
+		$('.track_window').each(function(){
+			$(this).css('background', 'none');
+		});
 		$('#track_num_'+($(this).data("track_number") )).css('background', "#ffffcc");
 		
 	});
 	
-	
 });
+
+
+
+
 	
-var track_data
+	
+	
+var track_data;
 var removed = 0;
 $('#delete_track').click(function(){
 	$('.track_info').each(function(){
@@ -741,6 +828,40 @@ $('#delete_track').click(function(){
 	removed = 0;
 	//track_data = 1000;
 });
+
+//TRANSPORT FUNCTIONS**************************************
+$('#timeline').click(function(e){
+	$('.transport_locator').css({left: e.pageX});
+});
+var play_start;
+$('#input_bpm').spinner()
+$('#input_bpm').on("spinchange", function(){
+	if (play_select == 1){
+		clearInterval(play_start);
+		play_start = setInterval(function(){play_start_locator()}, ((60 / $('#input_bpm').spinner("value")) * (1000 / pixels_per_beat)));
+	}
+});
+
+
+function play_start_locator(){
+	$('.transport_locator').css({left: $('.transport_locator').position().left + 1});
+}
+var pixels_per_beat = 40;	
+
+var play_select = 0;
+$('#play').click(function(){
+	play_select += 1;
+	if (play_select == 1){
+		$(this).css('background-color', 'yellow');
+		play_start = setInterval(function(){play_start_locator()}, ((60 / $('#input_bpm').spinner("value")) * (1000 / pixels_per_beat)));
+	}else{
+		$(this).css('background-color', 'gray');
+		clearInterval(play_start);
+	}
+	play_select %= 2;
+});
+		
+	
 	
 
 
