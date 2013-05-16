@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+<script src="https://dl.dropboxusercontent.com/u/286533/jquery-1.9.1.min.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/286533/jquery-ui.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/286533/html%20project/jquery-scrolltofixed-min.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/286533/html%20project/jquery.event.drag-2.2.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/286533/html%20project/jquery.event.drag.live-2.2.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/286533/html%20project/scroll-startstop.events.jquery.js"></script>
+<style>
+div.container {width:10000px;
+	border-top-style:solid;
+	border-width:1px;
+	height:24px;
+	position:relative;
+	top:1px;
+	left:1px;
+	z-index: 3;
+	}
+div.note {background-color: #9999cc;
+	width:59px;
+	height:24px;
+	position:relative;
+	top:0px;
+	left:0px;
+	border-left-style: solid;
+	border-width:1px;
+	white-space: nowrap;
+	cursor: move;
+	z-index:3}
+div.music_container {background-color: blue;
+	width:59px;
+	height:75px;
+	position:absolute;
+	top:0px;
+	left:0px;
+	border-left-style: solid;
+	border-bottom-style: solid;
+	border-width:1px;
+	cursor: move;
+	z-index:1}
+div.piano_roll {
+	width:10002px;
+	height:2700px;
+	position:absolute;
+	top:0px;
+	left:0px;
+}
+div.time_column {
+	width:29px;
+	height:2700px;
+	position:absolute;
+	border-right-style:solid;
+	border-color: black;
+	border-width:1px;
+	top:0px;
+	left:0px;
+	z-index: 1;
+}
+#select_tool {background-color:gray;
+	top:-40px;
+	left:15px;
+}
+#snap_tool {background-color:gray;
+	top:-40px;
+	left:56px;
+}
+div.select {background-color:gray;
+	width:38px;
+	height:20px;
+	position:absolute;
+}
+#window {
+	width:1022px;
+	height:502px;
+	position:absolute;
+	top:0px;
+	left:0px;
+	overflow: auto;
+	border-style: outset}
+#windowresize {
+	width:1029px;
+	height:509px;
+	position:absolute;
+	top:20px;
+	left:0px;
+	overflow: visible;
+	background: white;
+}
+#closer {
+	width:12px;
+	height:12px;
+	position:absolute;
+	top:-16px;
+	right:5px;
+	overflow: visible;
+	background: red;
+	z-index: 3;
+}
+#windowdrag {
+	width:1028px;
+	height:20px;
+	min-height: 20px;
+	max-height: 20px;
+	position:fixed;
+	top:200px;
+	left:300px;
+	background: purple;
+	z-index: 3;
+}	
+#selectable .ui-selecting{ background: #663399; }
+#selectable .ui-selected { background: #330066; z-index: 4}
+
+div.track_info{
+	width: 149px;
+	height: 75px;
+	top: 0px; left: 0px;
+	position: static;
+	border-bottom-style: solid;
+	border-right-style: solid;
+	border-width: 1px;
+	background: green;
+	z-index: 1
+}
+div.track_window{
+	width: 4850px;
+	height: 75px;
+	top: 91px;
+	position: static;
+	border-bottom-style: solid;
+	border-width: 1px;
+	border-color: black;
+	float: left;
+	
+	z-index: 3;
+}
+#track_pane{
+	width: 149px;
+	height: 4000px;
+	position: absolute;
+	top: 91px; left: 0px;
+	border-right-style: solid;
+	border-width: 1px;
+	background: gray;
+	float: left;
+	z-index: 2;
+}
+#transport_pane{
+	width: 1905px;
+	height: 70px;
+	position: fixed;
+	top: 0px; left: 0px;
+	z-index: 3;
+	border-bottom-style: solid;
+	border-width: 1px;
+	background: white;
+}
+#timeline{
+	background-color: #cccccc;
+	position: absolute;
+	left: 0px; top: 71px;
+	border-bottom-style: solid;
+	border-width: 1px;
+	z-index: 4;
+}
+div.track_times{
+	width: 15px;
+	height: 4000px;
+	position: absolute;
+	top: 92px;
+	left: 300px;
+	border-right-style: solid;
+	border-width: 2px;
+	z-index: 0;
+}
+.hider{
+	visibility: hidden;
+}
+
+div.transport_locator{
+	width: 2px;
+	height: 4020px;
+	position: absolute;
+	top:70px;
+	left:150px;
+	background: red;
+	z-index: 2;
+}
+
+#bpm{
+	position: absolute;
+	left: 300px;
+	top: -5px;
+}
+
+#input_bpm{
+	width: 40px;
+}
+
+
+</style>
+</head>
+
+<body oncontextmenu="return false;">
+
+<div id='transport_pane'>transport info
+<div id='select_tool_project' class='select' style="bottom: 0px;">select</div>
+<div id='snap_tool_project' class='select' style="bottom: 0px; left: 40px;">snap</div>
+<div id='pencil_tool_project' class='select' style="bottom: 0px; left: 80px;">pencil</div>
+
+<div id='play' class='select' style="bottom: 30px; left: 200px;">play</div>
+
+<p id="bpm">
+	<label for="spinner">BPM</label>
+	<input id="input_bpm" name="value" />
+</p>
+
+
+
+</div>
+
+<div id='timeline_black' style="width: 150px; height: 20px; border-bottom-style: solid; border-width: 1px; background: white; z-index: 3; position: fixed; left: 0px; top: 71px;">
+<div id='create_track' style="width: 20px; height: 12px; background: gray; position: absolute; left: 4px; top: 4px;"></div>
+<div id='delete_track' style="width: 20px; height: 12px; background: gray; position: absolute; left: 28px; top: 4px;"></div>
+</div>
+
+<canvas id='timeline' width="5000" height="20" style="z-index: 1;"></canvas>
+<div id='locator' class='transport_locator'></div>
+
+<div id='track_pane'>
+</div>
+
+<div id='track_project_window'>
+<div id='track_window_offset' style="height: 83px"></div>
+
+
+</div>
+
+
+
+<!--piano roll stuff-->
+<div id='windowdrag'>
+<div id='windowresize'>
+<div id='closer'></div>
+<div id='select_tool' class='select'>select</div>
+<div id='snap_tool' class='select'>snap</div>
+
+<div id='zoom_slider' style="width: 300px; position: absolute; bottom: -20px; right:5px"></div>
+<div id='window'>
+<div id='selectable' class='piano_roll'>
+</div>
+</div>
+</div>
+</div>
+
+
+<script>
+var max_notes = 108;
+var count = 0;
+var theHtml_container = "<div class='container'></div>";
+var theHtml_time = "<div class='time_container'><div class='time_column'></div></div>";
+var zoom_const = 4;	
+var zoom_time_width = 4;	
+var id_number = 0;
+var id_num;
+var mouse_pos;
+var mouse_pos_x;
+var offset_val = 0;
+var disabled;
+var resize = 0;
+var position_x = 100;
+var position_y;
+var variablelol = 1;
+var drag_start_position_x;
+var drag_start_position_y;
+var piano_roll_width = "10002";
+var container_width_const = 30000;
+var container_width_default = 25 * (zoom_const / 100) * container_width_const;
+var container_width;
+var width = 0;
+var height = "2700px";
+var px = "px";
+var active_piano_roll;
+var music_container_offset = 0;
+var music_container_previous = 0;
+var music_container_offset2 = 0;
+var music_container_previous2 = 0;
+var track_numberz;
+var container_num = 0;
+var track_time_width = 160;
+
+while (count < max_notes){
+	$('.piano_roll').prepend(theHtml_container);
+	count += 1;
+	}
+
+count = 0;
+while (count < 1000){
+	$('.piano_roll').after(theHtml_time);
+	count += 1
+	}
+
+count = 0;
+while (count < 30){
+	$('#track_project_window').append('<div class="track_times" style="left: '+((160 * count) + 294)+'px"></div>');
+	count += 1;
+}
+
+function time_position(){
+var count_column_border = 1;
+$('.time_column').each(function(e, ui){
+		zoom_time_width = 25 * (zoom_const / 100) * 30;
+		zoom_time_width = zoom_time_width.toString();
+		$(this).css("width", zoom_time_width)
+		.css({left: Math.round(25 * (zoom_const / 100) * $(this).data("positionx"))});
+		if (count_column_border % 16 == 0){
+			$(this).css('border-color', 'red')
+			.css('border-width', '2px');
+		}
+		count_column_border += 1;
+	});
+}
+
+count = 0;
+var left_offset;
+var attr_name_column;
+var column_num;	
+$('.time_column').each(function(){
+	column_num = (count + 1);
+	column_num_str = column_num.toString();
+	attr_name_column = ("column_num_" + column_num_str)
+	left_offset = (30 * count);
+	$(this).css({left: left_offset})
+	.data("positionx", left_offset)
+	.attr("id", attr_name_column);
+	count += 1;
+});
+time_position()
+
+function left_position(){
+	$('#id_num_'+id_num).offset({top: ((Math.ceil(mouse_pos/25) * 25)) + $('.piano_roll').offset().top -23, left: ((Math.floor(mouse_pos_x / ($('.time_column').width() + 0)) * ($('.time_column').width() + 0))) + $('.piano_roll').offset().left});
+}
+
+$('.container').click(function(e){
+	if (select_val == 0){
+		mouse_pos = e.pageY - $('.piano_roll').offset().top;
+		mouse_pos_x = e.pageX - $('.piano_roll').offset().left;
+		id_number += 1;
+		id_num = id_number.toString();
+		
+		
+		var theHtml = "<div id='id_num_"+id_num+"' class='note'></div>";
+		
+		$('.piano_roll').append(theHtml);
+		$('#id_num_'+id_num).width(($('.time_column').width() * 2) - 1);
+		$('.note').trigger('click');
+		
+		$('#id_num_'+id_num)
+		.resizable({minHeight:24,maxHeight:24, handles: "e"})
+		.css({position:'absolute'})
+		.data("piano_roll", active_piano_roll)
+		//.removeData("track_number")
+		.data("track_number", track_numberz);
+		
+		if (snap_val == 1){
+			$('#id_num_'+id_num).draggable({snap:'.container,.time_column', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'});
+			left_position();
+		}else{
+			$('#id_num_'+id_num).draggable({snap:'.container', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'});
+			$('#id_num_'+id_num).offset({top: ((Math.ceil(mouse_pos/25) * 25)) + $('.piano_roll').offset().top -23, left: e.pageX - 10});
+		}
+
+		$('.note').contextmenu(function(){
+			if ($(this).is('.ui-selected')){
+				$('.ui-selected').remove();
+			}else{
+				$(this).remove()
+		}})
+		.each(function(){ //init placement
+			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+			.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+			.data("position_left", $(this).position().left);
+		})
+		.on('resize', function(){
+			if ($(this).is('.ui-selected')){
+				$(this).resizable({alsoResize: '.ui-selected'})
+				$('.ui-selected').each(function(){
+				$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+				.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+				});
+			}
+		})
+
+		.draggable({drag: function(e, ui){
+			if ($(this).is('.ui-selected')){
+				if (variablelol == 1){
+					$(this).addClass("drag_start");
+					drag_start_position_x = $(this).position().left
+					drag_start_position_y = $(this).position().top
+					variablelol = 0;
+					$('.ui-selected').each(function(e, ui){
+						$(this).data("positionz_x", $(this).position().left);
+						$(this).data("positionz_y", $(this).position().top);
+					});
+				}
+				$('.ui-selected').each(function(e, ui){
+					$(this).css({left: $('.drag_start').position().left + ($(this).data("positionz_x") - drag_start_position_x), top: $('.drag_start').position().top + ($(this).data("positionz_y") - drag_start_position_y)});
+				});
+			}
+			}})
+		.draggable({stop: function(e, ui){
+			variablelol = 1;
+			$('.drag_start').removeClass("drag_start")
+			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+			.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+			.data("position_left", $(this).position().left);
+			if ($(this).is('.ui-selected')){
+				$('.ui-selected').each(function(){
+				$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+				.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+				.data("position_left", $(this).position().left);
+				});
+			}
+		}})
+		.mousedown(function(){
+			if ($(this).is('.ui-selected')){
+				$('.ui-selected').trigger('resize');
+			}
+		})
+		.resizable({stop: function(e, ui){
+			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+			.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+		}});
+	}
+});	
+
+var select_val = 0;
+$('#select_tool').click(function(){
+	select_val = (select_val + 1) % 2;
+	if (select_val==1){
+		$('#select_tool').css('background-color', 'yellow');
+		$('.piano_roll').selectable({filter: '.note', stop: function(){
+			$('.note').css('background-color', "#9999cc");
+			$('.ui-selected').css('background-color', '#330066');
+				}, selecting: function(){
+					$('.ui-selecting').css('background-color', '#663399')
+					}
+		});
+		
+	}else{
+		$('#select_tool').css('background-color', 'gray');
+		$('#selectable').selectable("destroy");
+		$('.note').removeClass('ui-selected');
+		$('.note').css('background-color', "#9999cc"); 
+	}
+});
+
+var snap_val = 0
+$('#snap_tool').click(function(){
+	snap_val = (snap_val + 1) % 2;
+	if (snap_val==1){
+		$('#snap_tool').css('background-color', 'yellow');
+		$('.note').draggable({snap:'.container,.time_column', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'});
+	}else{
+		$('#snap_tool').css('background-color', 'gray');
+		$('.note').draggable({snap:'.container', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'})
+	}
+});
+
+$('#windowresize').resizable({alsoResize: '#window,#windowdrag', minWidth: "311", minHeight: "311"});
+$('#windowdrag').draggable({cancel: '#windowresize', containment: 'document'});
+
+$('.container').css("width", container_width_default);
+$('#zoom_slider').slider({min: 5, max: 50, step: 5, value:25})
+.slider({change: function(e, ui){
+	$('.note').each(function(e, ui){
+		zoom_width = $('#zoom_slider').slider("value") * (zoom_const / 100) * $(this).data("length");
+		zoom_width = zoom_width.toString();
+		$(this).css("width", zoom_width)
+		.css({left: $('#zoom_slider').slider("value") * (zoom_const / 100) * $(this).data("positionx")})
+		.data("position_left", $(this).position().left);
+		});
+	container_width = ($('#zoom_slider').slider("value") * (zoom_const / 100) * container_width_const);
+	container_width = container_width.toString();
+	$('.container').css("width", container_width);
+	$('.piano_roll').css("width", container_width);
+	container_width = container_width.toString();
+	
+	$('.time_column').each(function(e, ui){
+		zoom_time_width = $('#zoom_slider').slider("value") * (zoom_const / 100) * 30;
+		zoom_time_width = zoom_time_width.toString();
+		$(this).css("width", zoom_time_width)
+		.css({left: Math.round($('#zoom_slider').slider("value") * (zoom_const / 100) * $(this).data("positionx"))});
+	});
+}});
+var window_drag;
+$('#windowdrag').hide()
+window_drag = 0;
+
+//********************************************************************
+	
+$('#closer').click(function(){
+	$('#windowdrag').hide()
+	window_drag = 0;
+});
+
+$('#timeline').scrollToFixed({marginTop: 71, zIndex: 2});
+//$('.transport_locator').scrollToFixed({marginTop: 71, zIndex: 2});
+//$('.track_times').scrollToFixed({marginTop: 92, zIndex: 1});
+
+$(window).scroll(function(){
+	$('#track_pane').offset({left: $(window).scrollLeft()});
+});
+
+var select_val_project = 0;
+$('#select_tool_project').click(function(){
+	select_val_project = (select_val_project + 1) % 2;
+	if (select_val_project==1){
+		$('#select_tool_project').css('background-color', 'yellow');
+		$('#track_pane').selectable({filter: ".track_info", selected: function(e, ui){
+			$('.ui-selected').css('background-color', 'yellow')
+			.each(function(){
+				$('#track_num_'+ $(this).data("track_number")).css('background', "#ffffcc");
+			});
+		},
+		start: function(e, ui){
+			$('.track_info').each(function(){
+				if ($(this).not('.track_info')){
+					$(this).css('background-color', 'green');
+					$('#track_num_'+ $(this).data("track_number")).css('background', "white");
+				}
+			});		
+		}});
+	}else{
+		$('#select_tool_project').css('background-color', 'gray');
+		$('#track_pane').selectable("destroy");
+		$('.track_info').removeClass('ui-selected');
+	}
+});
+
+//PROJECT DRAW********************************************************
+var pencil_val_project = 0;
+$('#pencil_tool_project').click(function(){
+	pencil_val_project = (pencil_val_project + 1) % 2;
+	if (pencil_val_project==1){
+		$('#pencil_tool_project').css('background-color', 'yellow');
+	}else{
+		$('#pencil_tool_project').css('background-color', 'gray');
+	}
+});
+
+var track_window_count = 0;
+var music_container_html;
+
+//CANVAS TIMELINE*****************************************************
+var c=document.getElementById("timeline");
+var ctx=c.getContext("2d");
+var timeline_x_count = 150;
+var timeline_y_count = 0;
+var timeline_y = new Array();
+timeline_y[0] = 0;
+timeline_y[1] = 13;
+timeline_y[2] = 5;
+timeline_y[3] = 13;
+
+
+while (timeline_x_count < 5010){
+	timeline_y_count %= 4;
+	ctx.lineWidth = 2;
+	ctx.moveTo(timeline_x_count, 20);
+	ctx.lineTo(timeline_x_count, timeline_y[timeline_y_count]);
+	ctx.stroke();
+	timeline_x_count += 10;
+	timeline_y_count += 1;
+}
+
+//TRACK PANE STUFF**************************************************
+var track_info_html = '<div id="okcool" class="track_info">track info</div>';
+var track_num = 1;
+var track_window = 1;
+var track_num_str;
+var attr_name;
+var max_y;
+var container_count = 0;
+
+
+$('#create_track').click(function(){
+	$('#track_pane').append(track_info_html);
+	$('#track_project_window').append('<div id="track_num_' + (track_window) + '" class="track_window"></div>');
+	track_num = 1;
+	track_window += 1;
+	$('.track_info').each(function(){
+		$(this).data("track_number", track_num);
+		track_num += 1;
+	});
+	track_num = 1;
+	$('.track_window').each(function(){
+		$(this).data("track_number", track_num);
+		track_num_str = track_num.toString();
+		attr_name = ("track_num_" + track_num_str);
+		$(this).attr("id", attr_name);
+		track_num += 1;
+	})
+	$('#track_num_'+ (track_window - 1)).click(function(e){
+		if (pencil_val_project == 1){
+			container_num += 1;
+			var music_container_html = '<div id="container_num_'+container_num+'" class="music_container"></div>';
+			var drag_stop_window_number = (($(this).position().top - 15) / 76);
+			$(this).append(music_container_html);
+			$('#container_num_'+container_num).data("track_number", $(this).data("track_number"));
+				$('#container_num_'+container_num).draggable({containment: [149, 90, $('.track_window').width(), max_y], snap: '.track_window', snapMode:'inner', snapTolerance:70})
+				.offset({top: ((Math.ceil(e.pageY/76) * 76) -61), left: e.pageX - 10})
+				.resizable({minHeight:76, maxHeight:76, handles: "e"})
+				.contextmenu(function(){
+					$('.note').each(function(){
+						if ($(this).data("piano_roll") == active_piano_roll){
+							$(this).remove();
+						}
+					});
+					$(this).remove();
+				})	
+				.resizable({stop: function(e, ui){
+					$('.time_column').each(function(){
+						$(this).css('background-color', '#cccccc')
+						.css('opacity', '0.5');
+						});
+					count = 0;
+					while (count < 500){
+						if (count > (Math.ceil($(this).position().left / 10)) - 15){
+							if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+								$('#column_num_'+ count)
+								.css('background-color', 'transparent')
+								.css('opacity', '1.0');
+							}
+						}
+						count += 1;
+					}
+				}})			
+				.on("dragstop", function(e, ui){
+					var drag_stop_window_number = (($(this).position().top - 15) / 76);
+					$(this).detach();
+					$('#track_num_'+ drag_stop_window_number).append($(this));
+					$(this).removeData("track_number");
+					$(this).data("track_number", drag_stop_window_number)
+					.data("position_left", (Math.ceil($(this).position.left / 10)) - 15);		
+					//DOUBLE-CLICK FUNCTION*******************************
+					if (window_drag == 1){
+						$('#windowdrag').show();
+						track_numberz = $(this).data("track_number");
+						$(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+						music_container_offset = $(this).data("music_container_offset");
+						music_container_offset_previous = $(this).data("music_container_offset_previous");
+						active_piano_roll = $(this).attr("id");
+						
+						$('.note').each(function(e, ui){
+								$(this).css('visibility', 'visible')
+								.css('z-index', '3');
+								if ($(this).data("piano_roll") == active_piano_roll){
+									$(this).removeData("track_number")
+									.data("track_number", track_numberz);
+								}
+								if ($(this).data("track_number") == track_numberz){
+									if ($(this).data("piano_roll") == active_piano_roll){
+										$(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+										.css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
+										.css('background', '#9999cc')
+										.css('opacity', '1.0')
+										.data("position_left", $(this).position().left)
+										.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+										if ($(this).is('.ui-selected')){
+											$(this).css('background-color', '#330066');
+										}
+									}else{
+										$(this).css('background-color', 'gray')
+										.css('opacity', '0.4');
+									}
+								}else{
+									$(this).css('visibility', 'hidden')
+									.css('z-index', '-1'); 
+								}
+						});
+						$('.time_column').each(function(){
+							$(this).css('background-color', '#cccccc')
+							.css('opacity', '0.5');
+						});
+						count = 0;
+						while (count < 500){
+							if (count > (Math.ceil($(this).position().left / 10)) - 15){
+								if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+									$('#column_num_'+ count)
+									.css('background-color', 'transparent')
+									.css('opacity', '1.0');
+								}
+							}
+							count += 1;
+						}
+						$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
+					}
+				})
+				.dblclick(function(){
+					//DOUBLE CLICK FUNCTION AGAIN LOLLLL************************
+					$('#windowdrag').show();
+					track_numberz = $(this).data("track_number");
+					$(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+					music_container_offset = $(this).data("music_container_offset");
+					music_container_offset_previous = $(this).data("music_container_offset_previous");
+					active_piano_roll = $(this).attr("id");
+					$('.note').each(function(e, ui){
+							$(this).css('visibility', 'visible')
+							.css('z-index', '3');
+							if ($(this).data("track_number") == track_numberz){
+								if ($(this).data("piano_roll") == active_piano_roll){
+									$(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+									.css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
+									.css('background', '#9999cc')
+									.css('opacity', '1.0')
+									.data("position_left", $(this).position().left)
+									.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+									if ($(this).is('.ui-selected')){
+										$(this).css('background-color', '#330066');
+									}
+								}else{
+									$(this).css('background-color', 'gray')
+									.css('opacity', '0.4');
+								}
+							}else{
+								$(this).css('visibility', 'hidden')
+								.css('z-index', '-1'); 
+							}
+					});
+					$('.time_column').each(function(){
+						$(this)
+						.css('background-color', '#cccccc')
+						.css('opacity', '0.5');
+					});
+					count = 0;
+					while (count < 500){
+						if (count > (Math.ceil($(this).position().left / 10)) - 15){
+							if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+								$('#column_num_'+ count)
+								.css('background-color', 'transparent')
+								.css('opacity', '1.0');
+							}
+						}
+						count += 1;
+					}
+					$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
+					window_drag = 1;
+				});
+			}
+		});
+	max_y = track_num * $('.track_window').height();
+	$('.music_container').each(function(){
+		$(this).draggable({containment: [149, 90, $('.track_window').width(), max_y]})
+	});
+		
+	
+	$('.track_info').click(function(){
+		$('.track_info').each(function(){
+			if (select_val_project == 0){
+			$(this).removeClass('ui-selected')
+			.css('background', 'green');}
+		});
+		$(this).addClass('ui-selected')
+		.css('background-color', 'yellow');
+		$('.track_window').each(function(){
+			$(this).css({'border-right': 'blue'});
+		});
+		$('.track_window').each(function(){
+			$(this).css('background', 'none');
+		});
+		$('#track_num_'+($(this).data("track_number") )).css('background', "#ffffcc");
+		
+	});
+	
+});
+
+
+
+
+	
+	
+	
+var track_data;
+var removed = 0;
+$('#delete_track').click(function(){
+	$('.track_info').each(function(){
+		if ($(this).is('.ui-selected')){
+			track_data = $(this).data("track_number");
+			$('.track_window').each(function(){
+				if ($(this).data("track_number") == (track_data)){
+					$(this).remove();
+					removed += 1;
+				}
+			});
+			$('.music_container').each(function(){
+				if ($(this).data("track_number") == (track_data)){
+					$(this).remove();
+				}
+			});
+			$(this).remove();
+		}
+	});
+	track_num = 1;
+	$('.track_info').each(function(){
+		$(this).data("track_number", track_num);
+		track_num += 1;
+	});
+	
+	max_y = track_num * $('.track_window').height();
+	$('.music_container').each(function(){
+		if ($(this).data("track_number") > track_data){
+			$(this).css({top: ($(this).position().top - (removed * 76))})
+			.data("track_number", ($(this).data("track_number") - removed));
+		}
+		$(this).draggable({containment: [149, 90, $('.track_window').width(), max_y]});
+	});
+	
+	track_num = 1;
+	$('.track_window').each(function(){
+		$(this).data("track_number", track_num);
+		track_num_str = track_num.toString();
+		attr_name = ("track_num_" + track_num_str);
+		$(this).attr("id", attr_name);
+		track_num += 1;
+	});
+	removed = 0;
+	//track_data = 1000;
+});
+
+//TRANSPORT FUNCTIONS**************************************
+$('#timeline').click(function(e){
+	$('.transport_locator').css({left: e.pageX});
+});
+var play_start;
+$('#input_bpm').spinner()
+$('#input_bpm').on("spinchange", function(){
+	if (play_select == 1){
+		clearInterval(play_start);
+		play_start = setInterval(function(){play_start_locator()}, ((60 / $('#input_bpm').spinner("value")) * (1000 / pixels_per_beat)));
+	}
+});
+
+
+function play_start_locator(){
+	$('.transport_locator').css({left: $('.transport_locator').position().left + 1});
+}
+var pixels_per_beat = 40;	
+
+var play_select = 0;
+$('#play').click(function(){
+	play_select += 1;
+	if (play_select == 1){
+		$(this).css('background-color', 'yellow');
+		play_start = setInterval(function(){play_start_locator()}, ((60 / $('#input_bpm').spinner("value")) * (1000 / pixels_per_beat)));
+	}else{
+		$(this).css('background-color', 'gray');
+		clearInterval(play_start);
+	}
+	play_select %= 2;
+});
+		
+	
+	
+
+
+
+
+
+</script>
+</body>
+</html>
