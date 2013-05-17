@@ -1,6 +1,7 @@
 #ifndef SINGENERATOR_H
 #define SINGENERATOR_H 
 #include "Instrument.h"
+#include "Player.h"
 /// @brief instrument that generates a sin wave
 class SinGenerator : public Instrument
 {
@@ -15,6 +16,7 @@ public:
     void set_amplitude(int amplitude_){amplitude=amplitude_;}
     void set_omega(double omega_){omega=omega_;}
     void set_frequency(double frequency){omega=2*M_PI*frequency;}
+    virtual void add_note(spNote&);
 
 private:
     int amplitude;

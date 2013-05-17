@@ -10,3 +10,8 @@ Player::spPacket SinGenerator::get_samples(int sample_count)
     total_samples+=sample_count;
     return ret;
 }
+
+void SinGenerator::add_note(spNote& note)
+{
+    Instrument::add_note(note);    
+}

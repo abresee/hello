@@ -1,20 +1,20 @@
 # vim: set syntax=python
 import os
 
-boostincl=" -I"+os.environ.get("BOOSTINCL","")
-boostlibs=" -L"+os.environ.get("BOOSTLIBS","")
+boostincl=' -I'+os.environ.get('BOOSTINCL','')
+boostlibs=' -L'+os.environ.get('BOOSTLIBS','')
 
-core_sources = ['Player.cpp', 'SinGenerator.cpp', 'Note.cpp']
+core_sources = ['Player.cpp', 'Instrument.cpp', 'SinGenerator.cpp', 'Note.cpp']
 
 env=Environment()
-env["CXXFLAGS"]="--std=c++11"
-env["CXX"]=os.environ.get("CXX","g++")
-env.ParseConfig("pkg-config gstreamer-1.0 gstreamer-plugins-base-1.0 --cflags --libs")
+env['CXXFLAGS']='--std=c++11'
+env['CXX']=os.environ.get('CXX','g++')
+env.ParseConfig('pkg-config gstreamer-1.0 gstreamer-plugins-base-1.0 --cflags --libs')
 
 env_py=env.Clone()
-env_py.ParseConfig("python3.3-config --cflags --ldflags")
-env_py.MergeFlags(env.ParseFlags("-fPIC "+boostincl+" "+boostlibs+" -lboost_python3"))
+env_py.ParseConfig('python3.3-config --cflags --ldflags')
+env_py.MergeFlags(env.ParseFlags('-fPIC '+boostincl+' '+boostlibs+' -lboost_python3'))
 
 test=env.Program('test',core_sources+['test.cpp'])
 
-hello_gstreamer_so=env_py.SharedLibrary('core_py',core_sources+['core_py.cpp'],SHLIBPREFIX="",SHLIBSUFFIX=".so")
+hello_gstreamer_so=env_py.SharedLibrary('core_py',core_sources+['core_py.cpp'],SHLIBPREFIX='',SHLIBSUFFIX='.so')

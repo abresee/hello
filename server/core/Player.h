@@ -4,8 +4,8 @@
 #include <limits>
 #include <cmath>
 #include <string>
-#include <valarray>
 #include <boost/shared_ptr.hpp>
+#include <valarray>
 #include <stdint.h>
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
@@ -21,8 +21,6 @@ public:
     /// @brief typedef for convenience
     typedef boost::shared_ptr<Instrument> spInstrument;
 
-    /// @brief typedef for convenience
-    typedef boost::shared_ptr<Note> spNote;
     /// @brief type of each packet
     typedef std::valarray<sample_t> packet_t;
     /// @brief typedef for convenience
@@ -30,7 +28,7 @@ public:
 
     /// @brief default ctor
     Player();
-    /// @brief add an instrument by a boost::shared_ptr pointing to it
+    /// @brief add an instrument by a shared_ptr pointing to it
     void add_instrument(spInstrument);
     /// @brief add an instrument by normal pointer
     void add_instrument(Instrument*);
@@ -81,7 +79,6 @@ private:
     /// @brief container for the player object's instruments
     std::vector<spInstrument> instruments;
 
-    std::vector<spNote> notes;
     /// @brief private typedef to more easily iterate over the instruments
     typedef std::vector<spInstrument>::iterator itInstruments;
 

@@ -27,7 +27,7 @@ public:
     int get_octave() const;
     int get_start() const;
     int get_end() const;
-    GstClockTime get_begin();
+    int get_begin() const;
 
 private: 
     PitchClass p;
