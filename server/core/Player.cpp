@@ -5,7 +5,7 @@
 
 const char * Player::format = "S16LE";
 
-const Player::sample_t Player::max_volume = std::numeric_limits<Player::sample_t>::max();
+const Player::Sample Player::max_volume = std::numeric_limits<Player::Sample>::max();
 
 void Player::build_gst_element(GstElement* &element, const char * kind, const char * name)
 {
@@ -31,6 +31,7 @@ Player::Player()
     {
         initialize_gst();
     }
+
     if(pipeline = gst_pipeline_new ("pipeline"),pipeline==nullptr)
     {
         std::exit(EXIT_FAILURE);
@@ -59,15 +60,8 @@ Player::Player()
     gst_element_link_many (appsrc, conv, audiosink, NULL);
 
     //need_data_g and enough_data_g are wrappers for member functions in Player
-    g_signal_connect (appsrc, "need-data", G_CALLBACK (need_data_g),this);
-    g_signal_connect (appsrc, "enough-data", G_CALLBACK (enough_data_g),this);
-    
-    const double frequency = 440.0;
-    add_instrument(new SinGenerator(max_volume/5,2*M_PI*frequency/sample_rate));
-    add_instrument(new SinGenerator(max_volume/5,2*M_PI*(5.0/4)*frequency/sample_rate));
-    add_instrument(new SinGenerator(max_volume/5,2*M_PI*(3.0/2)*frequency/sample_rate));
-    add_instrument(new SinGenerator(max_volume/5,2*M_PI*(15.0/8)*frequency/sample_rate));
-    add_instrument(new SinGenerator(max_volume/5,2*M_PI*2*frequency/sample_rate));
+    GstAppSrcCallbacks callbacks = {need_data_g, enough_data_g, seek_data_g};
+    gst_app_src_set_callbacks(GST_APP_SRC(appsrc), &callbacks, this, nullptr);
 }
 
 void Player::add_instrument(Instrument * instrument)
@@ -88,24 +82,25 @@ void Player::play()
 
 void Player::quit()
 {
+    gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
     gst_element_set_state(pipeline, GST_STATE_NULL);
     g_main_loop_quit(loop);
 }
 
 gboolean Player::push_data()
 {
-    packet_t data(packet_size);
-    for(itInstruments it = instruments.begin();
-            it != instruments.end();
-            ++it)
+    Packet data(packet_size);
+    std::for_each(instruments.begin(), instruments.end(),
+        [&data,this](spInstrument i)
     {
-        data+=*(*it)->get_samples(packet_size);
-    }
+        spPacket p=i->get_samples(offset,offset+packet_size);
+        std::transform(data.begin(),data.end(),p->begin(),p->end(),std::plus<Sample>());
+    });
 
     GstBuffer * buffer = gst_buffer_new_allocate (NULL, buffer_length, NULL);
     gst_buffer_fill(buffer,0,&data[0], buffer_length);
 
-    offset+=buffer_length/word_size;
+    offset+=packet_size;
 
     if(offset > signal_length)
     {
@@ -113,19 +108,15 @@ gboolean Player::push_data()
         return false;
     }
 
-    GstFlowReturn ret;
-    g_signal_emit_by_name(appsrc, "push-buffer", buffer, &ret);
-
-    if (ret != GST_FLOW_OK)
+    if (gst_app_src_push_buffer(GST_APP_SRC(appsrc),buffer) != GST_FLOW_OK)
     {
-        g_main_loop_quit (loop);
         return false;
     }
 
     return true;
 }
 
-void Player::need_data()
+void Player::need_data(int length)
 {
     if(sourceid==0)
     {
@@ -142,11 +133,10 @@ void Player::enough_data()
     }
 }
 
-Player::~Player()
+gboolean Player::seek_data(guint64 destination)
 {
-    gst_element_set_state (pipeline, GST_STATE_NULL);
-    gst_object_unref (GST_OBJECT (pipeline));
-    g_main_loop_unref (loop);
+    //TODO: IMPLEMENT THIS
+    return true;
 }
 
 gboolean Player::push_data_g(gpointer instance)
@@ -155,15 +145,27 @@ gboolean Player::push_data_g(gpointer instance)
     return this_->push_data();
 }
 
-void Player::need_data_g(GstElement* element, guint length, gpointer instance)
+gboolean Player::seek_data_g(GstAppSrc* element, guint64 destination, gpointer instance)
 {
     Player * this_ = static_cast<Player *>(instance);
-    this_->need_data();
+    return this_->seek_data(destination);
 }
 
-void Player::enough_data_g(GstElement* src, gpointer instance)
+void Player::need_data_g(GstAppSrc* element, guint length, gpointer instance)
+{
+    Player * this_ = static_cast<Player *>(instance);
+    this_->need_data(length);
+}
+
+void Player::enough_data_g(GstAppSrc* src, gpointer instance)
 {
     Player * this_ = static_cast<Player *>(instance);
     this_->enough_data();
 }
 
+Player::~Player()
+{
+    gst_element_set_state (pipeline, GST_STATE_NULL);
+    gst_object_unref (GST_OBJECT (pipeline));
+    g_main_loop_unref (loop);
+}

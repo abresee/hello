@@ -1,25 +1,35 @@
 #include "Note.h"
 
 Note::Note() : Note(PitchClass::Do,0,0,0) {}
-Note::Note(PitchClass p_, int octave_, int start_, int end_) :
-    p(p_), octave(octave_), start(start_), end(end_) {}
+Note::Note(PitchClass p__, int octave__, int on__, int off__) :
+    p_(p__), octave_(octave__), on_(on__), off_(off__) {}
     
-Note::PitchClass Note::get_pitch_class() const
+Note::PitchClass Note::pitch_class() const
 {
-    return p;
+    return p_;
 }
 
-int Note::get_octave() const
+int Note::octave() const
 {
-    return octave;
+    return octave_;
 }
 
-int Note::get_start() const
+int Note::on() const
 {
-    return start;
+    return on_;
 }
 
-int Note::get_end() const 
+int Note::off() const 
 {
-    return end;
+    return off_;
+}
+
+int Note::length() const
+{
+    return off_-on_;
+}
+
+bool Note::operator<(const Note& other) const
+{
+    return on_<other.on_;
 }

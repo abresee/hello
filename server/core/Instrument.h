@@ -7,12 +7,12 @@
 class Instrument
 {
 public:
-    typedef boost::shared_ptr<Note> spNote;
-    virtual Player::spPacket get_samples(int sample_count)=0; 
+    Player::spPacket get_samples(int begin,int end); 
     virtual ~Instrument();
-    virtual void add_note(spNote&);
+    virtual void add_note(Note&);
 
 private:
-    std::vector<spNote> notes;
+    virtual Player::spPacket generate(Note&)=0;
+    std::vector<Note> notes;
 };
 #endif /* INSTRUMENT_H */

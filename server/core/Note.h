@@ -4,7 +4,7 @@
 class Note 
 {
 public:
-    enum class PitchClass 
+    enum PitchClass 
     {
         Do=0,
         Rah,
@@ -20,19 +20,21 @@ public:
         Ti
     };
 
+
     Note(PitchClass, int, int, int);
     Note();
 
-    PitchClass get_pitch_class() const;
-    int get_octave() const;
-    int get_start() const;
-    int get_end() const;
-    int get_begin() const;
+    PitchClass pitch_class() const;
+    int octave() const;
+    int on() const;
+    int off() const;
+    int length() const;
+    bool operator<(const Note&) const;
 
 private: 
-    PitchClass p;
-    int octave;
-    int start;
-    int end;
-};
+    PitchClass p_;
+    int octave_;
+    int on_;
+    int off_;
+}; 
 #endif /* NOTE_H */

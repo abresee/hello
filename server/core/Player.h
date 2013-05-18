@@ -1,6 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H 
 #include <vector>
+#include <functional>
 #include <limits>
 #include <cmath>
 #include <string>
@@ -17,14 +18,14 @@ class Instrument;
 class Player {
 public:
     /// @brief type of each individual sample
-    typedef int16_t sample_t;
+    typedef int16_t Sample;
     /// @brief typedef for convenience
     typedef boost::shared_ptr<Instrument> spInstrument;
 
     /// @brief type of each packet
-    typedef std::valarray<sample_t> packet_t;
+    typedef std::vector<Sample> Packet;
     /// @brief typedef for convenience
-    typedef boost::shared_ptr<packet_t> spPacket;
+    typedef boost::shared_ptr<Packet> spPacket;
 
     /// @brief default ctor
     Player();
@@ -42,23 +43,22 @@ public:
     ~Player();
 
 private:
-
-    /// @brief cstring for gst representing the data format (e.g. S16LE --> Signed 16 bit Little Endian
+    /// cstring for gst representing the data format (e.g. S16LE --> Signed 16 bit Little Endian
     static const char * format;
 
-    /// @brief player's current sample rate
+    /// player's current sample rate
     static const int sample_rate = 44100;
 
-    /// @brief amount of bytes in a sample 
-    static const int word_size=sizeof(sample_t);
+    /// amount of bytes in a sample 
+    static const int word_size=sizeof(Sample);
 
-    /// @brief amount of samples written to buffers in each go
+    /// amount of samples written to buffers in each go
     static const int packet_size= 512;
 
-    /// @brief size of each buffer created
+    /// size of each buffer created
     static const int buffer_length = packet_size*word_size;
 
-    /// @brief amount of channels in our audio stream
+    /// amount of channels in our audio stream
     static const int channels = 1;
 
     /// TODO: get rid of this stuff
@@ -82,7 +82,6 @@ private:
     /// @brief private typedef to more easily iterate over the instruments
     typedef std::vector<spInstrument>::iterator itInstruments;
 
-    /// TODO: get rid of offset
     int offset=0;
     /// @brief gst internal id for the push_data idle handler
     guint sourceid=0;
@@ -95,20 +94,24 @@ private:
     /// @brief wrapper for member function b/c gst can't handle member functions
     static gboolean push_data_g(gpointer);
     /// @brief wrapper for member function b/c gst can't handle member functions
-    static void need_data_g(GstElement*,guint,gpointer);
+    static void need_data_g(GstAppSrc*,guint,gpointer);
     /// @brief wrapper for member function b/c gst can't handle member functions
-    static void enough_data_g(GstElement*,gpointer);
+    static void enough_data_g(GstAppSrc*,gpointer);
+
+    static gboolean seek_data_g(GstAppSrc*,guint64,gpointer);
 
     /// @brief callback that actually inserts data into appsrc
     gboolean push_data();
     /// @brief callback that handles appsrc's need-data signal 
-    void need_data();
+    void need_data(int);
     /// @brief callback that handles appsrc's enough-data signal 
     void enough_data();
 
+    gboolean seek_data(guint64);
+
 
     ///Static constant representing the largest representable sample value
-    static const sample_t max_volume;
+    static const Sample max_volume;
 
 };
 

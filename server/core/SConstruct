@@ -7,14 +7,17 @@ boostlibs=' -L'+os.environ.get('BOOSTLIBS','')
 core_sources = ['Player.cpp', 'Instrument.cpp', 'SinGenerator.cpp', 'Note.cpp']
 
 env=Environment()
-env['CXXFLAGS']='--std=c++11'
 env['CXX']=os.environ.get('CXX','g++')
+
 env.ParseConfig('pkg-config gstreamer-1.0 gstreamer-plugins-base-1.0 --cflags --libs')
+env.MergeFlags({ 
+    'CXXFLAGS': ['-std=c++11', '-stdlib=libc++']
+})
+env.Append(LIBS='gstapp-1.0')
 
 env_py=env.Clone()
 env_py.ParseConfig('python3.3-config --cflags --ldflags')
 env_py.MergeFlags(env.ParseFlags('-fPIC '+boostincl+' '+boostlibs+' -lboost_python3'))
-
 test=env.Program('test',core_sources+['test.cpp'])
 
 hello_gstreamer_so=env_py.SharedLibrary('core_py',core_sources+['core_py.cpp'],SHLIBPREFIX='',SHLIBSUFFIX='.so')
