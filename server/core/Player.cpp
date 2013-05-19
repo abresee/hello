@@ -26,7 +26,7 @@ void Player::initialize_gst()
     }
 }
 
-Player::Player()
+Player::Player(const char * sinktype)
 {
     if(!gst_is_initialized())
     {
@@ -41,7 +41,7 @@ Player::Player()
     build_gst_element(pipeline,"pipeline","pipe");
     build_gst_element(appsrc,"appsrc","source");
     build_gst_element(conv,"audioconvert","conv");
-    build_gst_element(audiosink,"autoaudiosink","output");
+    build_gst_element(audiosink,sinktype,"output");
 
     g_object_set (G_OBJECT (appsrc), "caps",
             gst_caps_new_simple (

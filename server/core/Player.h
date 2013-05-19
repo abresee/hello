@@ -20,14 +20,12 @@ public:
     typedef int16_t Sample;
     /// @brief typedef for convenience
     typedef boost::shared_ptr<Instrument> spInstrument;
-
     /// @brief type of each packet
     typedef std::vector<Sample> Packet;
     /// @brief typedef for convenience
     typedef boost::shared_ptr<Packet> spPacket;
 
-    /// @brief default ctor
-    Player();
+    Player(const char *);
     /// @brief add an instrument by a shared_ptr pointing to it
     void add_instrument(spInstrument);
     /// @brief add an instrument by normal pointer
@@ -44,7 +42,7 @@ public:
     static const int sample_rate = 44100;
     static const double freq_reference;
 
-private:
+protected:
     /// cstring for gst representing the data format (e.g. S16LE --> Signed 16 bit Little Endian
     static const char * format;
 
@@ -110,10 +108,14 @@ private:
 
     gboolean seek_data(guint64);
 
-
     ///Static constant representing the largest representable sample value
     static const Sample max_volume;
 
 };
 
+class LocalPlayer : Player
+{
+public:
+    LocalPlayer() : Player("autoaudiosink") {}
+};
 #endif /* PLAYER_H */
