@@ -4,14 +4,14 @@ import os
 boostincl=' -I'+os.environ.get('BOOSTINCL','')
 boostlibs=' -L'+os.environ.get('BOOSTLIBS','')
 
-core_sources = ['Player.cpp', 'Instrument.cpp', 'SinGenerator.cpp', 'Note.cpp']
+core_sources = ['Player.cpp', 'Instrument.cpp', 'WaveGenerator.cpp', 'Note.cpp']
 
 env=Environment()
 env['CXX']=os.environ.get('CXX','g++')
 
 env.ParseConfig('pkg-config gstreamer-1.0 gstreamer-plugins-base-1.0 --cflags --libs')
 env.MergeFlags({ 
-    'CXXFLAGS': ['-std=c++11', '-stdlib=libc++']
+    'CXXFLAGS': ['-std=c++11']
 })
 env.Append(LIBS='gstapp-1.0')
 

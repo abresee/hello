@@ -1,9 +1,10 @@
 #include <iterator>
 #include <iostream>
 #include "Player.h"
-#include "SinGenerator.h"
+#include "WaveGenerator.h"
 
 const char * Player::format = "S16LE";
+const double Player::freq_reference = 261.625565;
 
 const Player::Sample Player::max_volume = std::numeric_limits<Player::Sample>::max();
 

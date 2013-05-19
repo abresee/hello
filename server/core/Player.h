@@ -10,7 +10,6 @@
 #include <stdint.h>
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
-#include "note.h"
 
 class Instrument;
 
@@ -42,12 +41,14 @@ public:
     /// @brief dtor
     ~Player();
 
+    static const int sample_rate = 44100;
+    static const double freq_reference;
+
 private:
     /// cstring for gst representing the data format (e.g. S16LE --> Signed 16 bit Little Endian
     static const char * format;
 
     /// player's current sample rate
-    static const int sample_rate = 44100;
 
     /// amount of bytes in a sample 
     static const int word_size=sizeof(Sample);

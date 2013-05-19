@@ -1,30 +1,18 @@
 #ifndef NOTE_H
 #define NOTE_H 
 #include <gst/gst.h>
+#include "Player.h"
+
 class Note 
 {
 public:
-    enum PitchClass 
-    {
-        Do=0,
-        Rah,
-        Re,
-        Me,
-        Mi,
-        Fa,
-        Fi,
-        Sol,
-        Le,
-        La,
-        Te,
-        Ti
-    };
 
 
-    Note(PitchClass, int, int, int);
-    Note();
+    Note(int,Player::Sample,int,int,int);
 
-    PitchClass pitch_class() const;
+    int pitch_class() const;
+    Player::Sample volume() const;
+    double omega() const;
     int octave() const;
     int on() const;
     int off() const;
@@ -32,7 +20,8 @@ public:
     bool operator<(const Note&) const;
 
 private: 
-    PitchClass p_;
+    int pitch_class_;
+    Player::Sample volume_;
     int octave_;
     int on_;
     int off_;
