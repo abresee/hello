@@ -10,20 +10,11 @@
 #include <stdint.h>
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
-
-class Instrument;
+#include "Config.h"
 
 /// @brief master class to handle audio generation and playback
 class Player {
 public:
-    /// @brief type of each individual sample
-    typedef int16_t Sample;
-    /// @brief typedef for convenience
-    typedef boost::shared_ptr<Instrument> InstrumentHandle;
-    /// @brief type of each packet
-    typedef std::vector<Sample> Packet;
-    /// @brief typedef for convenience
-    typedef boost::shared_ptr<Packet> PacketHandle;
 
     Player(const char *);
     /// @brief add an instrument by a InstrumentHandle pointing to it
@@ -39,30 +30,8 @@ public:
     /// @brief dtor
     ~Player();
 
-    static const int sample_rate = 44100;
-    static const double freq_reference;
 
 protected:
-    /// cstring for gst representing the data format (e.g. S16LE --> Signed 16 bit Little Endian
-    static const char * format;
-
-    /// player's current sample rate
-
-    /// amount of bytes in a sample 
-    static const int word_size=sizeof(Sample);
-
-    /// amount of samples written to buffers in each go
-    static const int packet_size= 512;
-
-    /// size of each buffer created
-    static const int buffer_length = packet_size*word_size;
-
-    /// amount of channels in our audio stream
-    static const int channels = 1;
-
-    /// TODO: get rid of this stuff
-    static const int seconds = 10;
-    static const int signal_length = sample_rate*seconds;
 
     /// @brief gst object representing the whole pipeline
     GstElement * pipeline;
@@ -110,7 +79,7 @@ protected:
 
 };
 
-class LocalPlayer : Player
+class LocalPlayer : public Player
 {
 public:
     LocalPlayer() : Player("autoaudiosink") {}

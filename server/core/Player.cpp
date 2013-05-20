@@ -3,10 +3,7 @@
 #include "Player.h"
 #include "WaveGenerator.h"
 
-const char * Player::format = "S16LE";
-const double Player::freq_reference = 261.625565;
-
-const Player::Sample Player::max_volume = std::numeric_limits<Player::Sample>::max();
+using namespace Config;
 
 void Player::build_gst_element(GstElement* &element, const char * kind, const char * name)
 {
@@ -76,8 +73,7 @@ void Player::add_instrument(InstrumentHandle instrument)
 }
 
 void Player::play()
-{
-    gst_element_set_state (pipeline, GST_STATE_PLAYING);
+{ gst_element_set_state (pipeline, GST_STATE_PLAYING);
     g_main_loop_run (loop);
 }
 
@@ -100,14 +96,6 @@ gboolean Player::push_data()
 
     GstBuffer * buffer = gst_buffer_new_allocate (NULL, buffer_length, NULL);
     gst_buffer_fill(buffer,0,&data[0], buffer_length);
-
-    offset+=packet_size;
-
-    if(offset > signal_length)
-    {
-        quit();
-        return false;
-    }
 
     if (gst_app_src_push_buffer(GST_APP_SRC(appsrc),buffer) != GST_FLOW_OK)
     {

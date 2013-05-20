@@ -1,5 +1,8 @@
 #include <algorithm>
+#include "Config.h"
 #include "Instrument.h"
+
+using namespace Config;
 
 Instrument::~Instrument(){}
 void Instrument::add_note(Note& note)
@@ -10,15 +13,15 @@ void Instrument::add_note(Note& note)
 
 double Instrument::omega(const Note& n) const
 {
-    return 2 * M_PI * frequency(n) / Player::sample_rate;
+    return 2 * M_PI * frequency(n) / sample_rate;
 }
 
 double Instrument::frequency(const Note& n) const
 {
-    return Player::freq_reference * pow(2,n.octave()+(static_cast<int>(n.pitch_class())/12.0));
+    return Config::freq_reference * pow(2,n.octave()+(static_cast<int>(n.pitch_class())/12.0));
 }
 
-Player::PacketHandle Instrument::get_samples(int begin, int end)
+PacketHandle Instrument::get_samples(int begin, int end)
 {
     //find the first note that ends after sample count "begin"
     auto begin_note_iter = std::lower_bound(notes.begin(), notes.end(), begin,
@@ -32,14 +35,15 @@ Player::PacketHandle Instrument::get_samples(int begin, int end)
                 return n.on() > i;
             });    
 
-    Player::PacketHandle ret(new Player::Packet(end-begin,0));
+    PacketHandle ret(new Packet(end-begin,0));
     std::for_each(begin_note_iter,end_note_iter,[this,ret,begin](Note& note)
             {
                 this->generate(note,*ret,begin);
             });
     return ret;
 }
-void Instrument::generate(Note& note, Player::Packet& p, int start_sample)
+
+void Instrument::generate(Note& note, Packet& p, int start_sample)
 {
     const int end_sample=start_sample+p.size();
     int on = (note.on() > start_sample) ? note.on() : start_sample; 

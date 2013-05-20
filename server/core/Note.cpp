@@ -1,14 +1,14 @@
 #include "Note.h"
 
-Note::Note(int pitch_classI, Player::Sample intensityI, int octaveI, int onI, int offI) :
-    pitch_class_(pitch_classI),intensity_(intensityI), octave_(octaveI), on_(onI), off_(offI) {}
+Note::Note(int pitch_class_I, Sample intensity_I, int octave_I, int on_I, int off_I) :
+    pitch_class_(pitch_class_I),intensity_(intensity_I), octave_(octave_I), on_(on_I), off_(off_I) {}
     
 int Note::pitch_class() const
 {
     return pitch_class_;
 }
 
-Player::Sample Note::intensity() const
+Sample Note::intensity() const
 {
     return intensity_;
 }

@@ -1,16 +1,17 @@
+#include <cmath>
 #include "WaveGenerator.h"
 
-WaveGenerator::WaveGenerator(std::function<Player::Sample(double)> wave__) : wave_(wave__){}
+WaveGenerator::WaveGenerator(std::function<double(double)> wave_I) : wave_(wave_I){}
 
-void WaveGenerator::gen(Note& note, Player::Packet& p,int on, int off)
+void WaveGenerator::gen(Note& note, Packet& p,int on, int off)
 {
     for(int i=on;i<off;++i)
     {
-        p[i]+=note.intensity()*wave_(omega(note)*i); 
+        p[i]+=round(note.intensity()*wave_(omega(note)*i)); 
     }
 }
 
-std::function<Player::Sample(double)>& WaveGenerator::wave()
+std::function<double(double)>& WaveGenerator::wave()
 {
     return wave_;
 }
