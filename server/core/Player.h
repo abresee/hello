@@ -19,15 +19,15 @@ public:
     /// @brief type of each individual sample
     typedef int16_t Sample;
     /// @brief typedef for convenience
-    typedef boost::shared_ptr<Instrument> spInstrument;
+    typedef boost::shared_ptr<Instrument> InstrumentHandle;
     /// @brief type of each packet
     typedef std::vector<Sample> Packet;
     /// @brief typedef for convenience
-    typedef boost::shared_ptr<Packet> spPacket;
+    typedef boost::shared_ptr<Packet> PacketHandle;
 
     Player(const char *);
-    /// @brief add an instrument by a shared_ptr pointing to it
-    void add_instrument(spInstrument);
+    /// @brief add an instrument by a InstrumentHandle pointing to it
+    void add_instrument(InstrumentHandle);
     /// @brief add an instrument by normal pointer
     void add_instrument(Instrument*);
 
@@ -76,10 +76,7 @@ protected:
     GMainLoop * loop;
 
     /// @brief container for the player object's instruments
-    std::vector<spInstrument> instruments;
-
-    /// @brief private typedef to more easily iterate over the instruments
-    typedef std::vector<spInstrument>::iterator itInstruments;
+    std::vector<InstrumentHandle> instruments;
 
     int offset=0;
     /// @brief gst internal id for the push_data idle handler

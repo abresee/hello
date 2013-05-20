@@ -67,10 +67,10 @@ Player::Player(const char * sinktype)
 
 void Player::add_instrument(Instrument * instrument)
 {
-    add_instrument(spInstrument(instrument));
+    add_instrument(InstrumentHandle(instrument));
 }
 
-void Player::add_instrument(spInstrument instrument)
+void Player::add_instrument(InstrumentHandle instrument)
 {
     instruments.push_back(instrument);
 }
@@ -92,9 +92,9 @@ gboolean Player::push_data()
 {
     Packet data(packet_size);
     std::for_each(instruments.begin(), instruments.end(),
-        [&data,this](spInstrument i)
+        [&data,this](InstrumentHandle i)
     {
-        spPacket p=i->get_samples(offset,offset+packet_size);
+        PacketHandle p=i->get_samples(offset,offset+packet_size);
         std::transform(data.begin(),data.end(),p->begin(),p->end(),std::plus<Sample>());
     });
 
