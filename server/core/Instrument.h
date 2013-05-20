@@ -7,7 +7,7 @@
 class Instrument
 {
 public:
-    Player::spPacket get_samples(int begin,int end); 
+    Player::PacketHandle get_samples(int begin,int end); 
     virtual ~Instrument();
     virtual void add_note(Note&);
     virtual double omega(const Note&) const;

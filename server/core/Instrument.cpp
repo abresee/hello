@@ -18,7 +18,7 @@ double Instrument::frequency(const Note& n) const
     return Player::freq_reference * pow(2,n.octave()+(static_cast<int>(n.pitch_class())/12.0));
 }
 
-Player::spPacket Instrument::get_samples(int begin, int end)
+Player::PacketHandle Instrument::get_samples(int begin, int end)
 {
     //find the first note that ends after sample count "begin"
     auto begin_note_iter = std::lower_bound(notes.begin(), notes.end(), begin,
@@ -32,7 +32,7 @@ Player::spPacket Instrument::get_samples(int begin, int end)
                 return n.on() > i;
             });    
 
-    Player::spPacket ret(new Player::Packet(end-begin,0));
+    Player::PacketHandle ret(new Player::Packet(end-begin,0));
     std::for_each(begin_note_iter,end_note_iter,[this,ret,begin](Note& note)
             {
                 this->generate(note,*ret,begin);
