@@ -1,4 +1,6 @@
 #include "Player.h"
+#include "Instrument.h"
+#include "WaveGenerator.h"
 
 int main(int argc, char ** argv)
 {
