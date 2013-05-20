@@ -11,7 +11,7 @@ public:
     Note(int,Player::Sample,int,int,int);
 
     int pitch_class() const;
-    Player::Sample volume() const;
+    Player::Sample intensity() const;
     double omega() const;
     int octave() const;
     int on() const;
@@ -21,7 +21,7 @@ public:
 
 private: 
     int pitch_class_;
-    Player::Sample volume_;
+    Player::Sample intensity_;
     int octave_;
     int on_;
     int off_;

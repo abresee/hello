@@ -6,7 +6,7 @@ void WaveGenerator::gen(Note& note, Player::Packet& p,int on, int off)
 {
     for(int i=on;i<off;++i)
     {
-        p[i]+=note.volume()*wave_(omega(note)*i); 
+        p[i]+=note.intensity()*wave_(omega(note)*i); 
     }
 }
 
