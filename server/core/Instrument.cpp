@@ -21,19 +21,19 @@ double Instrument::frequency(const Note& n) const
 Player::spPacket Instrument::get_samples(int begin, int end)
 {
     //find the first note that ends after sample count "begin"
-    auto begin_note_it = std::lower_bound(notes.begin(), notes.end(), begin,
+    auto begin_note_iter = std::lower_bound(notes.begin(), notes.end(), begin,
             [](const Note& n,const int& i){
                 return n.off() > i;
             });
 
     //find the first note that begins after sample count "end"
-    auto end_note_it = std::upper_bound(notes.begin(), notes.end(), end,
+    auto end_note_iter = std::upper_bound(notes.begin(), notes.end(), end,
             [](const int& i, const Note& n){
                 return n.on() > i;
             });    
 
     Player::spPacket ret(new Player::Packet(end-begin,0));
-    std::for_each(begin_note_it,end_note_it,[this,ret,begin](Note& note)
+    std::for_each(begin_note_iter,end_note_iter,[this,ret,begin](Note& note)
             {
                 this->generate(note,*ret,begin);
             });
