@@ -3,7 +3,7 @@
 #include "Player.h"
 #include "WaveGenerator.h"
 
-using namespace Config;
+const char * Player::format = "S16LE";
 
 void Player::build_gst_element(GstElement* &element, const char * kind, const char * name)
 {
@@ -40,15 +40,17 @@ Player::Player(const char * sinktype)
     build_gst_element(conv,"audioconvert","conv");
     build_gst_element(audiosink,sinktype,"output");
 
+    caps = gst_caps_new_simple (
+            "audio/x-raw",
+            "format", G_TYPE_STRING, format,
+            "rate", G_TYPE_INT, Config::sample_rate,
+            "channels",G_TYPE_INT, Config::channels,
+            "signed", G_TYPE_BOOLEAN, TRUE,
+            "layout", G_TYPE_STRING, "interleaved",
+            NULL);
+
     g_object_set (G_OBJECT (appsrc), "caps",
-            gst_caps_new_simple (
-                "audio/x-raw",
-                "format", G_TYPE_STRING, format,
-                "rate", G_TYPE_INT, sample_rate,
-                "channels",G_TYPE_INT, channels,
-                "signed", G_TYPE_BOOLEAN, TRUE,
-                "layout", G_TYPE_STRING, "interleaved",
-                NULL),
+            caps,
             NULL);
 
     //the gstreamer main loop is the main event loop for audio generation
@@ -73,7 +75,9 @@ void Player::add_instrument(InstrumentHandle instrument)
 }
 
 void Player::play()
-{ gst_element_set_state (pipeline, GST_STATE_PLAYING);
+{   
+    std::cout<<"playing!"<<std::endl; 
+    gst_element_set_state (pipeline, GST_STATE_PLAYING);
     g_main_loop_run (loop);
 }
 
@@ -86,22 +90,44 @@ void Player::quit()
 
 gboolean Player::push_data()
 {
-    Packet data(packet_size);
+    player_mutex.lock();
+    std::cout<<"push_data! mutex is locked"<<std::endl;
+    Packet data(Config::packet_size);
+    auto offset_ = this->offset;
+    std::cout<<"getting shit from instruments..."<<std::endl;
     std::for_each(instruments.begin(), instruments.end(),
-        [&data,this](InstrumentHandle i)
+        [&data,offset_](InstrumentHandle i)
     {
-        PacketHandle p=i->get_samples(offset,offset+packet_size);
+        std::cout<<"getting shit from an instrument..."<<std::endl;
+        PacketHandle p=i->get_samples(offset_,offset_+Config::packet_size);
+        std::cout<<"got a packet of length "<<p->size()<<std::endl;
         std::transform(data.begin(),data.end(),p->begin(),p->end(),std::plus<Sample>());
+        std::cout<<"transformed!"<<std::endl;
+
     });
-
-    GstBuffer * buffer = gst_buffer_new_allocate (NULL, buffer_length, NULL);
-    gst_buffer_fill(buffer,0,&data[0], buffer_length);
-
-    if (gst_app_src_push_buffer(GST_APP_SRC(appsrc),buffer) != GST_FLOW_OK)
+    std::cout<<"makin a new buffer!"<<std::endl;
+    GstBuffer * buffer = gst_buffer_new();
+    std::cout<<"buffer address: "<<buffer<<std::endl;
+    GstMemory * memory = gst_allocator_alloc(NULL, Config::buffer_length, NULL);
+    std::cout<<"memory address: "<<memory<<std::endl;
+    GstMapInfo i;
+    bool map_return = gst_memory_map(memory, &i, GST_MAP_WRITE);
+    if(!map_return)
     {
+        std::cout<<"shit's fucked up and bullshit"<<std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+    std::copy(data.begin(),data.end(),(Sample *)i.data);
+    gst_buffer_insert_memory(buffer,-1,memory);
+    memory=nullptr;
+    auto ret =gst_app_src_push_buffer(GST_APP_SRC(appsrc),buffer); 
+    if ( ret != GST_FLOW_OK)
+    {
+        std::cout<<"buffer fill returned error code "<<ret<<std::endl;
         return false;
     }
-
+    std::cout<<"buffer filled, supposedly! unlocking mutex..."<<std::endl;
+    player_mutex.unlock();
     return true;
 }
 
@@ -109,7 +135,11 @@ void Player::need_data(int length)
 {
     if(sourceid==0)
     {
+        player_mutex.lock();
+        std::cout<<"need_data! length is "<<length<<", mutex is locked"<<std::endl;
         sourceid=g_idle_add((GSourceFunc) push_data_g, this);
+        std::cout<<"sourceid is "<<sourceid<<", unlocking mutex..."<<std::endl;
+        player_mutex.unlock();
     } 
 }
 
@@ -117,8 +147,12 @@ void Player::enough_data()
 {
     if(sourceid!=0)
     {
+        player_mutex.lock();
+        std::cout<<"enough_data! mutex is locked. sourceid is: "<<sourceid<<std::endl;
         g_source_remove(sourceid);
         sourceid=0;
+        std::cout<<"unlocking mutex..."<<std::endl;
+        player_mutex.unlock();
     }
 }
 

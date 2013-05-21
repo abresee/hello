@@ -1,13 +1,10 @@
 #ifndef PLAYER_H
 #define PLAYER_H 
 #include <vector>
+#include <mutex>
 #include <functional>
-#include <limits>
 #include <cmath>
-#include <string>
 #include <boost/shared_ptr.hpp>
-#include <valarray>
-#include <stdint.h>
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
 #include "Config.h"
@@ -43,6 +40,10 @@ protected:
     GstElement * audiosink;
     /// @brief glib object representing the mainloop used by gstreamer
     GMainLoop * loop;
+    
+    GstCaps * caps;
+
+    std::mutex player_mutex;
 
     /// @brief container for the player object's instruments
     std::vector<InstrumentHandle> instruments;
@@ -76,6 +77,7 @@ protected:
 
     ///Static constant representing the largest representable sample value
     static const Sample max_volume;
+    static const char * format;
 
 };
 

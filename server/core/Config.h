@@ -13,7 +13,6 @@ namespace Config
     const Sample max_volume = std::numeric_limits<Sample>::max();
     const int sample_rate = 44100;
     const double freq_reference = 220;
-    const char * format = "S16LE";
 
     /// player's current sample rate
 

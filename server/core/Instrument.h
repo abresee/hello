@@ -15,8 +15,7 @@ public:
     virtual double frequency(const Note&) const;
 protected:
     virtual void gen(Note&,Packet&,int,int)=0;
-    template<typename T>
-    Sample round(T);
+    Sample round(double t);
 
 private:
     void generate(Note&, Packet&, int);

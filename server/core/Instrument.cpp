@@ -50,3 +50,14 @@ void Instrument::generate(Note& note, Packet& p, int start_sample)
     int off = (note.off() < end_sample) ? note.off() : end_sample;
     this->gen(note,p,on,off);
 }
+Sample Instrument::round(double t)
+{
+    using namespace boost::numeric;
+    converter<Sample
+        , double
+        , conversion_traits<Sample, double>
+        , def_overflow_handler
+        , Trunc<typename conversion_traits<Sample, double>::source_type>
+        > typeconverter;    
+    return typeconverter(t); 
+}
