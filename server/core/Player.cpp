@@ -99,9 +99,9 @@ gboolean Player::push_data()
         [&data,offset_](InstrumentHandle i)
     {
         std::cout<<"getting shit from an instrument..."<<std::endl;
-        PacketHandle p=i->get_samples(offset_,offset_+Config::packet_size);
+        PacketHandle p(i->get_samples(offset_,offset_+Config::packet_size));
         std::cout<<"got a packet of length "<<p->size()<<std::endl;
-        std::transform(data.begin(),data.end(),p->begin(),p->end(),std::plus<Sample>());
+        std::transform(data.begin(),data.end(),p->begin(),p->begin(),std::plus<Sample>());
         std::cout<<"transformed!"<<std::endl;
 
     });
