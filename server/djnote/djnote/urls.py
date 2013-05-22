@@ -1,6 +1,4 @@
 from django.conf.urls import patterns, include, url
-
-# Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()
 
@@ -15,4 +13,8 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
     url(r'^project_view/', include('project_view.urls')),
+	url(r'^login/', 'django.contrib.auth.views.login',),
+	url(r'^register/', 'project_view.views.register'),
+	url(r'^profile/', 'project_view.views.profile'),
+
 )
