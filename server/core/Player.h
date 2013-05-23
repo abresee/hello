@@ -5,15 +5,14 @@
 #include <functional>
 #include <cmath>
 #include <boost/shared_ptr.hpp>
+#include <boost/utility.hpp>
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
 #include "Config.h"
 
 /// @brief master class to handle audio generation and playback
-class Player {
-public:
-
-    Player(const char *);
+class Player : public boost::noncopyable {
+public: 
     /// @brief add an instrument by a InstrumentHandle pointing to it
     void add_instrument(InstrumentHandle);
     /// @brief add an instrument by normal pointer
@@ -29,6 +28,7 @@ public:
 
 
 protected:
+    Player(const char *);
 
     /// @brief gst object representing the whole pipeline
     GstElement * pipeline;
@@ -41,8 +41,6 @@ protected:
     /// @brief glib object representing the mainloop used by gstreamer
     GMainLoop * loop;
     
-    GstCaps * caps;
-
     std::mutex player_mutex;
 
     /// @brief container for the player object's instruments
@@ -81,7 +79,7 @@ protected:
 
 };
 
-class LocalPlayer : public Player
+class LocalPlayer : boost::noncopyable, public Player
 {
 public:
     LocalPlayer() : Player("autoaudiosink") {}

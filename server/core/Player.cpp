@@ -40,7 +40,7 @@ Player::Player(const char * sinktype)
     build_gst_element(conv,"audioconvert","conv");
     build_gst_element(audiosink,sinktype,"output");
 
-    caps = gst_caps_new_simple (
+    GstCaps * caps = gst_caps_new_simple (
             "audio/x-raw",
             "format", G_TYPE_STRING, format,
             "rate", G_TYPE_INT, Config::sample_rate,
@@ -94,22 +94,15 @@ gboolean Player::push_data()
     std::cout<<"push_data! mutex is locked"<<std::endl;
     Packet data(Config::packet_size);
     auto offset_ = this->offset;
-    std::cout<<"getting shit from instruments..."<<std::endl;
     std::for_each(instruments.begin(), instruments.end(),
         [&data,offset_](InstrumentHandle i)
     {
-        std::cout<<"getting shit from an instrument..."<<std::endl;
         PacketHandle p(i->get_samples(offset_,offset_+Config::packet_size));
-        std::cout<<"got a packet of length "<<p->size()<<std::endl;
         std::transform(data.begin(),data.end(),p->begin(),p->begin(),std::plus<Sample>());
-        std::cout<<"transformed!"<<std::endl;
 
     });
-    std::cout<<"makin a new buffer!"<<std::endl;
     GstBuffer * buffer = gst_buffer_new();
-    std::cout<<"buffer address: "<<buffer<<std::endl;
     GstMemory * memory = gst_allocator_alloc(NULL, Config::buffer_length, NULL);
-    std::cout<<"memory address: "<<memory<<std::endl;
     GstMapInfo i;
     bool map_return = gst_memory_map(memory, &i, GST_MAP_WRITE);
     if(!map_return)

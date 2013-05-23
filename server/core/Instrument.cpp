@@ -1,4 +1,6 @@
+#include <cmath>
 #include <algorithm>
+#include <boost/numeric/conversion/converter.hpp>
 #include "Config.h"
 #include "Instrument.h"
 

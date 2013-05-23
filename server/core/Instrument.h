@@ -1,7 +1,6 @@
 #ifndef INSTRUMENT_H
 #define INSTRUMENT_H 
 #include <vector>
-#include <boost/numeric/conversion/converter.hpp>
 #include "Config.h"
 #include "Note.h"
 /// @brief pure virtual base class for instruments
