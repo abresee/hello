@@ -198,11 +198,28 @@ div.transport_locator{
 	width: 40px;
 }
 
+#save_form{
+	position: absolute;
+	right: 50px;
+	z-index: 300;
+}
+
 
 </style>
 </head>
 
 <body oncontextmenu="return false;">
+
+<form id="save_form" method="post" action="{% url 'project_view.views.projectz_save' %}">
+{% csrf_token %}
+<table>
+<tr>
+    <td>Project Name</td>
+    <td><input name="projectz_name"/></td>
+</tr>
+</table>
+<input type="submit" value="Save" />
+</form>
 
 <div id='transport_pane'>transport info
 <div id='select_tool_project' class='select' style="bottom: 0px;">select</div>

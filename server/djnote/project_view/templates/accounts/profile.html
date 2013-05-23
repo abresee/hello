@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p>Hello, {{ username }}!!!</p>
+<form method="post" action="{% url 'project_view.views.index' %}">
+{% csrf_token %}
+<input type="submit" value="New Project" />
+</form>
+
+<h3>Project List</h3>
+<ul>
+{% for project in project_name %}
+	<li>Track Name:  
+		<a href="{% url 'project_view.views.index' %}">{{project}}</a>
+	</li>
+{% endfor %}
+</ul>
+
+{% endblock %}
