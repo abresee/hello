@@ -76,7 +76,6 @@ protected:
     ///Static constant representing the largest representable sample value
     static const Sample max_volume;
     static const char * format;
-
 };
 
 class LocalPlayer : boost::noncopyable, public Player

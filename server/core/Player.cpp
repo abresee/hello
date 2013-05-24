@@ -90,8 +90,6 @@ void Player::quit()
 
 gboolean Player::push_data()
 {
-    player_mutex.lock();
-    std::cout<<"push_data! mutex is locked"<<std::endl;
     Packet data(Config::packet_size);
     auto offset_ = this->offset;
     std::for_each(instruments.begin(), instruments.end(),
@@ -110,7 +108,25 @@ gboolean Player::push_data()
         std::cout<<"shit's fucked up and bullshit"<<std::endl;
         std::exit(EXIT_FAILURE);
     }
+    /*
+    std::cout<<"data: ";
+    for(Sample sample : data)
+    {
+        std::cout<<sample<<" "; 
+    }
+    std::cout<<std::endl;
+    */
+
     std::copy(data.begin(),data.end(),(Sample *)i.data);
+    gst_memory_unmap(memory,&i);
+    /*
+    std::cout<<"mem: ";
+    for(Sample * pSample = (Sample *)i.data; pSample!=((Sample *)i.data)+Config::packet_size; ++pSample)
+    {
+        std::cout<<*pSample<<" ";
+    }
+    std::cout<<std::endl;
+    */
     gst_buffer_insert_memory(buffer,-1,memory);
     memory=nullptr;
     auto ret =gst_app_src_push_buffer(GST_APP_SRC(appsrc),buffer); 
@@ -119,8 +135,6 @@ gboolean Player::push_data()
         std::cout<<"buffer fill returned error code "<<ret<<std::endl;
         return false;
     }
-    std::cout<<"buffer filled, supposedly! unlocking mutex..."<<std::endl;
-    player_mutex.unlock();
     return true;
 }
 
@@ -128,11 +142,7 @@ void Player::need_data(int length)
 {
     if(sourceid==0)
     {
-        player_mutex.lock();
-        std::cout<<"need_data! length is "<<length<<", mutex is locked"<<std::endl;
         sourceid=g_idle_add((GSourceFunc) push_data_g, this);
-        std::cout<<"sourceid is "<<sourceid<<", unlocking mutex..."<<std::endl;
-        player_mutex.unlock();
     } 
 }
 
@@ -140,12 +150,8 @@ void Player::enough_data()
 {
     if(sourceid!=0)
     {
-        player_mutex.lock();
-        std::cout<<"enough_data! mutex is locked. sourceid is: "<<sourceid<<std::endl;
         g_source_remove(sourceid);
         sourceid=0;
-        std::cout<<"unlocking mutex..."<<std::endl;
-        player_mutex.unlock();
     }
 }
 
