@@ -6,10 +6,10 @@ WaveGenerator::WaveGenerator(std::function<double(double)> wave_I) : wave_(wave_
 
 void WaveGenerator::gen(Note& note, Packet& p, int on, int off)
 {
-    std::cout<<"WaveGenerator's gen!"<<std::endl;
+    std::cout<<"WaveGenerator::gen "<<p.size()<<" "<<off-on<<std::endl;
     for(int i=on;i<off;++i)
     {
-        p[i]+=round(note.intensity()*wave_(omega(note)*i)); 
+        p.at(i)+=round(note.intensity()*wave_(omega(note)*i)); 
     }
 }
 

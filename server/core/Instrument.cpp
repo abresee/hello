@@ -24,11 +24,8 @@ PacketHandle Instrument::get_samples(int begin, int end)
         }
     }
     
-    cout<<"found "<<notes_to_gen.size()<<endl;
-
     for(Note note : notes_to_gen)
     {
-        cout<<"calling to generate"<<endl;
         generate(note,*ret,begin);
     }
     return ret;
