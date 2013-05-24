@@ -11,6 +11,7 @@ void WaveGenerator::gen(Note& note, Packet& p, int on, int off)
     {
         p.at(i)+=round(note.intensity()*wave_(omega(note)*i)); 
     }
+    std::cout<<"end of WaveGenerator::gen"<<std::endl;
 }
 
 std::function<double(double)>& WaveGenerator::wave()

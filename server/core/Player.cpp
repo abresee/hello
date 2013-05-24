@@ -119,14 +119,14 @@ Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(
 
 gboolean Player::push_data()
 {
+    mutex.lock();
+    cout<<"Player::push_data"<<endl;
     auto packet_size = ((offset+last_hint) < offset_end) ? last_hint : offset_end - offset ;
     Packet data(packet_size);
-    cout<<"packet_size: "<<packet_size<<endl;
 
     for (InstrumentHandle i : instruments)
     {
-        PacketHandle p(i->get_samples(offset, offset+data.size()));
-        std::transform(data.begin(), data.end(), p->begin(), data.begin(), std::plus<Sample>());
+        i->get_samples(data,offset);
     }
 
     GstBuffer * buffer = gst_buffer_new();
@@ -149,22 +149,28 @@ gboolean Player::push_data()
         cout<<"buffer fill returned error code "<<ret<<endl;
         return false;
     }
+    cout<<"end of Player::push_data"<<endl;
+    mutex.unlock();
     return true;
 }
 
 void Player::need_data(guint length)
 {
-    cout<<"need_data!"<<endl;
+    mutex.lock();
+    cout<<"Player::need_data"<<endl;
     last_hint=length;
     if(sourceid==0)
     {
         sourceid=g_idle_add((GSourceFunc) util::wrap_push_data, this);
         cout<<"added source "<<sourceid<<endl;
     } 
+    cout<<"end of Player::need_data"<<endl;
+    mutex.unlock();
 }
 
 void Player::enough_data()
 {
+    mutex.lock();
     cout<<"enough_data!"<<endl;
     if(sourceid!=0)
     {
@@ -173,13 +179,16 @@ void Player::enough_data()
         sourceid=0;
         cout<<" aaaand done!"<<endl;
     }
+    mutex.unlock();
 }
 
 gboolean Player::seek_data(guint64 destination)
 {
+    mutex.lock();
     //TODO: IMPLEMENT THIS
     cout<<"seek_data!"<<endl;
     return true;
+    mutex.unlock();
 }
 
 

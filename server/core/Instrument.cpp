@@ -11,14 +11,14 @@ using std::endl;
 
 Instrument::~Instrument(){}
 
-PacketHandle Instrument::get_samples(int begin, int end)
+void Instrument::get_samples(Packet& p, guint64 begin_offset)
 {
-    cout<<"Instrument::get_samples"<<endl;
-    PacketHandle ret(new Packet(end-begin,0));
+    guint64 end_offset = begin_offset + p.size();
+    cout<<"Instrument::get_samples "<<endl;
     std::vector<Note> notes_to_gen;
     for(Note note : notes)
     {
-        if(note.off() > begin && note.on() < end)
+        if(note.off() > begin_offset && note.on() < end_offset)
         {
             notes_to_gen.push_back(note);
         }
@@ -26,9 +26,9 @@ PacketHandle Instrument::get_samples(int begin, int end)
     
     for(Note note : notes_to_gen)
     {
-        generate(note,*ret,begin);
+        generate(note,p,begin_offset);
     }
-    return ret;
+    cout<<"end of Instrument::get_samples"<<endl;
 }
 
 void Instrument::add_note(Note& note)
@@ -59,6 +59,7 @@ void Instrument::generate(Note& note, Packet& p,const int start_offset)
     const int on = (note.on() > start_offset) ? note.on() : start_offset;
     const int off = (note.off() < end_offset) ? note.off() : end_offset;
     this->gen(note,p,on,off);
+    cout<<"end of Instrument::generate"<<endl;
 }
 
 Sample Instrument::round(double t)

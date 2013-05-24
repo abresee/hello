@@ -54,6 +54,8 @@ protected:
     GstElement * audiosink;
     /// @brief glib object representing the mainloop used by gstreamer
     GMainLoop * loop;
+
+    std::mutex mutex;
     
     /// @brief container for the player object's instruments
     std::vector<InstrumentHandle> instruments;

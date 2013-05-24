@@ -7,7 +7,7 @@
 class Instrument
 {
 public:
-    PacketHandle get_samples(int begin,int end); 
+    void get_samples(Packet& p, guint64 begin_offset); 
     virtual ~Instrument();
     virtual void add_note(Note&);
     virtual double omega(const Note&) const;
