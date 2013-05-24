@@ -10,6 +10,7 @@ int main(int argc, char ** argv)
     InstrumentHandle wg = InstrumentHandle(new WaveGenerator(sin));
     Note n(0,Config::max_volume/4,0,0,Config::sample_rate*2);
     wg->add_note(n);
+    std::cout<<wg->stream_end()<<std::endl;
     p->add_instrument(wg);
     p->play();
 }

@@ -1,7 +1,11 @@
+#include <iostream>
 #include "Note.h"
 
 Note::Note(int pitch_class_I, Sample intensity_I, int octave_I, int on_I, int off_I) :
-    pitch_class_(pitch_class_I),intensity_(intensity_I), octave_(octave_I), on_(on_I), off_(off_I) {}
+    pitch_class_(pitch_class_I),intensity_(intensity_I), octave_(octave_I), on_(on_I), off_(off_I)
+{
+    std::cout<<"off_: "<<off_<<std::endl;
+}
     
 int Note::pitch_class() const
 {

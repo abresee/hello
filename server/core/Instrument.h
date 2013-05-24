@@ -12,12 +12,13 @@ public:
     virtual void add_note(Note&);
     virtual double omega(const Note&) const;
     virtual double frequency(const Note&) const;
+    virtual guint64 stream_end() const;
 protected:
-    virtual void gen(Note&,Packet&,int,int)=0;
+    virtual void gen(Note& note, Packet& p, int on, int off)=0;
     Sample round(double t);
 
 private:
-    void generate(Note&, Packet&, int);
+    void generate(Note& note, Packet& p, const int start_offset);
     std::vector<Note> notes;
 };
 #endif /* INSTRUMENT_H */

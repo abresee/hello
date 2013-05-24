@@ -7,7 +7,7 @@
 class WaveGenerator : public Instrument
 {
     std::function<double(double)> wave_;
-    virtual void gen(Note&, Packet&, int, int);
+    virtual void gen(Note& note, Packet& p, int on, int off);
 public:
     WaveGenerator(std::function<double(double)>);
     std::function<double(double)>& wave();

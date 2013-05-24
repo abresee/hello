@@ -12,11 +12,27 @@
 
 /// @brief master class to handle audio generation and playback
 class Player : public boost::noncopyable {
+    static const char * format;
+    class util {
+    public:
+        /// @brief Helper function to initialize gstreamer
+        static void initialize_gst();
+        /// @brief Helper function to build gst elements to centralize boilerplate error checking.
+        static void build_gst_element(GstElement * &element, const char * kind, const char * name);
+        /// @brief wrapper for member function b/c gst can't handle member functions
+        static void wrap_need_data(GstAppSrc * element, guint length, gpointer instance);
+        /// @brief wrapper for member function b/c gst can't handle member functions
+        static void wrap_enough_data(GstAppSrc * element, gpointer instance);
+        /// @brief wrapper for member function b/c gst can't handle member functions
+        static gboolean wrap_seek_data(GstAppSrc * element,guint64 destination,gpointer instance);
+        /// @brief wrapper for member function b/c gst can't handle member functions
+        static gboolean wrap_push_data(gpointer instance);
+    };
 public: 
     /// @brief add an instrument by a InstrumentHandle pointing to it
-    void add_instrument(InstrumentHandle);
+    void add_instrument(InstrumentHandle instrument);
     /// @brief add an instrument by normal pointer
-    void add_instrument(Instrument*);
+    void add_instrument(Instrument* instrument);
 
     /// @brief start playback
     void play();
@@ -24,12 +40,10 @@ public:
     void quit();
 
     /// @brief dtor
-    ~Player();
-
+    virtual ~Player();
 
 protected:
     Player(const char *);
-
     /// @brief gst object representing the whole pipeline
     GstElement * pipeline;
     /// @brief gst object representing the interface between our code and the pipeline
@@ -41,41 +55,22 @@ protected:
     /// @brief glib object representing the mainloop used by gstreamer
     GMainLoop * loop;
     
-    std::mutex player_mutex;
-
     /// @brief container for the player object's instruments
     std::vector<InstrumentHandle> instruments;
-
-    int offset=0;
-    /// @brief gst internal id for the push_data idle handler
-    guint sourceid=0;
-
-    /// @brief Helper function to build gst elements to centralize boilerplate error checking.
-    void static build_gst_element(GstElement*&,const char*,const char*);
-    /// @brief Helper function to initialize gstreamer
-    void static initialize_gst();
-
-    /// @brief wrapper for member function b/c gst can't handle member functions
-    static gboolean push_data_g(gpointer);
-    /// @brief wrapper for member function b/c gst can't handle member functions
-    static void need_data_g(GstAppSrc*,guint,gpointer);
-    /// @brief wrapper for member function b/c gst can't handle member functions
-    static void enough_data_g(GstAppSrc*,gpointer);
-
-    static gboolean seek_data_g(GstAppSrc*,guint64,gpointer);
+    guint64 offset;
+    guint64 offset_end;
+    guint sourceid;
+    guint last_hint;
 
     /// @brief callback that actually inserts data into appsrc
     gboolean push_data();
     /// @brief callback that handles appsrc's need-data signal 
-    void need_data(int);
+    void need_data(guint);
     /// @brief callback that handles appsrc's enough-data signal 
     void enough_data();
-
+    /// @brief callback that handles appsrc's seek-data signal 
     gboolean seek_data(guint64);
 
-    ///Static constant representing the largest representable sample value
-    static const Sample max_volume;
-    static const char * format;
 };
 
 class LocalPlayer : boost::noncopyable, public Player

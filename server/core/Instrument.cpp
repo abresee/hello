@@ -1,12 +1,39 @@
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 #include <boost/numeric/conversion/converter.hpp>
 #include "Config.h"
 #include "Instrument.h"
 
 using namespace Config;
+using std::cout;
+using std::endl;
 
 Instrument::~Instrument(){}
+
+PacketHandle Instrument::get_samples(int begin, int end)
+{
+    cout<<"Instrument::get_samples"<<endl;
+    PacketHandle ret(new Packet(end-begin,0));
+    std::vector<Note> notes_to_gen;
+    for(Note note : notes)
+    {
+        if(note.off() > begin && note.on() < end)
+        {
+            notes_to_gen.push_back(note);
+        }
+    }
+    
+    cout<<"found "<<notes_to_gen.size()<<endl;
+
+    for(Note note : notes_to_gen)
+    {
+        cout<<"calling to generate"<<endl;
+        generate(note,*ret,begin);
+    }
+    return ret;
+}
+
 void Instrument::add_note(Note& note)
 {
     notes.push_back(note);
@@ -23,35 +50,20 @@ double Instrument::frequency(const Note& n) const
     return Config::freq_reference * pow(2,n.octave()+(static_cast<int>(n.pitch_class())/12.0));
 }
 
-PacketHandle Instrument::get_samples(int begin, int end)
+guint64 Instrument::stream_end() const
 {
-    //find the first note that ends after sample count "begin"
-    auto begin_note_iter = std::lower_bound(notes.begin(), notes.end(), begin,
-            [](const Note& n,const int& i){
-                return n.off() > i;
-            });
-
-    //find the first note that begins after sample count "end"
-    auto end_note_iter = std::upper_bound(notes.begin(), notes.end(), end,
-            [](const int& i, const Note& n){
-                return n.on() > i;
-            });    
-
-    PacketHandle ret(new Packet(end-begin,0));
-    std::for_each(begin_note_iter,end_note_iter,[this,ret,begin](Note& note)
-            {
-                this->generate(note,*ret,begin);
-            });
-    return ret;
+    return notes.back().off(); 
 }
 
-void Instrument::generate(Note& note, Packet& p, int start_sample)
+void Instrument::generate(Note& note, Packet& p,const int start_offset)
 {
-    const int end_sample=start_sample+p.size();
-    int on = (note.on() > start_sample) ? note.on() : start_sample; 
-    int off = (note.off() < end_sample) ? note.off() : end_sample;
+    cout<<"Instrument::generate"<<endl;
+    const int end_offset=start_offset+p.size();
+    const int on = (note.on() > start_offset) ? note.on() : start_offset;
+    const int off = (note.off() < end_offset) ? note.off() : end_offset;
     this->gen(note,p,on,off);
 }
+
 Sample Instrument::round(double t)
 {
     using namespace boost::numeric;
