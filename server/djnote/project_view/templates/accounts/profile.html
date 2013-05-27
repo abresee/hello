@@ -7,11 +7,10 @@
 <input type="submit" value="New Project" />
 </form>
 
-<h3>Project List</h3>
 <ul>
-{% for project in project_name %}
-	<li>Track Name:  
-		<a href="{% url 'project_view.views.index' %}">{{project}}</a>
+{% for project in projects %}
+	<li>
+		<a href="{% url 'project_view.views.index' %}">{{ project.name }}</a>
 	</li>
 {% endfor %}
 </ul>

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
+{% load dajaxice_templatetags %}
 <html>
 <head>
+{% dajaxice_js_import %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
 <script src="https://dl.dropboxusercontent.com/u/286533/jquery-1.9.1.min.js"></script>
 <script src="https://dl.dropboxusercontent.com/u/286533/jquery-ui.js"></script>
@@ -200,8 +202,26 @@ div.transport_locator{
 
 #save_form{
 	position: absolute;
-	right: 50px;
-	z-index: 300;
+	right: 100px;
+	top: 5px;
+}
+
+#logout_form{
+	position: absolute;
+	right: 220px;
+	top: 33px;
+}
+
+#profile{
+	position: absolute;
+	right: 155px;
+	top: 33px;
+}
+
+#dajaxiced{
+	position: absolute;
+	right: 340px;
+	top: 33px;
 }
 
 
@@ -210,18 +230,29 @@ div.transport_locator{
 
 <body oncontextmenu="return false;">
 
+<div id='transport_pane'>transport info
+
 <form id="save_form" method="post" action="{% url 'project_view.views.projectz_save' %}">
 {% csrf_token %}
 <table>
 <tr>
-    <td>Project Name</td>
+    <td>Project name</td>
     <td><input name="projectz_name"/></td>
+	<td><input type="hidden" name="trackss" value="3"/></td>
 </tr>
 </table>
 <input type="submit" value="Save" />
 </form>
 
-<div id='transport_pane'>transport info
+<form id="logout_form" method="post" action="{% url 'project_view.views.project_logout' %}">
+{% csrf_token %}
+<input type="submit" value="Logout"></button>
+</form>
+
+<form id="profile" action="{% url 'project_view.views.profile' %}">
+    <input type="submit" value="Profile">
+</form>
+<button id="dajaxiced" onclick="Dajaxice.project_view.track_save(null_function);">dajaxice</button>
 <div id='select_tool_project' class='select' style="bottom: 0px;">select</div>
 <div id='snap_tool_project' class='select' style="bottom: 0px; left: 40px;">snap</div>
 <div id='pencil_tool_project' class='select' style="bottom: 0px; left: 80px;">pencil</div>
@@ -273,6 +304,8 @@ div.transport_locator{
 
 
 <script>
+function null_function(){}
+
 var max_notes = 108;
 var count = 0;
 var theHtml_container = "<div class='container'></div>";
@@ -859,10 +892,10 @@ $('#input_bpm').on("spinchange", function(){
 	}
 });
 
-
 function play_start_locator(){
 	$('.transport_locator').css({left: $('.transport_locator').position().left + 1});
 }
+
 var pixels_per_beat = 40;	
 
 var play_select = 0;
@@ -878,7 +911,10 @@ $('#play').click(function(){
 	play_select %= 2;
 });
 		
-	
+//SAVING**********************
+
+
+
 	
 
 

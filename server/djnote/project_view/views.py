@@ -1,22 +1,21 @@
-# Create your views here.
-#from django.http import HttpResponse
-#from django.template import loader, Context
+import re
+
 from django.shortcuts import render, redirect
-from django.forms.models import model_to_dict
 from project_view.forms import RegisterForm
-from project_view.models import Project
+from project_view.models import Project, Track
 from django.contrib.auth.models import User
-from django.template import loader, Template, RequestContext
+from django.contrib.auth import logout
+from django.template import Context, loader, Template, RequestContext
 from django.http import HttpResponse
 
 def index(request):
-	#template = loader.get_template('project_view/indexx.html')
-	#return HttpResponse(template.render)
-	return render(request, 'project_view/index.html')
+	if request.user.is_authenticated():
+		return render(request, 'project_view/index.html')
+	else:
+		return redirect('http://127.0.0.1:8000/login/')
 	 
 def register(request):
 	if request.method == 'POST':
-		#form = RegisterForm
 		if request.POST.get('password') == request.POST.get('confirm_password'):
 			user = User.objects.create_user(request.POST.get('username'),'none', request.POST.get('password'))
 			return render(request, 'accounts/profile.html')
@@ -26,22 +25,30 @@ def register(request):
 		return render(request, 'registration/register.html')
 		
 def profile(request):
-	project_name_list = []
-	username = request.user.username
-	
+	project_list = []
 	template = loader.get_template('accounts/profile.html')
-	
-	for object in Project.objects.all():
-		project_name_list.append(object.name)
-	context = RequestContext(request, {"username": username, "project_name": project_name_list})
-	
-	return HttpResponse(template.render(context))
+	if request.user.is_authenticated():
+		projects = request.user.user_projects.all()
+		for project in projects:
+			project_list.append(project)
+		context = RequestContext(request, {"username": request.user, "projects": request.user.user_projects.all()})
+		return HttpResponse(template.render(context))
+	else:
+		return redirect('http://127.0.0.1:8000/login/')
 	
 def projectz_save(request):
-	try: 
-		p = Project(name=request.POST.get('projectz_name'))
+	match = re.search(r'[A-Za-z0-9]', request.POST.get('projectz_name'))
+	if match:
+		t = Track(track_number = int(request.POST.get('trackss')))
+		t.save()
+		p = Project(name=request.POST.get('projectz_name'), tracks=t)
 		p.save()
-		return redirect('http://127.0.0.1:8000/project_view/')
-	except:
-		return redirect('http://www.google.com/')
+	return render(request, 'project_view/index.html')	
 	
+def project_logout(request):
+	if request.user.is_authenticated():
+		logout(request)
+		return redirect('http://127.0.0.1:8000/login/')
+	else:
+		return render(request, 'project_view/index.html')
+		
