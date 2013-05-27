@@ -1,20 +1,18 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 admin.autodiscover()
+from dajaxice.core import dajaxice_autodiscover, dajaxice_config
+dajaxice_autodiscover()
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'djnote.views.home', name='home'),
-    # url(r'^djnote/', include('djnote.foo.urls')),
 
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
     url(r'^project_view/', include('project_view.urls')),
 	url(r'^login/', 'django.contrib.auth.views.login',),
-	url(r'^register/', 'project_view.views.register'),
 	url(r'^profile/', 'project_view.views.profile'),
+	url(dajaxice_config.dajaxice_url, include('dajaxice.urls')),
 
 )
+
+urlpatterns += staticfiles_urlpatterns()

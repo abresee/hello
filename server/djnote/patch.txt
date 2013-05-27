@@ -1,0 +1,36 @@
+From e894ea59aec6593312b0ae656abd0360c5aef352 Mon Sep 17 00:00:00 2001
+From: abresee <bresee.al@husky.neu.edu>
+Date: Thu, 23 May 2013 01:30:37 -0400
+Subject: [PATCH] changed from distutils to setuptools, fixed import error
+
+---
+ dajaxice/core/__init__.py | 4 ++--
+ setup.py                  | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/dajaxice/core/__init__.py b/dajaxice/core/__init__.py
+index d87543f..61402d5 100644
+--- a/dajaxice/core/__init__.py
++++ b/dajaxice/core/__init__.py
+@@ -1,6 +1,6 @@
+ from django.conf import settings
+-
+-from Dajaxice import Dajaxice, dajaxice_autodiscover
++import sys
++from dajaxice.core.Dajaxice import Dajaxice, dajaxice_autodiscover
+ 
+ 
+ class DajaxiceConfig(object):
+diff --git a/setup.py b/setup.py
+index cc544bb..065d973 100644
+--- a/setup.py
++++ b/setup.py
+@@ -1,4 +1,4 @@
+-from distutils.core import setup
++from setuptools import setup
+ 
+ setup(
+     name='django-dajaxice',
+-- 
+1.7.12.4 (Apple Git-37)
+
