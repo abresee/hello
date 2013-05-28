@@ -1,12 +1,12 @@
 #ifndef CONFIG_H
 #define CONFIG_H 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <vector>
 class Instrument;
 typedef int16_t Sample;
-typedef boost::shared_ptr<Instrument> InstrumentHandle;
+typedef std::shared_ptr<Instrument> InstrumentHandle;
 typedef std::vector<Sample> Packet;
-typedef boost::shared_ptr<Packet> PacketHandle;
+typedef std::shared_ptr<Packet> PacketHandle;
 
 namespace Config 
 {
@@ -27,10 +27,6 @@ namespace Config
 
     /// amount of channels in our audio stream
     static const int channels = 1;
-
-    /// TODO: get rid of this stuff
-    static const int seconds = 10;
-    static const int signal_length = sample_rate*seconds;
 }
 
 #endif /* CONFIG_H */

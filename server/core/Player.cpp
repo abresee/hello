@@ -130,6 +130,8 @@ Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(
         caps,
         NULL);
 
+    g_object_set(G_OBJECT(appsrc), "is-live",true,NULL);
+
     //the gstreamer main loop is the main event loop for audio generation
     loop = g_main_loop_new (NULL, FALSE);
 
@@ -156,6 +158,9 @@ gboolean Player::push_data()
     }
     
     GstBuffer * buffer = gst_buffer_new_allocate(NULL, datahandle->size()*Config::word_size, NULL);
+    cout<<offset<<endl;
+    GST_BUFFER_DURATION(buffer)=static_cast<GstClockTime>((datahandle->size())*Config::sample_rate*1000000000);
+    GST_BUFFER_PTS(buffer)=static_cast<GstClockTime>(offset*Config::sample_rate*1000000000);
     auto size = datahandle->size() * Config::word_size;
     gst_buffer_fill(buffer, 0, static_cast<void *>(datahandle->data()), size);
     auto ret = gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer); 
@@ -207,7 +212,6 @@ gboolean Player::bus_callback(GstBus * bus, GstMessage * message)
             g_free(debug);
             break;
         case GST_MESSAGE_EOS:
-            eos_callback();
             break;
         default:
             break;
