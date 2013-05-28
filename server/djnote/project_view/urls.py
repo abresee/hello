@@ -8,4 +8,5 @@ urlpatterns = patterns('',
 	url(r'^save$', views.projectz_save, name='project_save'),
 	#url(r'^track_save$', views.track_save, name='track_save'),
 	url(r'^logout$', views.project_logout, name='logout'),
+	url(r'^create_project$', views.create_project, name='create_project'),
 )

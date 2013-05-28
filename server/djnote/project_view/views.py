@@ -1,6 +1,7 @@
 import re
 
 from django.shortcuts import render, redirect
+from django.db import models
 from project_view.forms import RegisterForm
 from project_view.models import Project, Track
 from django.contrib.auth.models import User
@@ -41,9 +42,25 @@ def projectz_save(request):
 	if match:
 		t = Track(track_number = int(request.POST.get('trackss')))
 		t.save()
-		p = Project(name=request.POST.get('projectz_name'), tracks=t)
+		p = Project(name=request.POST.get('projectz_name'), ownerz=request.user, tracks=t)
 		p.save()
+		
 	return render(request, 'project_view/index.html')	
+	
+def create_project(request):
+	t = Track(track_number = 0)
+	t.save()
+	p = Project(name='new project', tracks=t)
+	p.save()
+	p.ownerz.add(request.user)
+	
+	project_list = []
+	template = loader.get_template('accounts/profile.html')
+	projects = request.user.user_projects.all()
+	for project in projects:
+		project_list.append(project)
+	context = RequestContext(request, {"username": request.user, "projects": request.user.user_projects.all()})
+	return HttpResponse(template.render(context))
 	
 def project_logout(request):
 	if request.user.is_authenticated():

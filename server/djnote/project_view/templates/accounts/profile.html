@@ -2,7 +2,7 @@
 
 {% block content %}
 <p>Hello, {{ username }}!!!</p>
-<form method="post" action="{% url 'project_view.views.index' %}">
+<form method="post" action="{% url 'project_view.views.create_project' %}">
 {% csrf_token %}
 <input type="submit" value="New Project" />
 </form>
