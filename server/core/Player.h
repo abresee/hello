@@ -27,7 +27,10 @@ class Player : public boost::noncopyable {
         static gboolean wrap_seek_data(GstAppSrc * element,guint64 destination,gpointer instance);
         /// @brief wrapper for member function b/c gst can't handle member functions
         static gboolean wrap_push_data(gpointer instance);
+
+        static gboolean wrap_bus_callback (GstBus *bus, GstMessage *message, gpointer data);
     };
+
 public: 
     /// @brief add an instrument by a InstrumentHandle pointing to it
     void add_instrument(InstrumentHandle instrument);
@@ -36,6 +39,9 @@ public:
 
     /// @brief start playback
     void play();
+
+    /// @brief indicate end of stream has been signalled
+    void eos();
     /// @brief stop playback
     void quit();
 
@@ -62,6 +68,7 @@ protected:
     guint64 offset;
     guint64 offset_end;
     guint sourceid;
+    guint bus_watch_id;
     guint last_hint;
 
     /// @brief callback that actually inserts data into appsrc
@@ -72,6 +79,9 @@ protected:
     void enough_data();
     /// @brief callback that handles appsrc's seek-data signal 
     gboolean seek_data(guint64);
+
+    gboolean bus_callback(GstBus * bus, GstMessage * message);
+    void eos_callback();
 
 };
 

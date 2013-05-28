@@ -1,5 +1,6 @@
 #include <iterator>
 #include <iostream>
+#include <memory>
 #include "Player.h"
 #include "WaveGenerator.h"
 
@@ -50,6 +51,12 @@ gboolean Player::util::wrap_push_data(gpointer instance)
     return this_->push_data();
 }
 
+gboolean Player::util::wrap_bus_callback(GstBus * bus, GstMessage * message, gpointer data)
+{
+    Player * this_ = static_cast<Player *>(data);
+    return this_->bus_callback(bus,message);
+}
+
 void Player::add_instrument(InstrumentHandle instrument)
 {
     instruments.push_back(instrument);
@@ -63,16 +70,28 @@ void Player::add_instrument(Instrument * instrument)
 void Player::play()
 {   
     guint64 stream_end=0;
-    for_each(instruments.begin(), instruments.end(), [&stream_end](InstrumentHandle i){
-        stream_end = (stream_end > i->stream_end()) ? stream_end : i->stream_end();});
+    for(auto instrument : instruments)
+    { 
+        stream_end = (stream_end > instrument->stream_end()) ? 
+            stream_end : 
+            instrument->stream_end();
+    }
     offset_end = stream_end;
     gst_element_set_state (pipeline, GST_STATE_PLAYING);
     g_main_loop_run (loop);
 }
 
+void Player::eos()
+{
+    GstFlowReturn r = gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
+    if (r!=GST_FLOW_OK)
+    {
+        cout<<"shit's fucked"<<endl;
+    }
+}
+
 void Player::quit()
 {
-    gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
     gst_element_set_state(pipeline, GST_STATE_NULL);
     g_main_loop_quit(loop);
 }
@@ -92,6 +111,11 @@ Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(
     util::build_gst_element(appsrc,"appsrc","source");
     util::build_gst_element(conv,"audioconvert","conv");
     util::build_gst_element(audiosink,sinktype,"output");
+
+    GstBus * bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
+    bus_watch_id = gst_bus_add_watch (bus, util::wrap_bus_callback, this);
+    gst_object_unref (bus);
+    
 
     GstCaps * caps = gst_caps_new_simple (
         "audio/x-raw",
@@ -119,76 +143,81 @@ Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(
 
 gboolean Player::push_data()
 {
-    mutex.lock();
-    cout<<"Player::push_data"<<endl;
+    if(offset >= offset_end)
+    {
+        eos();
+        return false;
+    }
     auto packet_size = ((offset+last_hint) < offset_end) ? last_hint : offset_end - offset ;
-    Packet data(packet_size);
-
+    std::unique_ptr<Packet> datahandle(new Packet(packet_size));
     for (InstrumentHandle i : instruments)
     {
-        i->get_samples(data,offset);
+        i->get_samples(*datahandle,offset);
     }
-
-    GstBuffer * buffer = gst_buffer_new();
-    GstMemory * memory = gst_allocator_alloc(NULL, data.size(), NULL);
-
-    GstMapInfo i;
-    if(!gst_memory_map(memory, &i, GST_MAP_WRITE))
-    {
-        cout<<"shit's fucked up and bullshit"<<endl;
-        std::exit(EXIT_FAILURE);
-    }
-
-    std::copy(data.begin(), data.end(), (Sample *)i.data);
-    gst_memory_unmap(memory, &i);
-    gst_buffer_insert_memory(buffer, -1, memory);
-    memory = nullptr;
+    
+    GstBuffer * buffer = gst_buffer_new_allocate(NULL, datahandle->size()*Config::word_size, NULL);
+    auto size = datahandle->size() * Config::word_size;
+    gst_buffer_fill(buffer, 0, static_cast<void *>(datahandle->data()), size);
     auto ret = gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer); 
     if ( ret != GST_FLOW_OK)
     {
-        cout<<"buffer fill returned error code "<<ret<<endl;
+        cout<<"flow no good!"<<endl;
         return false;
     }
-    cout<<"end of Player::push_data"<<endl;
-    mutex.unlock();
+    offset+=packet_size;
     return true;
 }
 
 void Player::need_data(guint length)
 {
-    mutex.lock();
-    cout<<"Player::need_data"<<endl;
     last_hint=length;
     if(sourceid==0)
     {
         sourceid=g_idle_add((GSourceFunc) util::wrap_push_data, this);
-        cout<<"added source "<<sourceid<<endl;
     } 
-    cout<<"end of Player::need_data"<<endl;
-    mutex.unlock();
 }
 
 void Player::enough_data()
 {
-    mutex.lock();
-    cout<<"enough_data!"<<endl;
     if(sourceid!=0)
     {
-        cout<<"removing source "<<sourceid;
         g_source_remove(sourceid);
         sourceid=0;
-        cout<<" aaaand done!"<<endl;
     }
-    mutex.unlock();
 }
 
 gboolean Player::seek_data(guint64 destination)
 {
-    mutex.lock();
     //TODO: IMPLEMENT THIS
-    cout<<"seek_data!"<<endl;
     return true;
-    mutex.unlock();
+}
+
+gboolean Player::bus_callback(GstBus * bus, GstMessage * message)
+{
+    cout<<"Got "<<
+        GST_MESSAGE_TYPE_NAME(message)
+        <<" message"<<endl;
+    switch(GST_MESSAGE_TYPE(message)) {
+        case GST_MESSAGE_ERROR:
+            GError *err;
+            gchar *debug;
+            gst_message_parse_error(message,&err,&debug);            
+            g_print("Error: %s\n",err->message);
+            g_error_free(err); 
+            g_free(debug);
+            break;
+        case GST_MESSAGE_EOS:
+            eos_callback();
+            break;
+        default:
+            break;
+    }
+    return true;
+}
+
+void Player::eos_callback()
+{
+    quit();
 }
 
 

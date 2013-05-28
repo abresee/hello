@@ -1,16 +1,36 @@
 #include <cmath>
+#include <iostream>
+#include <stdexcept>
 #include "Player.h"
 #include "Instrument.h"
 #include "WaveGenerator.h"
+using std::cout;
+using std::endl;
 
 int main(int argc, char ** argv)
 {
     boost::shared_ptr<Player> p(new LocalPlayer());
     std::function<double(double)> sin= static_cast<double(*)(double)>(std::sin);
     InstrumentHandle wg = InstrumentHandle(new WaveGenerator(sin));
-    Note n(0,Config::max_volume/4,0,0,Config::sample_rate*2);
-    wg->add_note(n);
-    std::cout<<wg->stream_end()<<std::endl;
+    std::vector<Note> notes;
+    guint64 note_length = Config::sample_rate/8;
+    int note_count = 0;
+    for(int i = 0; i < 4; ++i)
+    {
+        notes.push_back(Note(0,Config::max_volume/4,i,note_length*note_count,note_length*++note_count));
+        notes.push_back(Note(2,Config::max_volume/4,i,note_length*note_count,note_length*++note_count));
+        notes.push_back(Note(4,Config::max_volume/4,i,note_length*note_count,note_length*++note_count));
+        notes.push_back(Note(7,Config::max_volume/4,i,note_length*note_count,note_length*++note_count));
+    }
+    for(int i = 0; i < 4; ++i)
+    {
+        notes.push_back(Note(0,Config::max_volume/4,5-i,note_length*note_count,note_length*++note_count));
+        notes.push_back(Note(7,Config::max_volume/4,4-i,note_length*note_count,note_length*++note_count));
+        notes.push_back(Note(4,Config::max_volume/4,4-i,note_length*note_count,note_length*++note_count));
+        notes.push_back(Note(2,Config::max_volume/4,4-i,note_length*note_count,note_length*++note_count));
+    }
+
+    wg->add_notes(notes);
     p->add_instrument(wg);
     p->play();
 }

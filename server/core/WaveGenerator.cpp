@@ -1,25 +1,21 @@
 #include <cmath>
 #include <iostream>
+#include <stdexcept>
 #include "WaveGenerator.h"
 
 WaveGenerator::WaveGenerator(std::function<double(double)> wave_I) : wave_(wave_I){}
 
-void WaveGenerator::gen(Note& note, Packet& p, int on, int off)
+void WaveGenerator::gen(const Note note, Packet& p, const guint64 start_offset)
 {
-    std::cout<<"WaveGenerator::gen "<<p.size()<<" "<<off-on<<std::endl;
+    const int on = (note.on() > start_offset) ? (note.on() - start_offset) : (0);
+    const int off = (note.off() < (start_offset + p.size())) ? (note.off() - start_offset) : (p.size()); 
     for(int i=on;i<off;++i)
     {
-        p.at(i)+=round(note.intensity()*wave_(omega(note)*i)); 
+        p[i]+=round(note.intensity()*wave_(omega(note) * (i+start_offset))); 
     }
-    std::cout<<"end of WaveGenerator::gen"<<std::endl;
 }
 
 std::function<double(double)>& WaveGenerator::wave()
 {
     return wave_;
-}
-
-void WaveGenerator::add_note(Note& note)
-{
-    Instrument::add_note(note);    
 }

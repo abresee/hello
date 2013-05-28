@@ -6,15 +6,12 @@
 #include "Instrument.h"
 
 using namespace Config;
-using std::cout;
-using std::endl;
 
 Instrument::~Instrument(){}
 
 void Instrument::get_samples(Packet& p, guint64 begin_offset)
 {
     guint64 end_offset = begin_offset + p.size();
-    cout<<"Instrument::get_samples "<<endl;
     std::vector<Note> notes_to_gen;
     for(Note note : notes)
     {
@@ -28,21 +25,26 @@ void Instrument::get_samples(Packet& p, guint64 begin_offset)
     {
         generate(note,p,begin_offset);
     }
-    cout<<"end of Instrument::get_samples"<<endl;
 }
 
-void Instrument::add_note(Note& note)
+void Instrument::add_note(const Note note)
 {
     notes.push_back(note);
     std::sort(notes.begin(),notes.end());
 }
 
-double Instrument::omega(const Note& n) const
+void Instrument::add_notes(const std::vector<Note> new_notes)
+{
+    notes.insert(notes.end(),new_notes.begin(),new_notes.end());
+    std::sort(notes.begin(),notes.end());
+}
+
+double Instrument::omega(const Note n) const
 {
     return 2 * M_PI * frequency(n) / sample_rate;
 }
 
-double Instrument::frequency(const Note& n) const
+double Instrument::frequency(const Note n) const
 {
     return Config::freq_reference * pow(2,n.octave()+(static_cast<int>(n.pitch_class())/12.0));
 }
@@ -52,14 +54,9 @@ guint64 Instrument::stream_end() const
     return notes.back().off(); 
 }
 
-void Instrument::generate(Note& note, Packet& p,const int start_offset)
+void Instrument::generate(const Note note, Packet& p,const guint64 start_offset)
 {
-    cout<<"Instrument::generate"<<endl;
-    const int end_offset=start_offset+p.size();
-    const int on = (note.on() > start_offset) ? note.on() : start_offset;
-    const int off = (note.off() < end_offset) ? note.off() : end_offset;
-    this->gen(note,p,on,off);
-    cout<<"end of Instrument::generate"<<endl;
+    this->gen(note,p,start_offset);
 }
 
 Sample Instrument::round(double t)
