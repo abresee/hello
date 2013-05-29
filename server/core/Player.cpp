@@ -1,6 +1,7 @@
 #include <iterator>
 #include <iostream>
 #include <memory>
+#include <boost/assert.hpp>
 #include "Player.h"
 #include "WaveGenerator.h"
 
@@ -162,7 +163,8 @@ gboolean Player::push_data()
     GST_BUFFER_DURATION(buffer)=static_cast<GstClockTime>((datahandle->size())*Config::sample_rate*1000000000);
     GST_BUFFER_PTS(buffer)=static_cast<GstClockTime>(offset*Config::sample_rate*1000000000);
     auto size = datahandle->size() * Config::word_size;
-    gst_buffer_fill(buffer, 0, static_cast<void *>(datahandle->data()), size);
+    auto rsize = gst_buffer_fill(buffer, 0, static_cast<void *>(datahandle->data()), size);
+    BOOST_ASSERT(size==rsize);
     auto ret = gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer); 
     if ( ret != GST_FLOW_OK)
     {

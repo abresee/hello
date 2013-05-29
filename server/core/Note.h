@@ -10,7 +10,6 @@ public:
 
     int pitch_class() const;
     Sample intensity() const;
-    double omega() const;
     int octave() const;
     int on() const;
     int off() const;
