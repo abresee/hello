@@ -34,8 +34,6 @@ class Player : public boost::noncopyable {
 public: 
     /// @brief add an instrument by a InstrumentHandle pointing to it
     void add_instrument(InstrumentHandle instrument);
-    /// @brief add an instrument by normal pointer
-    void add_instrument(Instrument* instrument);
 
     /// @brief start playback
     void play();

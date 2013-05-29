@@ -7,7 +7,7 @@ BOOST_PYTHON_MODULE(core_py)
 {
     using namespace boost::python;
 
-    class_<Note>("Note", init<int,Sample,int,int,int>)
+    class_<Note>("Note", init<int,Sample,int,int,int>())
         .add_property("pitch_class", &Note::pitch_class)
         .add_property("intensity", &Note::intensity)
         .add_property("octave", &Note::octave)
@@ -20,12 +20,8 @@ BOOST_PYTHON_MODULE(core_py)
         .def("add_notes",&Instrument::add_notes);
 
     class_<WaveGenerator,bases<Instrument>,boost::noncopyable>("WaveGenerator",
-            "creates a signal based on a waveform", init<std::function<double(double)>>)
-        .add_property("wave",&WaveGenerator::wave);
-
-    class_<Player,boost::noncopyable>("Player",
-            "Abstract base class",
-            no_init)
+            "creates a signal based on a waveform", init<std::function<double(double)>>());
+    class_<Player,boost::noncopyable>("Player", "Abstract base class", no_init)
         .def("play",&Player::play)
         .def("add_instrument",&Player::add_instrument);
 

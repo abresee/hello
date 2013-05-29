@@ -63,11 +63,6 @@ void Player::add_instrument(InstrumentHandle instrument)
     instruments.push_back(instrument);
 }
 
-void Player::add_instrument(Instrument * instrument)
-{
-    add_instrument(InstrumentHandle(instrument));
-}
-
 void Player::play()
 {   
     guint64 stream_end=0;
