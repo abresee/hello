@@ -151,14 +151,13 @@ gboolean Player::push_data()
     {
         i->get_samples(*datahandle,offset);
     }
-    /*  
+
     std::cout<<endl;
     for (Sample sample : *datahandle)
     {
         std::cout<<sample<<" ";
     }
     std::cout<<endl;
-    */
     
     GstBuffer * buffer = gst_buffer_new_allocate(NULL, datahandle->size()*Config::word_size, NULL);
     auto size = datahandle->size() * Config::word_size;
@@ -203,6 +202,7 @@ gboolean Player::bus_callback(GstBus * bus, GstMessage * message)
     cout<<"Got "<<
         GST_MESSAGE_TYPE_NAME(message)
         <<" message"<<endl;
+
     switch(GST_MESSAGE_TYPE(message)) {
         case GST_MESSAGE_ERROR:
             GError *err;

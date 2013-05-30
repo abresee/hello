@@ -9,21 +9,24 @@ using namespace Config;
 
 Instrument::~Instrument(){}
 
-void Instrument::get_samples(Packet& p, guint64 begin_offset)
+void Instrument::get_samples(Packet& p, const guint64 start_offset)
 {
-    guint64 end_offset = begin_offset + p.size();
+    const guint64 end_offset = start_offset+ p.size();
     std::vector<Note> notes_to_gen;
     for(Note note : notes)
     {
-        if(note.off() > begin_offset && note.on() < end_offset)
+        std::cout<<"is "<<note.on()<<" "<<note.off()<<" in "<<start_offset<<" "<<end_offset<<"?"<<std::endl;
+        if(note.off() > start_offset && note.on() < end_offset)
         {
+            std::cout<<"yes!"<<std::endl;
             notes_to_gen.push_back(note);
         }
     }
+    std::cout<<"got: "<<notes_to_gen.size()<<std::endl;
     
     for(Note note : notes_to_gen)
     {
-        generate(note,p,begin_offset);
+        this->gen(note,p,start_offset);
     }
 }
 
@@ -52,11 +55,6 @@ double Instrument::frequency(const Note n) const
 guint64 Instrument::stream_end() const
 {
     return notes.back().off(); 
-}
-
-void Instrument::generate(const Note note, Packet& p,const guint64 start_offset)
-{
-    this->gen(note,p,start_offset);
 }
 
 Sample Instrument::round(double t)
