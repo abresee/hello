@@ -14,10 +14,13 @@ env.MergeFlags({
     'CXXFLAGS': ['-std=c++11'] 
 })
 env.Append(LIBS='gstapp-1.0')
-
 env_py=env.Clone()
 env_py.ParseConfig('python3.3-config --cflags --ldflags')
 env_py.MergeFlags(env.ParseFlags('-fPIC '+boostincl+' '+boostlibs+' -lboost_python3'))
+env_py['CCFLAGS'].remove('-Wstrict-prototypes')
+env_py['CCFLAGS'].remove('-O2')
+env_py['CCFLAGS'].remove('-g')
+env_py['CPPDEFINES'].remove('NDEBUG')
 test=env.Program('test',core_sources+['test.cpp'])
 
 hello_gstreamer_so=env_py.SharedLibrary('core_py',core_sources+['core_py.cpp'],SHLIBPREFIX='',SHLIBSUFFIX='.so')

@@ -159,6 +159,9 @@ gboolean Player::push_data()
     GST_BUFFER_PTS(buffer)=static_cast<GstClockTime>(offset*Config::sample_rate*1000000000);
     auto size = datahandle->size() * Config::word_size;
     auto rsize = gst_buffer_fill(buffer, 0, static_cast<void *>(datahandle->data()), size);
+#ifdef NDEBUG
+#error "hell"
+#endif
     BOOST_ASSERT(size==rsize);
     auto ret = gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer); 
     if ( ret != GST_FLOW_OK)

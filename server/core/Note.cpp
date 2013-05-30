@@ -1,8 +1,8 @@
 #include <iostream>
 #include "Note.h"
 
-Note::Note(int pitch_class_I, Sample intensity_I, int octave_I, int on_I, int off_I) :
-    pitch_class_(pitch_class_I),intensity_(intensity_I), octave_(octave_I), on_(on_I), off_(off_I) {}
+Note::Note(int pc, Sample i, int o, guint64 b, guint64 e) :
+    pitch_class_(pc),intensity_(i), octave_(o), on_(b), off_(e) {}
     
 int Note::pitch_class() const
 {
@@ -19,17 +19,17 @@ int Note::octave() const
     return octave_;
 }
 
-int Note::on() const
+guint64 Note::on() const
 {
     return on_;
 }
 
-int Note::off() const 
+guint64 Note::off() const 
 {
     return off_;
 }
 
-int Note::length() const
+guint64 Note::length() const
 {
     return off_-on_;
 }

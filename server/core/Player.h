@@ -83,7 +83,7 @@ protected:
 
 };
 
-class LocalPlayer : boost::noncopyable, public Player
+class LocalPlayer : public Player
 {
 public:
     LocalPlayer() : Player("autoaudiosink") {}
