@@ -11,8 +11,7 @@ env['CXX']=os.environ.get('CXX','g++')
 
 env.ParseConfig('pkg-config gstreamer-1.0 gstreamer-plugins-base-1.0 --cflags --libs')
 env.MergeFlags({ 
-    'CXXFLAGS': ['-std=c++11', '-stdlib=libc++'],
-    'LINKFLAGS' : ['-stdlib=libc++']
+    'CXXFLAGS': ['-std=c++11'] 
 })
 env.Append(LIBS='gstapp-1.0')
 

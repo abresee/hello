@@ -1,6 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H 
 #include <memory>
+#include <cstdint>
+#include <limits>
 #include <vector>
 class Instrument;
 typedef int16_t Sample;
