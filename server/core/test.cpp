@@ -14,7 +14,7 @@ int main(int argc, char ** argv)
     InstrumentHandle wg = InstrumentHandle(new WaveGenerator(sin));
     std::vector<Note> notes;
 
-    guint64 note_length = Config::sample_rate/2;
+    guint64 note_length = Config::sample_rate/4;
 
     int note_count = 0;
     for(int i = 0; i < 4; ++i)
@@ -31,13 +31,13 @@ int main(int argc, char ** argv)
 
     for(int i = 0; i < 4; ++i)
     {
-        notes.push_back(Note(0,Config::max_volume/4,5-i,note_length*note_count,note_length*(note_count+1)));
+        notes.push_back(Note(0,Config::max_volume/4,4-i,note_length*note_count,note_length*(note_count+1)));
         note_count++;
-        notes.push_back(Note(7,Config::max_volume/4,4-i,note_length*note_count,note_length*(note_count+1)));
+        notes.push_back(Note(7,Config::max_volume/4,3-i,note_length*note_count,note_length*(note_count+1)));
         note_count++;
-        notes.push_back(Note(4,Config::max_volume/4,4-i,note_length*note_count,note_length*(note_count+1)));
+        notes.push_back(Note(4,Config::max_volume/4,3-i,note_length*note_count,note_length*(note_count+1)));
         note_count++;
-        notes.push_back(Note(2,Config::max_volume/4,4-i,note_length*note_count,note_length*(note_count+1)));
+        notes.push_back(Note(2,Config::max_volume/4,3-i,note_length*note_count,note_length*(note_count+1)));
         note_count++;
     }
 
