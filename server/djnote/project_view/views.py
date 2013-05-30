@@ -52,14 +52,20 @@ def projectz_save(request, usernames, project_name):
 	return HttpResponse(template.render(context))
 	
 def create_project(request):
-	try:
+	flag = True
+	projects = request.user.user_projects.all()
+	for project in projects:
+		if project.name == request.POST.get('project_name'):
+			flag = False
+	
+	if flag:
 		t = Track(track_number = 0)
 		t.save()
 		p = Project(name=request.POST.get('project_name'), tracks=t)
 		p.save()
 		p.ownerz.add(request.user)
 		return redirect('http://127.0.0.1:8000/' + request.user.username)
-	except:
+	else:
 		template = loader.get_template('accounts/profile.html')
 		context = RequestContext(request, {"username": request.user, "projects": request.user.user_projects.all(), "error": "Project names must be unique! Please choose a different name."})
 		return HttpResponse(template.render(context))
