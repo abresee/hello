@@ -225,6 +225,11 @@ div.transport_locator{
 	top: 33px;
 }
 
+#title{
+	text-align: center;
+	position: relative;
+	top: -25px;
+}
 
 </style>
 </head>
@@ -232,7 +237,7 @@ div.transport_locator{
 <body oncontextmenu="return false;">
 
 <div id='transport_pane'>transport info
-
+<h1 id='title'>{{ project }}</h1>
 <form id="save_form" method="post" action="{% url 'project_view.views.projectz_save' 'braindeaf' project %}">
 {% csrf_token %}
 <table>
