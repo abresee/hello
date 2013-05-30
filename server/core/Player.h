@@ -86,6 +86,6 @@ protected:
 class LocalPlayer : public Player
 {
 public:
-    LocalPlayer() : Player("autoaudiosink") {}
+    LocalPlayer() : Player("alsasink") {}
 };
 #endif /* PLAYER_H */

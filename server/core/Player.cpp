@@ -139,6 +139,7 @@ Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(
 
 gboolean Player::push_data()
 {
+    std::cout<<"push"<<std::endl;
     if(offset >= offset_end)
     {
         eos();
