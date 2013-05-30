@@ -120,19 +120,17 @@ Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(
         "channels",G_TYPE_INT, Config::channels,
         "signed", G_TYPE_BOOLEAN, TRUE,
         "layout", G_TYPE_STRING, "interleaved",
-        NULL);
+        nullptr);
 
     g_object_set (G_OBJECT (appsrc), "caps",
         caps,
-        NULL);
-
-    g_object_set(G_OBJECT(appsrc), "is-live",true,NULL);
+        nullptr);
 
     //the gstreamer main loop is the main event loop for audio generation
-    loop = g_main_loop_new (NULL, FALSE);
+    loop = g_main_loop_new (nullptr, FALSE);
 
-    gst_bin_add_many (GST_BIN (pipeline), appsrc, conv, audiosink, NULL);
-    gst_element_link_many (appsrc, conv, audiosink, NULL);
+    gst_bin_add_many (GST_BIN (pipeline), appsrc, conv, audiosink, nullptr);
+    gst_element_link_many (appsrc, conv, audiosink, nullptr);
 
     GstAppSrcCallbacks callbacks = {util::wrap_need_data, util::wrap_enough_data, util::wrap_seek_data};
     gst_app_src_set_callbacks(GST_APP_SRC(appsrc), &callbacks, this, nullptr);
@@ -152,16 +150,18 @@ gboolean Player::push_data()
     {
         i->get_samples(*datahandle,offset);
     }
+    /*  
+    std::cout<<endl;
+    for (Sample sample : *datahandle)
+    {
+        std::cout<<sample<<" ";
+    }
+    std::cout<<endl;
+    */
     
     GstBuffer * buffer = gst_buffer_new_allocate(NULL, datahandle->size()*Config::word_size, NULL);
-    cout<<offset<<endl;
-    GST_BUFFER_DURATION(buffer)=static_cast<GstClockTime>((datahandle->size())*Config::sample_rate*1000000000);
-    GST_BUFFER_PTS(buffer)=static_cast<GstClockTime>(offset*Config::sample_rate*1000000000);
     auto size = datahandle->size() * Config::word_size;
     auto rsize = gst_buffer_fill(buffer, 0, static_cast<void *>(datahandle->data()), size);
-#ifdef NDEBUG
-#error "hell"
-#endif
     BOOST_ASSERT(size==rsize);
     auto ret = gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer); 
     if ( ret != GST_FLOW_OK)

@@ -13,7 +13,9 @@ int main(int argc, char ** argv)
     std::function<double(double)> sin= static_cast<double(*)(double)>(std::sin);
     InstrumentHandle wg = InstrumentHandle(new WaveGenerator(sin));
     std::vector<Note> notes;
+
     guint64 note_length = Config::sample_rate/8;
+
     int note_count = 0;
     for(int i = 0; i < 4; ++i)
     {
