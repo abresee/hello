@@ -13,3 +13,7 @@ def track_save(request):
 	p.track_number = 5
 	p.save()
 	return HttpResponse()
+	
+@dajaxice_register
+def create_project(request, text):
+	return simplejson.dumps({'message':'frog'})
