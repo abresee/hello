@@ -15,14 +15,11 @@ void Instrument::get_samples(Packet& p, const guint64 start_offset)
     std::vector<Note> notes_to_gen;
     for(Note note : notes)
     {
-        std::cout<<"is "<<note.on()<<" "<<note.off()<<" in "<<start_offset<<" "<<end_offset<<"?"<<std::endl;
         if(note.off() > start_offset && note.on() < end_offset)
-        {
-            std::cout<<"yes!"<<std::endl;
+        { 
             notes_to_gen.push_back(note);
         }
     }
-    std::cout<<"got: "<<notes_to_gen.size()<<std::endl;
     
     for(Note note : notes_to_gen)
     {

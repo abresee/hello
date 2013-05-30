@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <limits>
 #include <vector>
+#include <glib.h>
 class Instrument;
 typedef int16_t Sample;
 typedef std::shared_ptr<Instrument> InstrumentHandle;
@@ -12,12 +13,12 @@ typedef std::shared_ptr<Packet> PacketHandle;
 
 namespace Config 
 {
+    typedef guint64 GstClockTime;
     const Sample max_volume = std::numeric_limits<Sample>::max();
+    /// player's current sample rate
     const int sample_rate = 44100;
     const double freq_reference = 220;
-
-    /// player's current sample rate
-
+    GstClockTime offset_to_nano(guint64 offset);
     /// amount of bytes in a sample 
     static const int word_size=sizeof(Sample);
 

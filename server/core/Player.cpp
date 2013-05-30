@@ -73,6 +73,7 @@ void Player::play()
             instrument->stream_end();
     }
     offset_end = stream_end;
+    g_object_set(G_OBJECT(appsrc),"size",offset_end*Config::word_size,nullptr);
     gst_element_set_state (pipeline, GST_STATE_PLAYING);
     g_main_loop_run (loop);
 }
@@ -122,9 +123,11 @@ Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(
         "layout", G_TYPE_STRING, "interleaved",
         nullptr);
 
-    g_object_set (G_OBJECT (appsrc), "caps",
-        caps,
-        nullptr);
+    g_object_set( G_OBJECT(appsrc), "caps", caps, nullptr);
+    g_object_set( G_OBJECT(appsrc),"is-live",true,nullptr);
+    g_object_set( G_OBJECT(appsrc),"min-latency",0,nullptr);
+    g_object_set( G_OBJECT(appsrc),"emit-signals",false,nullptr);
+    g_object_set( G_OBJECT(appsrc),"format",GST_FORMAT_TIME,nullptr);
 
     //the gstreamer main loop is the main event loop for audio generation
     loop = g_main_loop_new (nullptr, FALSE);
@@ -139,7 +142,6 @@ Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(
 
 gboolean Player::push_data()
 {
-    std::cout<<"push"<<std::endl;
     if(offset >= offset_end)
     {
         eos();
@@ -152,14 +154,11 @@ gboolean Player::push_data()
         i->get_samples(*datahandle,offset);
     }
 
-    std::cout<<endl;
-    for (Sample sample : *datahandle)
-    {
-        std::cout<<sample<<" ";
-    }
-    std::cout<<endl;
-    
     GstBuffer * buffer = gst_buffer_new_allocate(NULL, datahandle->size()*Config::word_size, NULL);
+    GST_BUFFER_PTS(buffer) = Config::offset_to_nano(offset);
+    GST_BUFFER_DURATION(buffer) = Config::offset_to_nano(packet_size);
+    GST_BUFFER_OFFSET(buffer) = offset;
+    GST_BUFFER_OFFSET_END(buffer) = offset+packet_size;
     auto size = datahandle->size() * Config::word_size;
     auto rsize = gst_buffer_fill(buffer, 0, static_cast<void *>(datahandle->data()), size);
     BOOST_ASSERT(size==rsize);
@@ -213,18 +212,13 @@ gboolean Player::bus_callback(GstBus * bus, GstMessage * message)
             g_free(debug);
             break;
         case GST_MESSAGE_EOS:
+            quit();
             break;
         default:
             break;
     }
     return true;
 }
-
-void Player::eos_callback()
-{
-    quit();
-}
-
 
 Player::~Player()
 {
