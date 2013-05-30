@@ -1,18 +1,37 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+{% load dajaxice_templatetags %}
+<html>
+<head>
+{% dajaxice_js_import %}
+<style>
 
+</style>
+</head>
+<body>
 {% block content %}
 <p>Hello, {{ username }}!!!</p>
+<font color="red" id="error">{{ error }}</font>
 <form method="post" action="{% url 'project_view.views.create_project' %}">
 {% csrf_token %}
-<input type="submit" value="New Project" />
+<input name="project_name"/>
+<input type="submit" id="project_name_submit" value="New Project"  />
 </form>
+<button onclick="Dajaxice.project_view.create_project(project,{'text':'john'})">click me</button>
 
 <ul>
 {% for project in projects %}
+	{% url 'project_view.views.index' usernames=username project_name=project.name as project_url %}
 	<li>
-		<a href="{% url 'project_view.views.index' %}">{{ project.name }}</a>
+		<a href="{{project_url}}">{{ project.name }}</a>
 	</li>
 {% endfor %}
 </ul>
 
+</body>
 {% endblock %}
+</html>
+<script>
+function project(data){
+	alert(data.message);
+};
+</script>

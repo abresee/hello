@@ -3,6 +3,7 @@
 <html>
 <head>
 {% dajaxice_js_import %}
+
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
 <script src="https://dl.dropboxusercontent.com/u/286533/jquery-1.9.1.min.js"></script>
 <script src="https://dl.dropboxusercontent.com/u/286533/jquery-ui.js"></script>
@@ -232,7 +233,7 @@ div.transport_locator{
 
 <div id='transport_pane'>transport info
 
-<form id="save_form" method="post" action="{% url 'project_view.views.projectz_save' %}">
+<form id="save_form" method="post" action="{% url 'project_view.views.projectz_save' 'braindeaf' project %}">
 {% csrf_token %}
 <table>
 <tr>
@@ -249,7 +250,7 @@ div.transport_locator{
 <input type="submit" value="Logout"></button>
 </form>
 
-<form id="profile" action="{% url 'project_view.views.profile' %}">
+<form id="profile" action="{% url 'project_view.views.profile' usernames=request.user.username %}">
     <input type="submit" value="Profile">
 </form>
 <button id="dajaxiced" onclick="Dajaxice.project_view.track_save(null_function);">dajaxice</button>

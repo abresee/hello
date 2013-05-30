@@ -3,10 +3,12 @@
 {% load dajaxice_templatetags %}
 <html lang="en">
 <head>
+<script src="https://dl.dropboxusercontent.com/u/286533/jquery-1.9.1.min.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/286533/jquery-ui.js"></script>
+
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <title>{% block title %}{% endblock %}</title>
-		{% dajaxice_js_import %}
-		
+		{% dajaxice_js_import %}	
 </head>
 <body id="{% block body_id %}{% endblock %}">
   <div id="body">
