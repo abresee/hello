@@ -22,6 +22,6 @@ env_py['CCFLAGS'].remove('-Wstrict-prototypes')
 env_py['CCFLAGS'].remove('-O2')
 env_py['CCFLAGS'].remove('-g')
 env_py['CPPDEFINES'].remove('NDEBUG')
-test=env.Program('test',core_sources+['test.cpp'])
+prelude=env.Program('prelude',core_sources+['tests/prelude.cpp'])
 
 hello_gstreamer_so=env_py.SharedLibrary('core_py',core_sources+['core_py.cpp'],SHLIBPREFIX='',SHLIBSUFFIX='.so')

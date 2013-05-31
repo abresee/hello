@@ -198,11 +198,8 @@ gboolean Player::seek_data(guint64 destination)
 
 gboolean Player::bus_callback(GstBus * bus, GstMessage * message)
 {
-    cout<<"Got "<<
-        GST_MESSAGE_TYPE_NAME(message)
-        <<" message"<<endl;
-
-    switch(GST_MESSAGE_TYPE(message)) {
+    switch(GST_MESSAGE_TYPE(message))
+    {
         case GST_MESSAGE_ERROR:
             GError *err;
             gchar *debug;

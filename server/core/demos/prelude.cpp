@@ -1,9 +1,9 @@
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
-#include "Player.h"
-#include "Instrument.h"
-#include "WaveGenerator.h"
+#include "../Player.h"
+#include "../Instrument.h"
+#include "../WaveGenerator.h"
 using std::cout;
 using std::endl;
 
