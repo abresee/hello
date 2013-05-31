@@ -23,6 +23,7 @@ env_py['CCFLAGS'].remove('-O2')
 env_py['CCFLAGS'].remove('-g')
 env_py['CPPDEFINES'].remove('NDEBUG')
 prelude=env.Program('prelude',core_sources+['demos/prelude.cpp'])
+chromatic=env.Program('chromatic',core_sources+['demos/chromatic.cpp'])
 note_test=env.Program('note_test',['Note.cpp','tests/Note_test.cpp'])
 
 hello_gstreamer_so=env_py.SharedLibrary('core_py',core_sources+['core_py.cpp'],SHLIBPREFIX='',SHLIBSUFFIX='.so')
