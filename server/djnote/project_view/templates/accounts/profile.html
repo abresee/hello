@@ -17,7 +17,7 @@
 
 <ul>
 {% for project in projects %}
-	{% url 'project_view.views.index' usernames=username project_name=project.name as project_url %}
+	{% url 'project_view.views.index' username project.name as project_url %}
 	<li>
 		<a href="{{project_url}}">{{ project.name }}</a>
 	</li>

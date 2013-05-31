@@ -647,6 +647,7 @@ var container_count = 0;
 
 
 $('#create_track').click(function(){
+	
 	$('#track_pane').append(track_info_html);
 	$('#track_project_window').append('<div id="track_num_' + (track_window) + '" class="track_window"></div>');
 	track_num = 1;
@@ -655,6 +656,18 @@ $('#create_track').click(function(){
 		$(this).data("track_number", track_num);
 		track_num += 1;
 	});
+	
+	$.ajax({type: "POST",
+			url: "{% url 'track_creation' 'braindeaf' project %}",
+			data: {track : track_num},
+			success: function(track_number){
+				alert(track_number);
+			},
+			error: function(){
+				alert('create track oops');
+			}
+	});
+	
 	track_num = 1;
 	$('.track_window').each(function(){
 		$(this).data("track_number", track_num);
@@ -946,6 +959,7 @@ $.ajaxSetup({
          }
      } 
 });
+
 $('#jquery_ajax').click(function(){
 	track_num = 0;
 	$('.track_window').each(function(){
@@ -954,7 +968,7 @@ $('#jquery_ajax').click(function(){
 	
 	$.ajax({type: "POST",
 			url: "{% url 'project_view.views.projectz_save' request.user.username project %}",
-			data: {track : "track_num"},
+			data: {track : track_num},
 			success: function(text){
 				alert(text);
 			},
@@ -962,6 +976,7 @@ $('#jquery_ajax').click(function(){
 				alert('oh no');
 			}
 	});
+	
 });
 
 	

@@ -47,12 +47,9 @@ def profile(request, usernames):
         return redirect('http://127.0.0.1:8000/login/')
     
 def projectz_save(request, usernames, project_name):
-    print('this is a view') 
     if request.is_ajax():
-        print('this is ajax')
-        text = request.POST['track']
+        text=request.POST['track']
         return HttpResponse(text)
-        
     else:
         flag = True
         projects = request.user.user_projects.all()
@@ -84,9 +81,7 @@ def create_project(request):
             flag = False
     
     if flag:
-        t = Track(track_number = 0)
-        t.save()
-        p = Project(name=request.POST.get('project_name'), tracks=t)
+        p = Project(name=request.POST.get('project_name'))
         p.save()
         p.ownerz.add(request.user)
         return redirect('http://127.0.0.1:8000/' + request.user.username)
@@ -101,4 +96,16 @@ def project_logout(request):
         return redirect('http://127.0.0.1:8000/login/')
     else:
         return render(request, 'project_view/index.html')
+		
+def track_creation(request, project_name, usernames):
+	if request.is_ajax():
+		number_of_tracks=request.POST['track']
+		p = Project.objects.get(name=project_name)
+		t = Track(track_number=number_of_tracks, project=p)
+		t.save()
+		#Track.objects.filter(project=p) to get all tracks in project object
+		track_number = t.track_number
+		return HttpResponse(track_number)
+		
+		
         
