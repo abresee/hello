@@ -8,6 +8,7 @@
 #include <boost/utility.hpp>
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
+#include "WaveGenerator.h"
 #include "Config.h"
 
 /// @brief master class to handle audio generation and playback
@@ -34,7 +35,6 @@ class Player : public boost::noncopyable {
 public: 
     /// @brief add an instrument by a InstrumentHandle pointing to it
     void add_instrument(InstrumentHandle instrument);
-    void add_instrument(Instrument& );
 
     /// @brief start playback
     void play();

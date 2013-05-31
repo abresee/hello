@@ -16,9 +16,9 @@ int main(int argc, char ** argv)
     guint64 note_length = Config::sample_rate/8;
     Sample note_intensity = Config::max_intensity/4;
 
-    for(int i = 0; i < 140; ++i)
+    for(int i = 0; i < 50; ++i)
     {
-        notes.push_back(Note(i,-5,note_intensity,note_length*i,note_length*(i+1)));
+        notes.push_back(Note(i,-1,note_intensity,note_length*i,note_length*(i+1)));
     }
 
     wg->add_notes(notes);

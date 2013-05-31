@@ -3,7 +3,6 @@
 #include <memory>
 #include <boost/assert.hpp>
 #include "Player.h"
-#include "WaveGenerator.h"
 
 const char * Player::format = "S16LE";
 using std::for_each;
@@ -51,10 +50,6 @@ gboolean Player::util::wrap_bus_callback(GstBus * bus, GstMessage * message, gpo
 
 void Player::add_instrument(InstrumentHandle instrument) {
     instruments.push_back(instrument);
-}
-
-void Player::add_instrument(Instrument& instrument) {
-    instruments.push_back(InstrumentHandle(&instrument));
 }
 
 void Player::play() {   
