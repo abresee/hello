@@ -231,6 +231,12 @@ div.transport_locator{
 	top: -25px;
 }
 
+#error{
+	position: absolute;
+	right: 355px;
+	top: 9px;
+}
+
 </style>
 </head>
 
@@ -249,6 +255,7 @@ div.transport_locator{
 </table>
 <input type="submit" value="Save" />
 </form>
+<font color="red" id="error">{{ error }}</font>
 
 <form id="logout_form" method="post" action="{% url 'project_view.views.project_logout' %}">
 {% csrf_token %}
@@ -258,7 +265,7 @@ div.transport_locator{
 <form id="profile" action="{% url 'project_view.views.profile' usernames=request.user.username %}">
     <input type="submit" value="Profile">
 </form>
-<button id="dajaxiced" onclick="Dajaxice.project_view.track_save(null_function);">dajaxice</button>
+<button id="dajaxiced">dajaxice</button>
 <div id='select_tool_project' class='select' style="bottom: 0px;">select</div>
 <div id='snap_tool_project' class='select' style="bottom: 0px; left: 40px;">snap</div>
 <div id='pencil_tool_project' class='select' style="bottom: 0px; left: 80px;">pencil</div>
@@ -919,7 +926,23 @@ $('#play').click(function(){
 		
 //SAVING**********************
 
-
+$('#dajaxiced').click(function(){
+	track_num = 0;
+	$('.track_window').each(function(){
+		track_num += 1;
+	});
+	
+	$.ajax({type: "POST",
+			url: "{% url 'project_view.views.projectz_save' 'braindeaf' project %}",
+			data: {track : "track_num"},
+			success: function(text){
+				alert(text);
+			},
+			error: function(){
+				alert('oh no');
+			}
+	});
+});
 
 	
 
