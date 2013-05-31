@@ -242,7 +242,7 @@ div.transport_locator{
 
 <div id='transport_pane'>transport info
 <h1 id='title'>{{ project }}</h1>
-<form id="save_form" method="post" action="{% url 'project_view.views.projectz_save' 'braindeaf' project %}">
+<form id="save_form" method="post" action="{% url 'project_view.views.projectz_save' request.user.username project %}">
 {% csrf_token %}
 <table>
 <tr>
@@ -931,7 +931,7 @@ $('#dajaxiced').click(function(){
 	});
 	
 	$.ajax({type: "POST",
-			url: "{% url 'project_view.views.projectz_save' 'braindeaf' project %}",
+			url: "{% url 'project_view.views.projectz_save' request.user.username project %}",
 			data: {track : "track_num"},
 			success: function(text){
 				alert(text);
