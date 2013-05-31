@@ -5,7 +5,7 @@
 {% if form.errors %}
 <p>Your username and password didn't match. Please try again.</p>
 {% endif %}
-
+<font color="red">{{ error }}</font>
 <form method="post" action="{% url 'project_view.views.register' %}">
 {% csrf_token %}
 <table>

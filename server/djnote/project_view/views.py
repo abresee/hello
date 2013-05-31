@@ -24,14 +24,19 @@ def index(request, usernames, project_name):
 		return redirect('http://127.0.0.1:8000/login/')
 	 
 def register(request):
-	if request.method == 'POST':
-		if request.POST.get('password') == request.POST.get('confirm_password'):
-			user = User.objects.create_user(request.POST.get('username'),'none', request.POST.get('password'))
-			return redirect('http://127.0.0.1:8000/login/')
+	template = loader.get_template('registration/register.html')
+	try:
+		if request.method == 'POST':
+			if request.POST.get('password') == request.POST.get('confirm_password'):
+				user = User.objects.create_user(request.POST.get('username'),'none', request.POST.get('password'))
+				return redirect('http://127.0.0.1:8000/login/')
+			else:
+				return render(request, 'registration/register.html')
 		else:
 			return render(request, 'registration/register.html')
-	else:
-		return render(request, 'registration/register.html')
+	except:
+		context = RequestContext(request, {"error": "Username already exists!"})
+		return HttpResponse(template.render(context))
 		
 def profile(request, usernames):
 	template = loader.get_template('accounts/profile.html')
@@ -42,15 +47,35 @@ def profile(request, usernames):
 		return redirect('http://127.0.0.1:8000/login/')
 	
 def projectz_save(request, usernames, project_name):
-	new_name = request.POST.get('projectz_name')
-	p = Project.objects.filter(name=project_name)
-	for project in p:
-		project.name = new_name
-		project.save()
-	template = loader.get_template('project_view/index.html')
-	context = RequestContext(request, {"username": usernames, "project": new_name})
-	return HttpResponse(template.render(context))
-	
+	print('this is a view')
+	if request.POST.is_ajax:
+		print('this is ajax')
+		text = request.POST['track']
+		return HttpResponse(text)
+		
+	else:
+		flag = True
+		projects = request.user.user_projects.all()
+		for project in projects:
+			if project.name == request.POST.get('projectz_name'):
+				flag = False
+
+		p = Project.objects.get(name=project_name)
+		new_name = request.POST.get('projectz_name')
+		if flag:
+			project.name = new_name
+			project.save()
+			
+			
+			
+			template = loader.get_template('project_view/index.html')
+			context = RequestContext(request, {"username": usernames, "project": new_name})
+			return HttpResponse(template.render(context))
+		else:
+			template = loader.get_template('project_view/index.html')
+			context = RequestContext(request, {"username": usernames, "project": project_name, "error": "You already have a project with this name!"})
+			return HttpResponse(template.render(context))
+		
 def create_project(request):
 	flag = True
 	projects = request.user.user_projects.all()
