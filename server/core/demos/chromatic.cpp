@@ -10,8 +10,7 @@ using std::endl;
 int main(int argc, char ** argv)
 {
     std::shared_ptr<Player> p(new LocalPlayer());
-    std::function<double(double)> sin=static_cast<double(*)(double)>(std::sin);
-    InstrumentHandle wg = InstrumentHandle(new WaveGenerator(sin));
+    InstrumentHandle wg = InstrumentHandle(new WaveGenerator());
     std::vector<Note> notes;
 
     guint64 note_length = Config::sample_rate/8;

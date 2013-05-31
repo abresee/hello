@@ -8,7 +8,8 @@ class WaveGenerator : public Instrument {
     std::function<double(double)> wave_;
     virtual void gen(const Note note, Packet& p, const guint64 start_offset);
 public:
-    WaveGenerator(std::function<double(double)>);
+    WaveGenerator(std::function<double(double)> wave_I);
+    WaveGenerator();
     std::function<double(double)>& wave();
 };
 #endif /* WAVEGENERATOR_H */

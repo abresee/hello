@@ -3,8 +3,10 @@
 #include <stdexcept>
 #include "WaveGenerator.h"
 
-WaveGenerator::WaveGenerator(std::function<double(double)> wave_I) : wave_(wave_I) {
+WaveGenerator::WaveGenerator(std::function<double(double)> wave_I): wave_(wave_I) {
 }
+
+WaveGenerator::WaveGenerator() : WaveGenerator(static_cast<double(*)(double)>(std::sin)){}
 
 void WaveGenerator::gen(const Note note, Packet& p, const guint64 start_offset) {
     const guint64 end_offset = start_offset;

@@ -11,7 +11,7 @@ typedef std::shared_ptr<Instrument> InstrumentHandle;
 typedef std::vector<Sample> Packet;
 typedef std::shared_ptr<Packet> PacketHandle;
 
-class Config {
+namespace Config {
     typedef guint64 GstClockTime;
     const Sample max_intensity = std::numeric_limits<Sample>::max();
     /// player's current sample rate

@@ -53,6 +53,10 @@ void Player::add_instrument(InstrumentHandle instrument) {
     instruments.push_back(instrument);
 }
 
+void Player::add_instrument(Instrument& instrument) {
+    instruments.push_back(InstrumentHandle(&instrument));
+}
+
 void Player::play() {   
     guint64 stream_end=0;
     for(auto instrument : instruments)
