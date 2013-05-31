@@ -14,7 +14,7 @@ typedef std::shared_ptr<Packet> PacketHandle;
 namespace Config 
 {
     typedef guint64 GstClockTime;
-    const Sample max_volume = std::numeric_limits<Sample>::max();
+    const Sample max_intensity = std::numeric_limits<Sample>::max();
     /// player's current sample rate
     const int sample_rate = 44100;
     const double freq_reference = 220;
@@ -30,6 +30,8 @@ namespace Config
 
     /// amount of channels in our audio stream
     static const int channels = 1;
+    /// how many pitch classes are there in an octave?
+    static const int pc_count = 12;
 }
 
 #endif /* CONFIG_H */

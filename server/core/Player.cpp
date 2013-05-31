@@ -147,18 +147,22 @@ gboolean Player::push_data()
         eos();
         return false;
     }
+    
     auto packet_size = ((offset+last_hint) < offset_end) ? last_hint : offset_end - offset ;
     std::unique_ptr<Packet> datahandle(new Packet(packet_size));
+
     for (InstrumentHandle i : instruments)
     {
         i->get_samples(*datahandle,offset);
     }
 
     GstBuffer * buffer = gst_buffer_new_allocate(NULL, datahandle->size()*Config::word_size, NULL);
+
     GST_BUFFER_PTS(buffer) = Config::offset_to_nano(offset);
     GST_BUFFER_DURATION(buffer) = Config::offset_to_nano(packet_size);
     GST_BUFFER_OFFSET(buffer) = offset;
     GST_BUFFER_OFFSET_END(buffer) = offset+packet_size;
+
     auto size = datahandle->size() * Config::word_size;
     auto rsize = gst_buffer_fill(buffer, 0, static_cast<void *>(datahandle->data()), size);
     BOOST_ASSERT(size==rsize);
@@ -208,9 +212,11 @@ gboolean Player::bus_callback(GstBus * bus, GstMessage * message)
             g_error_free(err); 
             g_free(debug);
             break;
+
         case GST_MESSAGE_EOS:
             quit();
             break;
+
         default:
             break;
     }

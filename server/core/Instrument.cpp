@@ -5,8 +5,6 @@
 #include "Config.h"
 #include "Instrument.h"
 
-using namespace Config;
-
 Instrument::~Instrument(){}
 
 void Instrument::get_samples(Packet& p, const guint64 start_offset)
@@ -41,12 +39,13 @@ void Instrument::add_notes(const std::vector<Note> new_notes)
 
 double Instrument::omega(const Note n) const
 {
-    return 2 * M_PI * frequency(n) / sample_rate;
+    return  2 * M_PI * frequency(n) / Config::sample_rate;
 }
 
 double Instrument::frequency(const Note n) const
 {
-    return Config::freq_reference * pow(2,n.octave()+(static_cast<int>(n.pitch_class())/12.0));
+    auto exponent = (Config::pc_count*n.octave()+n.pitch_class())/static_cast<double>(Config::pc_count);
+    return Config::freq_reference * pow(2,exponent);
 }
 
 guint64 Instrument::stream_end() const

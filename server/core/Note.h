@@ -6,20 +6,21 @@
 class Note 
 {
 public:
-    Note(int,Sample,int,guint64,guint64);
+    Note(int,int,Sample,guint64,guint64);
 
     int pitch_class() const;
-    Sample intensity() const;
     int octave() const;
+    Sample intensity() const;
     guint64 on() const;
     guint64 off() const;
     guint64 length() const;
     bool operator<(const Note&) const;
+    bool operator==(const Note&) const;
 
 private: 
     int pitch_class_;
-    Sample intensity_;
     int octave_;
+    Sample intensity_;
     int on_;
     int off_;
 }; 
