@@ -4,8 +4,7 @@
 #include "Config.h"
 #include "Instrument.h"
 /// @brief instrument that generates a sin wave
-class WaveGenerator : public Instrument
-{
+class WaveGenerator : public Instrument {
     std::function<double(double)> wave_;
     virtual void gen(const Note note, Packet& p, const guint64 start_offset);
 public:

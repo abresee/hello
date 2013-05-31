@@ -16,12 +16,15 @@ env.MergeFlags({
 })
 env.Append(LIBS='gstapp-1.0')
 env_py=env.Clone()
+
 env_py.ParseConfig('python3.3-config --cflags --ldflags')
 env_py.MergeFlags(env.ParseFlags('-fPIC '+boostincl+' '+boostlibs+' -lboost_python3'))
+
 env_py['CCFLAGS'].remove('-Wstrict-prototypes')
 env_py['CCFLAGS'].remove('-O2')
 env_py['CCFLAGS'].remove('-g')
 env_py['CPPDEFINES'].remove('NDEBUG')
+
 prelude=env.Program('prelude',core_sources+['demos/prelude.cpp'])
 chromatic=env.Program('chromatic',core_sources+['demos/chromatic.cpp'])
 note_test=env.Program('note_test',['Note.cpp','tests/Note_test.cpp'])

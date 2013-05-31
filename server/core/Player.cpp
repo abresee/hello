@@ -10,61 +10,50 @@ using std::for_each;
 using std::cout;
 using std::endl;
 
-void Player::util::initialize_gst()
-{
+void Player::util::initialize_gst() {
     GError *err;
-    if(!gst_init_check(nullptr,nullptr,&err))
-    {
+    if(!gst_init_check(nullptr,nullptr,&err)) {
         std::exit(err->code);
     }
 }
 
-void Player::util::build_gst_element(GstElement * &element, const char * kind, const char * name)
-{
+void Player::util::build_gst_element(GstElement * &element, const char * kind, const char * name) {
     element = gst_element_factory_make(kind,name);
-    if(element==nullptr)
-    {
+    if(element==nullptr) {
         std::exit(EXIT_FAILURE);
     }
 }
 
-void Player::util::wrap_need_data(GstAppSrc * element, guint length, gpointer instance)
-{
+void Player::util::wrap_need_data(GstAppSrc * element, guint length, gpointer instance) {
     Player * this_ = static_cast<Player *>(instance);
     this_->need_data(length);
 }
 
-void Player::util::wrap_enough_data(GstAppSrc * src, gpointer instance)
-{
+void Player::util::wrap_enough_data(GstAppSrc * src, gpointer instance) {
     Player * this_ = static_cast<Player *>(instance);
     this_->enough_data();
 }
 
-gboolean Player::util::wrap_seek_data(GstAppSrc * element, guint64 destination, gpointer instance)
-{
+gboolean Player::util::wrap_seek_data(GstAppSrc * element, guint64 destination, gpointer instance) {
     Player * this_ = static_cast<Player *>(instance);
     return this_->seek_data(destination);
 }
 
-gboolean Player::util::wrap_push_data(gpointer instance)
-{
+gboolean Player::util::wrap_push_data(gpointer instance) {
     Player * this_ = static_cast<Player *>(instance);
     return this_->push_data();
 }
 
-gboolean Player::util::wrap_bus_callback(GstBus * bus, GstMessage * message, gpointer data)
-{
+gboolean Player::util::wrap_bus_callback(GstBus * bus, GstMessage * message, gpointer data) {
     Player * this_ = static_cast<Player *>(data);
     return this_->bus_callback(bus,message);
 }
 
-void Player::add_instrument(InstrumentHandle instrument)
-{
+void Player::add_instrument(InstrumentHandle instrument) {
     instruments.push_back(instrument);
 }
 
-void Player::play()
-{   
+void Player::play() {   
     guint64 stream_end=0;
     for(auto instrument : instruments)
     { 
@@ -78,8 +67,7 @@ void Player::play()
     g_main_loop_run (loop);
 }
 
-void Player::eos()
-{
+void Player::eos() {
     GstFlowReturn r = gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
     if (r!=GST_FLOW_OK)
     {
@@ -87,21 +75,17 @@ void Player::eos()
     }
 }
 
-void Player::quit()
-{
+void Player::quit() {
     gst_element_set_state(pipeline, GST_STATE_NULL);
     g_main_loop_quit(loop);
 }
 
-Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(), loop(), instruments(), offset(), offset_end(), sourceid(), last_hint()
-{
-    if(!gst_is_initialized())
-    {
+Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(), loop(), instruments(), offset(), offset_end(), sourceid(), last_hint() {
+    if(!gst_is_initialized()) {
         util::initialize_gst();
     }
     pipeline = gst_pipeline_new ("pipeline");
-    if(pipeline==nullptr)
-    {
+    if(pipeline==nullptr) {
         std::exit(EXIT_FAILURE);
     };
 
@@ -140,8 +124,7 @@ Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(
 }
 
 
-gboolean Player::push_data()
-{
+gboolean Player::push_data() {
     if(offset >= offset_end)
     {
         eos();
@@ -176,34 +159,27 @@ gboolean Player::push_data()
     return true;
 }
 
-void Player::need_data(guint length)
-{
+void Player::need_data(guint length) {
     last_hint=length;
-    if(sourceid==0)
-    {
+    if(sourceid==0) {
         sourceid=g_idle_add((GSourceFunc) util::wrap_push_data, this);
     } 
 }
 
-void Player::enough_data()
-{
-    if(sourceid!=0)
-    {
+void Player::enough_data() {
+    if(sourceid!=0) {
         g_source_remove(sourceid);
         sourceid=0;
     }
 }
 
-gboolean Player::seek_data(guint64 destination)
-{
+gboolean Player::seek_data(guint64 destination) {
     //TODO: IMPLEMENT THIS
     return true;
 }
 
-gboolean Player::bus_callback(GstBus * bus, GstMessage * message)
-{
-    switch(GST_MESSAGE_TYPE(message))
-    {
+gboolean Player::bus_callback(GstBus * bus, GstMessage * message) {
+    switch(GST_MESSAGE_TYPE(message)) {
         case GST_MESSAGE_ERROR:
             GError *err;
             gchar *debug;
@@ -223,8 +199,7 @@ gboolean Player::bus_callback(GstBus * bus, GstMessage * message)
     return true;
 }
 
-Player::~Player()
-{
+Player::~Player() {
     gst_element_set_state (pipeline, GST_STATE_NULL);
     gst_object_unref (GST_OBJECT (pipeline));
     g_main_loop_unref (loop);

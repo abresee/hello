@@ -4,8 +4,7 @@
 #include "Config.h"
 #include "Note.h"
 /// @brief pure virtual base class for instruments
-class Instrument
-{
+class Instrument {
 public:
     void get_samples(Packet& p,const guint64 start_offset); 
     virtual ~Instrument();

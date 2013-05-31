@@ -83,9 +83,9 @@ protected:
 
 };
 
-class LocalPlayer : public Player
-{
+class LocalPlayer : public Player {
 public:
-    LocalPlayer() : Player("alsasink") {}
+    LocalPlayer() : Player("alsasink") {
+    }
 };
 #endif /* PLAYER_H */
