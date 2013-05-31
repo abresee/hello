@@ -217,7 +217,7 @@ div.transport_locator{
 	top: 33px;
 }
 
-#dajaxiced{
+#jquery_ajax{
 	position: absolute;
 	right: 340px;
 	top: 33px;
@@ -263,7 +263,7 @@ div.transport_locator{
 <form id="profile" action="{% url 'project_view.views.profile' usernames=request.user.username %}">
     <input type="submit" value="Profile">
 </form>
-<button id="dajaxiced">dajaxice</button>
+<button id="jquery_ajax">jqueryajax</button>
 <div id='select_tool_project' class='select' style="bottom: 0px;">select</div>
 <div id='snap_tool_project' class='select' style="bottom: 0px; left: 40px;">snap</div>
 <div id='pencil_tool_project' class='select' style="bottom: 0px; left: 80px;">pencil</div>
@@ -923,8 +923,30 @@ $('#play').click(function(){
 });
 		
 //SAVING**********************
-
-$('#dajaxiced').click(function(){
+$.ajaxSetup({ 
+     beforeSend: function(xhr, settings) {
+         function getCookie(name) {
+             var cookieValue = null;
+             if (document.cookie && document.cookie != '') {
+                 var cookies = document.cookie.split(';');
+                 for (var i = 0; i < cookies.length; i++) {
+                     var cookie = jQuery.trim(cookies[i]);
+                     // Does this cookie string begin with the name we want?
+                 if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                     break;
+                 }
+             }
+         }
+         return cookieValue;
+         }
+         if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+             // Only send the token to relative URLs i.e. locally.
+             xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+         }
+     } 
+});
+$('#jquery_ajax').click(function(){
 	track_num = 0;
 	$('.track_window').each(function(){
 		track_num += 1;
