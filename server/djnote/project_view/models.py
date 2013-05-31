@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 class Project(models.Model):
 	name = models.CharField(max_length=40)
-	ownerz = models.ManyToManyField(User, related_name='user_projects')
+	ownerz = models.ManyToManyField(User)
 
 class Event_Window(models.Model):
 	window_position = models.IntegerField()
@@ -12,6 +12,6 @@ class Event_Window(models.Model):
 
 class Track(models.Model):
 	track_number = models.IntegerField()
-	project = models.ForeignKey('Project', related_name="project_name")
+	project = models.ForeignKey('Project')
 
 	
