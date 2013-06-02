@@ -4,12 +4,39 @@
 #include <cstdint>
 #include <limits>
 #include <vector>
+#include <boost/iterator/zip_iterator.hpp>
 #include <glib.h>
-class Instrument;
 typedef int16_t Sample;
-typedef std::shared_ptr<Instrument> InstrumentHandle;
-typedef std::vector<Sample> Packet;
-typedef std::shared_ptr<Packet> PacketHandle;
+    template<typename SeqA,typename SeqB> 
+    class Zipper {
+        SeqA& seqa_;
+        SeqB& seqb_;
+        Zipper(const SeqA& seqa, const SeqB& seqb):
+            seqa_(seqa),seqb_(seqb) {
+        }
+
+        Zipper(SeqA& seqa, SeqB& seqb): 
+            seqa_(seqa),
+            seqb_(seqb) { 
+            }
+        
+        auto begin() const {
+            return boost::make_zip_iterator(
+                std::make_tuple(seqa_.begin(),seqb_.begin()));
+        }      
+        auto end() const {
+            return boost::make_zip_iterator(
+                std::make_tuple(seqa_.end(),seqb_.end()));
+        }
+        auto begin() {
+            return boost::make_zip_iterator(
+                std::make_tuple(seqa_.begin(),seqb_.begin()));
+        }
+        auto end() {
+            return boost::make_zip_iterator(
+                std::make_tuple(seqa_.end(),seqb_.end()));
+        }
+    };
 
 namespace Config {
     typedef guint64 GstClockTime;
