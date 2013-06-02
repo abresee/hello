@@ -658,7 +658,7 @@ $('#create_track').click(function(){
 	});
 	
 	$.ajax({type: "POST",
-			url: "{% url 'track_creation' 'braindeaf' project %}",
+			url: "{% url 'track_creation' request.user.username project %}",
 			data: {track : track_num},
 			success: function(track_number){
 				alert(track_number);
@@ -858,10 +858,19 @@ $('#create_track').click(function(){
 	
 var track_data;
 var removed = 0;
+var tracks_selected = 0;
+var array_count = 0;
+
 $('#delete_track').click(function(){
+	var selected_tracks_array = new Array();
+	array_count = 0;
 	$('.track_info').each(function(){
 		if ($(this).is('.ui-selected')){
 			track_data = $(this).data("track_number");
+			
+			selected_tracks_array[array_count] = track_data;
+			array_count += 1;
+			
 			$('.track_window').each(function(){
 				if ($(this).data("track_number") == (track_data)){
 					$(this).remove();
@@ -876,6 +885,20 @@ $('#delete_track').click(function(){
 			$(this).remove();
 		}
 	});
+	
+	$.ajax({type: "POST",
+		url: "{% url 'track_deletion' request.user.username project %}",
+		data: {track_number : selected_tracks_array},
+		success: function(track_number){
+			alert("track deleted is " + track_number);
+		},
+		error: function(){
+			alert('delete track oops');
+		}
+	});
+			
+	delete selected_tracks_array;
+			
 	track_num = 1;
 	$('.track_info').each(function(){
 		$(this).data("track_number", track_num);
@@ -900,6 +923,7 @@ $('#delete_track').click(function(){
 		track_num += 1;
 	});
 	removed = 0;
+	tracks_selected = 0;
 	//track_data = 1000;
 });
 
@@ -959,7 +983,9 @@ $.ajaxSetup({
          }
      } 
 });
-
+test_array = new Array();
+test_array[0] = 1;
+test_array[1] = 2;
 $('#jquery_ajax').click(function(){
 	track_num = 0;
 	$('.track_window').each(function(){
@@ -968,7 +994,7 @@ $('#jquery_ajax').click(function(){
 	
 	$.ajax({type: "POST",
 			url: "{% url 'project_view.views.projectz_save' request.user.username project %}",
-			data: {track : track_num},
+			data: {track : test_array},
 			success: function(text){
 				alert(text);
 			},

@@ -7,7 +7,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = patterns('',
 
-    url(r'^admin/', include(admin.site.urls)),
+	url(r'^admin/', include(admin.site.urls)),
 	url(r'^register/$', 'project_view.views.register'),
 	url(r'^login/$', 'django.contrib.auth.views.login'),
 	url(r'^logout$', 'project_view.views.project_logout'),
@@ -16,5 +16,3 @@ urlpatterns = patterns('',
 	url(r'^(?P<usernames>\w+)/', include('project_view.urls')),
 
 )
-
-urlpatterns += staticfiles_urlpatterns()

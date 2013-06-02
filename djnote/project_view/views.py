@@ -47,31 +47,33 @@ def profile(request, usernames):
         return redirect('http://127.0.0.1:8000/login/')
     
 def projectz_save(request, usernames, project_name):
-    if request.is_ajax():
-        text=request.POST['track']
-        return HttpResponse(text)
-    else:
-        flag = True
-        projects = request.user.project_set.all()
-        for project in projects:
-            if project.name == request.POST.get('projectz_name'):
-                flag = False
+	if request.is_ajax():
+		text=request.POST.getlist('track[]')
+		for i in text:
+			print(i)
+		return HttpResponse(text)
+	else:
+		flag = True
+		projects = request.user.project_set.all()
+		for project in projects:
+			if project.name == request.POST.get('projectz_name'):
+				flag = False
 
-        p = Project.objects.get(name=project_name)
-        new_name = request.POST.get('projectz_name')
-        if flag:
-            project.name = new_name
-            project.save()
+		p = Project.objects.get(name=project_name)
+		new_name = request.POST.get('projectz_name')
+		if flag:
+			project.name = new_name
+			project.save()
             
             
             
-            template = loader.get_template('project_view/index.html')
-            context = RequestContext(request, {"username": usernames, "project": new_name})
-            return HttpResponse(template.render(context))
-        else:
-            template = loader.get_template('project_view/index.html')
-            context = RequestContext(request, {"username": usernames, "project": project_name, "error": "You already have a project with this name!"})
-            return HttpResponse(template.render(context))
+			template = loader.get_template('project_view/index.html')
+			context = RequestContext(request, {"username": usernames, "project": new_name})
+			return HttpResponse(template.render(context))
+		else:
+			template = loader.get_template('project_view/index.html')
+			context = RequestContext(request, {"username": usernames, "project": project_name, "error": "You already have a project with this name!"})
+			return HttpResponse(template.render(context))
         
 def create_project(request):
     flag = True
@@ -87,7 +89,7 @@ def create_project(request):
         return redirect('http://127.0.0.1:8000/' + request.user.username)
     else:
         template = loader.get_template('accounts/profile.html')
-        context = RequestContext(request, {"username": request.user, "projects": request.user.user_projects.all(), "error": "Project names must be unique! Please choose a different name."})
+        context = RequestContext(request, {"username": request.user, "projects": request.user.project_set.all(), "error": "Project names must be unique! Please choose a different name."})
         return HttpResponse(template.render(context))
     
 def project_logout(request):
@@ -99,7 +101,8 @@ def project_logout(request):
 		
 def track_creation(request, project_name, usernames):
 	if request.is_ajax():
-		number_of_tracks=request.POST['track']
+		print(request.POST['track'])
+		number_of_tracks=str(int(request.POST['track']) - 1)
 		p = Project.objects.get(name=project_name)
 		t = Track(track_number=number_of_tracks, project=p)
 		t.save()
@@ -107,5 +110,25 @@ def track_creation(request, project_name, usernames):
 		track_number = t.track_number
 		return HttpResponse(track_number)
 		
+def track_deletion(request, project_name, usernames):
+	track_number_list = []
+	if request.is_ajax():
+		tracks_deleted= request.POST.getlist('track_number[]')
+		p = Project.objects.get(name=project_name)
+		for i in tracks_deleted:
+			t = Track.objects.get(track_number=i, project=p)
+			t.delete()
+		tracks = Track.objects.filter(project=p)
+		
+		for track in tracks:
+			track_number_list.append(track.track_number)
+		
+		count = 1
+		for track_numberz in track_number_list:
+			tt = Track.objects.get(track_number = track_numberz, project=p)
+			tt.track_number = count
+			tt.save()
+			count += 1
+		return HttpResponse(tracks_deleted)
 		
         
