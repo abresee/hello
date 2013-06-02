@@ -41,7 +41,7 @@ guint64 Note::length() const {
 }
 
 bool Note::operator<(const Note& other) const {
-    return on_<other.on_;
+    return off() < other.off();
 }
 
 bool Note::operator==(const Note& other) const {

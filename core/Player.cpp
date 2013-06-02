@@ -5,9 +5,6 @@
 #include "Player.h"
 
 const char * Player::format = "S16LE";
-using std::for_each;
-using std::cout;
-using std::endl;
 
 void Player::util::initialize_gst() {
     GError *err;
@@ -70,7 +67,7 @@ void Player::eos() {
     GstFlowReturn r = gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
     if (r!=GST_FLOW_OK)
     {
-        cout<<"shit's fucked"<<endl;
+        std::cout<<"shit's fucked"<<std::endl;
     }
 }
 
@@ -124,34 +121,32 @@ Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(
 
 
 gboolean Player::push_data() {
-    if(offset >= offset_end)
-    {
+    if(offset >= offset_end) {
         eos();
         return false;
     }
     
-    auto packet_size = ((offset+last_hint) < offset_end) ? last_hint : offset_end - offset ;
-    std::unique_ptr<Packet> datahandle(new Packet(packet_size));
+    const Packet::size_type packet_size = ((offset+last_hint) < offset_end) ? last_hint : offset_end - offset ; 
+    Packet data(packet_size);
 
-    for (InstrumentHandle i : instruments)
-    {
-        i->get_samples(*datahandle,offset);
+    for (InstrumentHandle i : instruments) {
+        data+=i->get_samples(offset,offset+packet_size);
     }
 
-    GstBuffer * buffer = gst_buffer_new_allocate(NULL, datahandle->size()*Config::word_size, NULL);
+    GstBuffer * buffer = gst_buffer_new_allocate(
+        nullptr, data.size()*Config::word_size, nullptr);
 
     GST_BUFFER_PTS(buffer) = Config::offset_to_nano(offset);
     GST_BUFFER_DURATION(buffer) = Config::offset_to_nano(packet_size);
     GST_BUFFER_OFFSET(buffer) = offset;
     GST_BUFFER_OFFSET_END(buffer) = offset+packet_size;
 
-    auto size = datahandle->size() * Config::word_size;
-    auto rsize = gst_buffer_fill(buffer, 0, static_cast<void *>(datahandle->data()), size);
+    auto size = data.size() * Config::word_size;
+    auto rsize = gst_buffer_fill(buffer, 0, static_cast<void *>(data.data()), size);
     BOOST_ASSERT(size==rsize);
     auto ret = gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer); 
-    if ( ret != GST_FLOW_OK)
-    {
-        cout<<"flow no good!"<<endl;
+    if ( ret != GST_FLOW_OK) {
+        std::cout<<"flow no good!"<<std::endl;
         return false;
     }
     offset+=packet_size;

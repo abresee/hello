@@ -1,15 +1,8 @@
 #include <boost/python.hpp>
 #include "Note.h"
 #include "Instrument.h"
-#include "WaveGenerator.h"
+#include "WaveSynth.h"
 #include "Player.h"
-
-template<typename T>
-struct std_vector_from_homogenous_python_list {
-    static void* convertible(PyObject* obj_ptr) {
-        return nullptr;
-    }
-};
 
 BOOST_PYTHON_MODULE(core_py)
 {
@@ -26,10 +19,10 @@ BOOST_PYTHON_MODULE(core_py)
         .add_property("length",&Note::length);
 
     class_<Instrument,std::shared_ptr<Instrument>,boost::noncopyable>("Instrument", "Abstract base class",no_init)
-        .def("add_note",&Instrument::add_note)
+        .def("add_note",static_cast<void(Instrument::*)(const Note&)>(&Instrument::add_note))
         .def("add_notes",&Instrument::add_notes);
 
-    class_<WaveGenerator,std::shared_ptr<WaveGenerator>,bases<Instrument>,boost::noncopyable>("WaveGenerator",
+    class_<WaveSynth,std::shared_ptr<WaveSynth>,bases<Instrument>,boost::noncopyable>("WaveSynth",
             "creates a signal based on a waveform");
 
     class_<Player,std::shared_ptr<Player>, boost::noncopyable>("Player", "Abstract base class", no_init)
@@ -40,5 +33,5 @@ BOOST_PYTHON_MODULE(core_py)
             "Plays back locally (i.e out the local machine's speakers)")
         .def("play",&LocalPlayer::play); 
 
-    implicitly_convertible<std::shared_ptr<WaveGenerator>,InstrumentHandle>();
+    implicitly_convertible<std::shared_ptr<WaveSynth>,InstrumentHandle>();
 }

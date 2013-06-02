@@ -3,14 +3,12 @@
 #include <stdexcept>
 #include "../Player.h"
 #include "../Instrument.h"
-#include "../WaveGenerator.h"
-using std::cout;
-using std::endl;
+#include "../WaveSynth.h"
 
 int main(int argc, char ** argv)
 {
     std::shared_ptr<Player> p(new LocalPlayer());
-    InstrumentHandle wg = InstrumentHandle(new WaveGenerator());
+    InstrumentHandle wg = InstrumentHandle(new WaveSynth());
     std::vector<Note> notes;
 
     guint64 note_length = Config::sample_rate/8;

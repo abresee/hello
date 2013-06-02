@@ -8,7 +8,7 @@
 #include <boost/utility.hpp>
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
-#include "WaveGenerator.h"
+#include "WaveSynth.h"
 #include "Config.h"
 
 /// @brief master class to handle audio generation and playback

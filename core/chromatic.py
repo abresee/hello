@@ -1,9 +1,9 @@
-from core_py import LocalPlayer, WaveGenerator, Note
+from core_py import LocalPlayer, WaveSynth, Note
 import core_py
 
 p = LocalPlayer()
 
-wg = WaveGenerator()
+wg = WaveSynth()
 
 note_length = core_py.sample_rate//8
 note_intensity = core_py.max_intensity//4
