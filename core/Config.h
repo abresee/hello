@@ -5,9 +5,20 @@
 #include <limits>
 #include <vector>
 #include <boost/iterator/zip_iterator.hpp>
+#include <boost/functional/hash.hpp>
 #include <glib.h>
 typedef int16_t Sample;
 typedef int64_t offset_t;
+
+namespace std {
+    template<typename... T>
+    struct hash<tuple<T...>>{
+        size_t operator()(tuple<T...> const& arg) const noexcept
+        {
+            return boost::hash_value(arg);
+        }
+    };
+}
 
     template<typename SeqA,typename SeqB> 
     class Zipper {

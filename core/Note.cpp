@@ -1,13 +1,7 @@
 #include <iostream>
 #include "Note.h"
 
-Note::Note(int pc_init, int octave_init, Sample intensity_init, offset_t on_init, offset_t off_init, offset_t ref_init):
-    pitch_class_(pc_init),
-    octave_(octave_init),
-    intensity_(intensity_init),
-    on_(on_init),
-    off_(off_init),
-    ref_(ref_init){
+Note::Note(int pc_init, int octave_init, Sample intensity_init, offset_t pos_init, offset_t len_init): pitch_class_(pc_init), octave_(octave_init), intensity_(intensity_init), pos_(pos_init), length_(len_init) {
 
     using Config::pc_count;
     if (pitch_class_ < 0) {
@@ -21,11 +15,6 @@ Note::Note(int pc_init, int octave_init, Sample intensity_init, offset_t on_init
     }
 }
 
-Note::Note(int pc_init, int octave_init, Sample intensity_init, offset_t on_init, offset_t off_init):
-    Note(pc_init, octave_init, intensity_init, on_init, off_init, 0) {
-}
-
-
 int Note::pitch_class() const {
     return pitch_class_;
 }
@@ -36,41 +25,51 @@ int Note::pitch_class(int ref) const {
 int Note::octave() const {
     return octave_;
 }
+
 int Note::octave(int ref) const {
     return octave() - ref;
 }
 
-
-offset_t Note::on() const {
-    return on_;
+offset_t Note::position() const {
+    return pos_;
 }
-offset_t Note::on(offset_t ref) const {
-    return on() - ref; 
+offset_t Note::position(offset_t ref) const {
+    return position() - ref; 
 }
 
 offset_t Note::off() const {
-    return off_;
+    return position() + length();
 }
 offset_t Note::off(offset_t ref) const {
-    return off() - ref;
+    return position(ref) + length();
 }
 
 offset_t Note::length() const {
-    return off() - on();
+    return length_;
 }
+
 
 Sample Note::intensity() const {
     return intensity_;
 }
 
+
 bool Note::operator<(const Note& other) const {
-    return off() < other.off();
+    if(position() < other.position()) {
+        return true;
+    }
+    else if(position() > other.position()) {
+        return false;
+    }
+    else {
+        return (position() + length()) < (other.position()+other.length());
+    }
 }
 
 bool Note::operator==(const Note& other) const {
-    return (pitch_class_ < other.pitch_class_) &&
-        (octave_ < other.octave_) &&
-        (intensity_ < other.intensity_) &&
-        (on_ < other.on_) &&
-        (off_ < other.off_ ) ;
+    return (pitch_class() < other.pitch_class()) &&
+        (octave() < other.octave()) &&
+        (intensity() < other.intensity()) &&
+        (position() < other.position()) &&
+        (length() < other.length());
 }

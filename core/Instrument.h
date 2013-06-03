@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <vector>
 #include <tuple>
+#include <mutex>
 #include "Packet.h"
 #include "Config.h"
 #include "Note.h"
@@ -10,6 +11,7 @@
 class Instrument {
 
 public:
+    typedef void (Instrument::* void_Note)(const Note&);
     typedef std::vector<Note> Notes;
     Instrument() : notes_() {}
     Packet get_samples(const offset_t start_offset, const offset_t end_offset); 
@@ -22,7 +24,7 @@ public:
     offset_t stream_end() const;
 
 protected:
-    std::unordered_map<Note, Packet, std::hash<Note>,hash_comp> cache;
+    std::unordered_map<Note, Packet, Note_hash, Note_hash_comp> cache;
 
     virtual Sample round(double t);
     virtual Packet gen(const Note& note)=0;
@@ -45,7 +47,6 @@ protected:
                 break;
             }
         } 
-        std::cout<<"zero crossing at index "<<-(it-start)<<" of "<<end-start<<std::endl;
         return std::make_tuple(start,it);
     }
 
@@ -65,6 +66,7 @@ protected:
 
 private:
     std::vector<Note> notes_;
+    std::mutex mutex;
 
 };
 

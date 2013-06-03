@@ -29,7 +29,7 @@ class Player : public boost::noncopyable {
         /// @brief wrapper for member function b/c gst can't handle member functions
         static gboolean wrap_push_data(gpointer instance);
 
-        static gboolean wrap_bus_callback (GstBus *bus, GstMessage *message, gpointer data);
+        static gboolean wrap_bus_callback (GstBus *bus, GstMessage *message, gpointer instance);
     };
 
 public: 

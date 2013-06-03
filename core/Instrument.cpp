@@ -9,10 +9,11 @@
 Packet Instrument::get_samples(const offset_t start_offset, const offset_t end_offset) {
     std::vector<Note> notes_to_get;
     for(Note note : notes_) {
-        if(note.off() > start_offset && note.on() < end_offset) { 
+        if((note.position() + note.length()) > start_offset && note.position() < end_offset) { 
             notes_to_get.push_back(note);
         }
     }
+
     Packet ret(Packet::size_type(end_offset-start_offset)); 
     for(Note note : notes_to_get) {
         render_note(ret,note,start_offset);
@@ -59,15 +60,19 @@ Sample Instrument::round(double t) {
 }
 
 void Instrument::render_note(Packet& packet, const Note& note, const offset_t start_offset) {
-    const Packet::size_type start_index = 0;
-    const Packet::size_type end_index = packet.size();
-    Packet note_packet = cache.at(note); 
-    auto on = note.on(start_offset);
-    auto off = note.off(start_offset);
-    on = std::max(static_cast<Packet::size_type>(on),start_index);
-    off = std::min(static_cast<Packet::size_type>(off),end_index);
-    for(int i = 0; i < off; ++i) {
-        packet.at(i) = note_packet.at(i); 
+    const Packet note_packet = cache.at(note); 
+
+    auto begin = note.position(start_offset);
+    auto end = note.position(start_offset)+note.length();
+
+    const offset_t start_index = 0;
+    const offset_t end_index = packet.size();
+    
+    begin = std::max(begin,start_index);
+    end = std::min(end,end_index);
+
+    for(int i = begin; i < end; ++i) {
+        packet.at(i) += note_packet.at(i); 
     }
 }
 

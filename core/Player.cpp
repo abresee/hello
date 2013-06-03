@@ -32,7 +32,7 @@ void Player::util::wrap_enough_data(GstAppSrc * src, gpointer instance) {
 
 gboolean Player::util::wrap_seek_data(GstAppSrc * element, guint64 destination, gpointer instance) {
     Player * this_ = static_cast<Player *>(instance);
-    return this_->seek_data(static_cast<offset_t>(destination));
+    return this_->seek_data(destination);
 }
 
 gboolean Player::util::wrap_push_data(gpointer instance) {
@@ -40,8 +40,8 @@ gboolean Player::util::wrap_push_data(gpointer instance) {
     return this_->push_data();
 }
 
-gboolean Player::util::wrap_bus_callback(GstBus * bus, GstMessage * message, gpointer data) {
-    Player * this_ = static_cast<Player *>(data);
+gboolean Player::util::wrap_bus_callback(GstBus * bus, GstMessage * message, gpointer instance) {
+    Player * this_ = static_cast<Player *>(instance);
     return this_->bus_callback(bus,message);
 }
 
@@ -129,6 +129,11 @@ gboolean Player::push_data() {
         data+=instrument_h->get_samples(offset,offset+packet_size);
     }
 
+    for(Sample sample : data) {
+        std::cout<<sample<<" ";
+    }
+    std::cout<<std::endl;
+
     GstBuffer * buffer = gst_buffer_new_allocate(
         nullptr, data.size()*Config::word_size, nullptr);
 
@@ -136,7 +141,6 @@ gboolean Player::push_data() {
     GST_BUFFER_DURATION(buffer) = Config::offset_to_ns(packet_size);
     GST_BUFFER_OFFSET(buffer) = offset;
     GST_BUFFER_OFFSET_END(buffer) = offset+packet_size;
-    std::cout<<"pushing "<<data.size()<<std::endl;
     auto size = data.size() * Config::word_size;
     auto rsize = gst_buffer_fill(buffer, 0, static_cast<void *>(data.data()), size);
     BOOST_ASSERT(size==rsize);
@@ -145,7 +149,7 @@ gboolean Player::push_data() {
         std::cout<<"flow no good!"<<std::endl;
         return false;
     }
-    offset+=packet_size;
+    offset+=data.size();
     return true;
 }
 
