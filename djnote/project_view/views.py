@@ -3,7 +3,7 @@ import re
 from django.shortcuts import render, redirect
 from django.db import models
 from project_view.forms import RegisterForm
-from project_view.models import Project, Track
+from project_view.models import Project, Track, Event_Window
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.template import Context, loader, Template, RequestContext
@@ -135,5 +135,33 @@ def track_deletion(request, project_name, usernames):
             tt.save()
             count += 1
         return HttpResponse(tracks_deleted)
+        
+def event_container_creation(request, project_name, usernames):
+    if request.is_ajax():
+        p = Project.objects.get(name=project_name)
+        t = Track.objects.get(track_number=request.POST['track'], project=p)
+        e = Event_Window(window_position=request.POST['position'], window_length=request.POST['length'], id_number=request.POST['id'], track=t, project=p)
+        e.save()
+        return HttpResponse('event_window create saved')
+    
+def event_container_dragstop(request, project_name, usernames):
+    if request.is_ajax():
+        p = Project.objects.get(name=project_name)
+        t = Track.objects.get(track_number=request.POST['track'], project=p)
+        e = Event_Window.objects.get(id_number=request.POST['id'], project=p)
+        e.track = t
+        e.position = request.POST['position']
+        e.save()
+        return HttpResponse('drag_stop saved')
+        
+
+def event_container_resizestop(request, project_name, usernames):
+    if request.is_ajax():
+        p = Project.objects.get(name=project_name)
+        e = Event_Window.objects.get(project=p, id=request.POST['id'])
+        e.window_length = request.POST['length']
+        e.save()
+        return HttpResponse('window resizestop saved')
+    
         
         
