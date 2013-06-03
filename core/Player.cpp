@@ -32,7 +32,7 @@ void Player::util::wrap_enough_data(GstAppSrc * src, gpointer instance) {
 
 gboolean Player::util::wrap_seek_data(GstAppSrc * element, guint64 destination, gpointer instance) {
     Player * this_ = static_cast<Player *>(instance);
-    return this_->seek_data(destination);
+    return this_->seek_data(static_cast<offset_t>(destination));
 }
 
 gboolean Player::util::wrap_push_data(gpointer instance) {
@@ -45,17 +45,14 @@ gboolean Player::util::wrap_bus_callback(GstBus * bus, GstMessage * message, gpo
     return this_->bus_callback(bus,message);
 }
 
-void Player::add_instrument(InstrumentHandle instrument) {
-    instruments.push_back(instrument);
+void Player::add_instrument(InstrumentHandle instrument_h) {
+    instruments.push_back(instrument_h);
 }
 
 void Player::play() {   
-    guint64 stream_end=0;
-    for(auto instrument : instruments)
-    { 
-        stream_end = (stream_end > instrument->stream_end()) ? 
-            stream_end : 
-            instrument->stream_end();
+    offset_t stream_end=0;
+    for(auto instrument_h : instruments) { 
+        stream_end = std::max(stream_end,instrument_h->stream_end());
     }
     offset_end = stream_end;
     g_object_set(G_OBJECT(appsrc),"size",offset_end*Config::word_size,nullptr);
@@ -119,7 +116,6 @@ Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(
     gst_app_src_set_callbacks(GST_APP_SRC(appsrc), &callbacks, this, nullptr);
 }
 
-
 gboolean Player::push_data() {
     if(offset >= offset_end) {
         eos();
@@ -129,15 +125,15 @@ gboolean Player::push_data() {
     const Packet::size_type packet_size = ((offset+last_hint) < offset_end) ? last_hint : offset_end - offset ; 
     Packet data(packet_size);
 
-    for (InstrumentHandle i : instruments) {
-        data+=i->get_samples(offset,offset+packet_size);
+    for (InstrumentHandle instrument_h : instruments) {
+        data+=instrument_h->get_samples(offset,offset+packet_size);
     }
 
     GstBuffer * buffer = gst_buffer_new_allocate(
         nullptr, data.size()*Config::word_size, nullptr);
 
-    GST_BUFFER_PTS(buffer) = Config::offset_to_nano(offset);
-    GST_BUFFER_DURATION(buffer) = Config::offset_to_nano(packet_size);
+    GST_BUFFER_PTS(buffer) = Config::offset_to_ns(offset);
+    GST_BUFFER_DURATION(buffer) = Config::offset_to_ns(packet_size);
     GST_BUFFER_OFFSET(buffer) = offset;
     GST_BUFFER_OFFSET_END(buffer) = offset+packet_size;
 
@@ -167,7 +163,7 @@ void Player::enough_data() {
     }
 }
 
-gboolean Player::seek_data(guint64 destination) {
+gboolean Player::seek_data(offset_t destination) {
     //TODO: IMPLEMENT THIS
     return true;
 }

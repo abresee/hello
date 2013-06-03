@@ -11,7 +11,7 @@ int main(int argc, char ** argv)
     InstrumentHandle wg = InstrumentHandle(new WaveSynth());
     std::vector<Note> notes;
 
-    guint64 note_length = Config::sample_rate/4;
+    auto note_length = Config::sample_rate/4;
     Sample note_intensity = Config::max_intensity/4;
 
     int note_count = 0;
