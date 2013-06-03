@@ -25,7 +25,7 @@ class Player : public boost::noncopyable {
         /// @brief wrapper for member function b/c gst can't handle member functions
         static void wrap_enough_data(GstAppSrc * element, gpointer instance);
         /// @brief wrapper for member function b/c gst can't handle member functions
-        static gboolean wrap_seek_data(GstAppSrc * element,guint64 destination,gpointer instance);
+        static gboolean wrap_seek_data(GstAppSrc * element, guint64 destination, gpointer instance);
         /// @brief wrapper for member function b/c gst can't handle member functions
         static gboolean wrap_push_data(gpointer instance);
 
@@ -38,8 +38,7 @@ public:
 
     /// @brief start playback
     void play();
-
-    /// @brief indicate end of stream has been signalled
+    /// @brief indicate end of stream
     void eos();
     /// @brief stop playback
     void quit();
@@ -64,8 +63,8 @@ protected:
     
     /// @brief container for the player object's instruments
     std::vector<InstrumentHandle> instruments;
-    guint64 offset;
-    guint64 offset_end;
+    offset_t offset;
+    offset_t offset_end;
     guint sourceid;
     guint bus_watch_id;
     guint last_hint;
@@ -77,7 +76,7 @@ protected:
     /// @brief callback that handles appsrc's enough-data signal 
     void enough_data();
     /// @brief callback that handles appsrc's seek-data signal 
-    gboolean seek_data(guint64);
+    gboolean seek_data(offset_t);
 
     gboolean bus_callback(GstBus * bus, GstMessage * message);
     void eos_callback();
@@ -86,7 +85,7 @@ protected:
 
 class LocalPlayer : public Player {
 public:
-    LocalPlayer() : Player("alsasink") {
+    LocalPlayer() : Player("autoaudiosink") {
     }
 };
 #endif /* PLAYER_H */

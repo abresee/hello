@@ -6,7 +6,7 @@
 #include "Config.h"
 #include "Instrument.h"
 
-Packet Instrument::get_samples(const guint64 start_offset, const guint64 end_offset) {
+Packet Instrument::get_samples(const offset_t start_offset, const offset_t end_offset) {
     std::vector<Note> notes_to_get;
     for(Note note : notes_) {
         if(note.off() > start_offset && note.on() < end_offset) { 
@@ -26,17 +26,11 @@ void Instrument::add_note(const Note& note) {
     std::sort(notes_.begin(),notes_.end());
 }
 
-
+//not the most efficient way to do this but I'm trying to achieve some DRY with the caching
+//TODO: make this less shitty
 void Instrument::add_notes(const Notes& notes) {
     for(Note note : notes) {
         add_note(note);    
-    }
-}
-
-void Instrument::do_cache(const Note& note) {
-    if (cache.find(note) == cache.end()) {
-        cache[note]=gen(note);
-        cache.at(note);
     }
 }
 
@@ -49,7 +43,7 @@ double Instrument::frequency(const Note n) const {
     return Config::freq_reference * pow(2,exponent);
 }
 
-guint64 Instrument::stream_end() const {
+offset_t Instrument::stream_end() const {
     return notes_.back().off(); 
 }
 
@@ -64,23 +58,25 @@ Sample Instrument::round(double t) {
     return typeconverter(t); 
 }
 
-void Instrument::render_note(
-    Packet& packet,
-    const Note& note,
-    const guint64 start_offset) {
-    const guint64 end_offset = start_offset + packet.size();
+void Instrument::render_note(Packet& packet, const Note& note, const offset_t start_offset) {
+    const Packet::size_type start_index = 0;
+    const Packet::size_type end_index = packet.size();
     Packet note_packet = cache.at(note); 
-    auto start = (note.on() < start_offset) ? start_offset : note.on();
-    auto end = (note.off() > end_offset) ? end_offset : note.off();
-
-    start -= start_offset;
-    end -= start_offset;
-
-    auto start_src_iter = note_packet.begin() + start;
-    auto end_src_iter = note_packet.begin() + end; 
-    auto start_dest_iter = packet.begin() + start;
-    std::transform(
-        start_src_iter,end_src_iter,
-        start_dest_iter,start_dest_iter,
-        std::plus<Sample>());
+    auto on = note.on(start_offset);
+    auto off = note.off(start_offset);
+    on = std::max(static_cast<Packet::size_type>(on),start_index);
+    off = std::min(static_cast<Packet::size_type>(off),end_index);
+    for(int i = 0; i < off; ++i) {
+        packet.at(i) = note_packet.at(i); 
+    }
 }
+
+void Instrument::do_cache(const Note& note) {
+    if (cache.find(note) == cache.end()) {
+        cache[note]=gen(note);
+        cache.at(note);
+    }
+}
+
+
+

@@ -12,30 +12,61 @@ class Instrument {
 public:
     typedef std::vector<Note> Notes;
     Instrument() : notes_() {}
-    Packet get_samples(const guint64 start_offset, const guint64 end_offset); 
+    Packet get_samples(const offset_t start_offset, const offset_t end_offset); 
     virtual ~Instrument(){}
     void add_note(const Note& note);
     void add_notes(const Notes& notes);
     
     double omega(const Note note) const;
     double frequency(const Note note) const;
-    guint64 stream_end() const;
+    offset_t stream_end() const;
+
 protected:
-    virtual 
-    Sample round(double t);
     std::unordered_map<Note, Packet, std::hash<Note>,hash_comp> cache;
+
+    virtual Sample round(double t);
     virtual Packet gen(const Note& note)=0;
 
-private:
-    void render_note(
-        Packet& packet, 
-        const Note& note,
-        const guint64 start_offset);
-
+    void render_note(Packet& packet,const Note& note,const offset_t start_offset);
     void do_cache(const Note& note);
 
+    //utility functions
+    template<typename RAIter>
+        static std::tuple<RAIter,RAIter> 
+            find_zero_crossing(std::tuple<RAIter,RAIter> iters) {
+        const auto start = std::get<0>(iters);
+        const auto end = std::get<1>(iters);
+        auto is_negative = [] (RAIter it) -> bool {return ((*it) < 0);};
+        bool first_was_negative = is_negative(start);
+        auto it = start;
+        for(; it != end; ++it) {
+            if((is_negative(it) != first_was_negative) || 
+               ((*it) == 0)) {
+                break;
+            }
+        } 
+        std::cout<<"zero crossing at index "<<-(it-start)<<" of "<<end-start<<std::endl;
+        return std::make_tuple(start,it);
+    }
+
+    template<typename RAIter>
+    static std::tuple<RAIter,RAIter> silence(RAIter it,const RAIter end){
+        return silence(std::make_tuple(it,end));
+    } 
+
+    template<typename RAIter>
+    static std::tuple<RAIter,RAIter> silence(const std::tuple<RAIter,RAIter> iters) {
+        auto it = std::get<0>(iters);
+        const auto end = std::get<1>(iters);
+        std::for_each(it,end,[](decltype(*it) x) {
+                x=0;});
+        return std::make_tuple(it,end);
+    }
+
+private:
     std::vector<Note> notes_;
 
 };
+
 typedef std::shared_ptr<Instrument> InstrumentHandle;
 #endif /* INSTRUMENT_H */

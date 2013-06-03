@@ -63,8 +63,9 @@ WaveSynth::WaveSynth(std::initializer_list<Wave> l):
 
 Packet WaveSynth::gen(const Note& note) {
     Packet ret(note.length());
-    for(size_t i = 0; i < note.length(); ++i) {
+    for(int i = 0; i < note.length(); ++i) {
         ret[i]=round(note.intensity()*waves_(omega(note) * (i)));
     }
+    silence(find_zero_crossing(std::make_tuple(ret.rbegin(),ret.rend())));
     return ret;
 }

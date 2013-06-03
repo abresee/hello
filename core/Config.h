@@ -7,6 +7,8 @@
 #include <boost/iterator/zip_iterator.hpp>
 #include <glib.h>
 typedef int16_t Sample;
+typedef int64_t offset_t;
+
     template<typename SeqA,typename SeqB> 
     class Zipper {
         SeqA& seqa_;
@@ -39,21 +41,20 @@ typedef int16_t Sample;
     };
 
 namespace Config {
-    typedef guint64 GstClockTime;
+    typedef int64_t GstClockTime;
     const Sample max_intensity = std::numeric_limits<Sample>::max();
     /// player's current sample rate
     const int sample_rate = 44100;
+    /// reference frequency of the whole system, that is, frequency of pitch_class = 0, octave = 0
     const double freq_reference = 220;
-    GstClockTime offset_to_nano(guint64 offset);
+    /// function to convert from offsets to nanoseconds
+    GstClockTime offset_to_ns(offset_t offset);
     /// amount of bytes in a sample 
     static const int word_size=sizeof(Sample);
-
     /// amount of samples written to buffers in each go
     static const int packet_size= 512;
-
     /// size of each buffer created
     static const int buffer_length = packet_size*word_size;
-
     /// amount of channels in our audio stream
     static const int channels = 1;
     /// how many pitch classes are there in an octave?
