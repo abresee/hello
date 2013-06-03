@@ -129,11 +129,6 @@ gboolean Player::push_data() {
         data+=instrument_h->get_samples(offset,offset+packet_size);
     }
 
-    for(Sample sample : data) {
-        std::cout<<sample<<" ";
-    }
-    std::cout<<std::endl;
-
     GstBuffer * buffer = gst_buffer_new_allocate(
         nullptr, data.size()*Config::word_size, nullptr);
 

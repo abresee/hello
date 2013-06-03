@@ -62,17 +62,19 @@ Sample Instrument::round(double t) {
 void Instrument::render_note(Packet& packet, const Note& note, const offset_t start_offset) {
     const Packet note_packet = cache.at(note); 
 
-    auto begin = note.position(start_offset);
-    auto end = note.position(start_offset)+note.length();
+    const offset_t note_begin_output_index = note.position(start_offset);
+    const offset_t note_end_output_index = note.position(start_offset)+note.length();
 
-    const offset_t start_index = 0;
-    const offset_t end_index = packet.size();
-    
-    begin = std::max(begin,start_index);
-    end = std::min(end,end_index);
+    const offset_t begin_output_index = 
+        (note_begin_output_index < 0) ? 0 : note_begin_output_index;
+    const offset_t end_output_index = 
+        (note_end_output_index > packet.size()) ? packet.size() : note_begin_output_index;
 
-    for(int i = begin; i < end; ++i) {
-        packet.at(i) += note_packet.at(i); 
+    const offset_t index_offset = note_begin_output_index;
+
+    for(auto i = begin_output_index; i < end_output_index; ++i) {
+        packet.at(i) += note_packet.at(i-index_offset); 
+        std::cout<<packet.at(i)<<" ";
     }
 }
 
