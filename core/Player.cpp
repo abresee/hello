@@ -136,7 +136,7 @@ gboolean Player::push_data() {
     GST_BUFFER_DURATION(buffer) = Config::offset_to_ns(packet_size);
     GST_BUFFER_OFFSET(buffer) = offset;
     GST_BUFFER_OFFSET_END(buffer) = offset+packet_size;
-
+    std::cout<<"pushing "<<data.size()<<std::endl;
     auto size = data.size() * Config::word_size;
     auto rsize = gst_buffer_fill(buffer, 0, static_cast<void *>(data.data()), size);
     BOOST_ASSERT(size==rsize);

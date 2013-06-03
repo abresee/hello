@@ -45,7 +45,7 @@ protected:
                 break;
             }
         } 
-        std::cout<<"zero crossing at index "<<it-start<<" of "<<end-start<<std::endl;
+        std::cout<<"zero crossing at index "<<-(it-start)<<" of "<<end-start<<std::endl;
         return std::make_tuple(start,it);
     }
 
@@ -59,7 +59,6 @@ protected:
         auto it = std::get<0>(iters);
         const auto end = std::get<1>(iters);
         std::for_each(it,end,[](decltype(*it) x) {
-                std::cout<<x<<std::endl;
                 x=0;});
         return std::make_tuple(it,end);
     }
