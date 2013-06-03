@@ -317,6 +317,199 @@ div.transport_locator{
 <script>
 function null_function(){}
 
+$(document).ready(function(){
+	{% for track in track_number %}
+		$('#track_pane').append(track_info_html);
+	$('#track_project_window').append('<div id="track_num_' + (track_window) + '" class="track_window"></div>');
+	track_num = 1;
+	track_window += 1;
+	$('.track_info').each(function(){
+		$(this).data("track_number", track_num);
+		track_num += 1;
+	});
+	
+	track_num = 1;
+	$('.track_window').each(function(){
+		$(this).data("track_number", track_num);
+		track_num_str = track_num.toString();
+		attr_name = ("track_num_" + track_num_str);
+		$(this).attr("id", attr_name);
+		track_num += 1;
+	})
+	$('#track_num_'+ (track_window - 1)).click(function(e){
+		if (pencil_val_project == 1){
+			container_num += 1;
+			var music_container_html = '<div id="container_num_'+container_num+'" class="music_container"></div>';
+			var drag_stop_window_number = (($(this).position().top - 15) / 76);
+			$(this).append(music_container_html);
+			$('#container_num_'+container_num).data("track_number", $(this).data("track_number"));
+				$('#container_num_'+container_num).draggable({containment: [149, 90, $('.track_window').width(), max_y], snap: '.track_window', snapMode:'inner', snapTolerance:70})
+				.offset({top: ((Math.ceil(e.pageY/76) * 76) -61), left: e.pageX - 10})
+				.resizable({minHeight:76, maxHeight:76, handles: "e"})
+				.contextmenu(function(){
+					$('.note').each(function(){
+						if ($(this).data("piano_roll") == active_piano_roll){
+							$(this).remove();
+						}
+					});
+					$(this).remove();
+				})	
+				.resizable({stop: function(e, ui){
+					$('.time_column').each(function(){
+						$(this).css('background-color', '#cccccc')
+						.css('opacity', '0.5');
+						});
+					count = 0;
+					while (count < 500){
+						if (count > (Math.ceil($(this).position().left / 10)) - 15){
+							if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+								$('#column_num_'+ count)
+								.css('background-color', 'transparent')
+								.css('opacity', '1.0');
+							}
+						}
+						count += 1;
+					}
+				}})			
+				.on("dragstop", function(e, ui){
+					var drag_stop_window_number = (($(this).position().top - 15) / 76);
+					$(this).detach();
+					$('#track_num_'+ drag_stop_window_number).append($(this));
+					$(this).removeData("track_number");
+					$(this).data("track_number", drag_stop_window_number)
+					.data("position_left", (Math.ceil($(this).position.left / 10)) - 15);		
+					//DOUBLE-CLICK FUNCTION*******************************
+					if (window_drag == 1){
+						$('#windowdrag').show();
+						track_numberz = $(this).data("track_number");
+						$(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+						music_container_offset = $(this).data("music_container_offset");
+						music_container_offset_previous = $(this).data("music_container_offset_previous");
+						active_piano_roll = $(this).attr("id");
+						
+						$('.note').each(function(e, ui){
+								$(this).css('visibility', 'visible')
+								.css('z-index', '3');
+								if ($(this).data("piano_roll") == active_piano_roll){
+									$(this).removeData("track_number")
+									.data("track_number", track_numberz);
+								}
+								if ($(this).data("track_number") == track_numberz){
+									if ($(this).data("piano_roll") == active_piano_roll){
+										$(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+										.css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
+										.css('background', '#9999cc')
+										.css('opacity', '1.0')
+										.data("position_left", $(this).position().left)
+										.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+										if ($(this).is('.ui-selected')){
+											$(this).css('background-color', '#330066');
+										}
+									}else{
+										$(this).css('background-color', 'gray')
+										.css('opacity', '0.4');
+									}
+								}else{
+									$(this).css('visibility', 'hidden')
+									.css('z-index', '-1'); 
+								}
+						});
+						$('.time_column').each(function(){
+							$(this).css('background-color', '#cccccc')
+							.css('opacity', '0.5');
+						});
+						count = 0;
+						while (count < 500){
+							if (count > (Math.ceil($(this).position().left / 10)) - 15){
+								if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+									$('#column_num_'+ count)
+									.css('background-color', 'transparent')
+									.css('opacity', '1.0');
+								}
+							}
+							count += 1;
+						}
+						$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
+					}
+				})
+				.dblclick(function(){
+					//DOUBLE CLICK FUNCTION AGAIN LOLLLL************************
+					$('#windowdrag').show();
+					track_numberz = $(this).data("track_number");
+					$(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+					music_container_offset = $(this).data("music_container_offset");
+					music_container_offset_previous = $(this).data("music_container_offset_previous");
+					active_piano_roll = $(this).attr("id");
+					$('.note').each(function(e, ui){
+							$(this).css('visibility', 'visible')
+							.css('z-index', '3');
+							if ($(this).data("track_number") == track_numberz){
+								if ($(this).data("piano_roll") == active_piano_roll){
+									$(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+									.css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
+									.css('background', '#9999cc')
+									.css('opacity', '1.0')
+									.data("position_left", $(this).position().left)
+									.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+									if ($(this).is('.ui-selected')){
+										$(this).css('background-color', '#330066');
+									}
+								}else{
+									$(this).css('background-color', 'gray')
+									.css('opacity', '0.4');
+								}
+							}else{
+								$(this).css('visibility', 'hidden')
+								.css('z-index', '-1'); 
+							}
+					});
+					$('.time_column').each(function(){
+						$(this)
+						.css('background-color', '#cccccc')
+						.css('opacity', '0.5');
+					});
+					count = 0;
+					while (count < 500){
+						if (count > (Math.ceil($(this).position().left / 10)) - 15){
+							if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+								$('#column_num_'+ count)
+								.css('background-color', 'transparent')
+								.css('opacity', '1.0');
+							}
+						}
+						count += 1;
+					}
+					$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
+					window_drag = 1;
+				});
+			}
+		});
+	max_y = track_num * $('.track_window').height();
+	$('.music_container').each(function(){
+		$(this).draggable({containment: [149, 90, $('.track_window').width(), max_y]})
+	});
+		
+	
+	$('.track_info').click(function(){
+		$('.track_info').each(function(){
+			if (select_val_project == 0){
+			$(this).removeClass('ui-selected')
+			.css('background', 'green');}
+		});
+		$(this).addClass('ui-selected')
+		.css('background-color', 'yellow');
+		$('.track_window').each(function(){
+			$(this).css({'border-right': 'blue'});
+		});
+		$('.track_window').each(function(){
+			$(this).css('background', 'none');
+		});
+		$('#track_num_'+($(this).data("track_number") )).css('background', "#ffffcc");
+		
+	});
+	{% endfor %}	
+});
+
 var max_notes = 108;
 var count = 0;
 var theHtml_container = "<div class='container'></div>";
@@ -658,7 +851,7 @@ $('#create_track').click(function(){
 	});
 	
 	$.ajax({type: "POST",
-			url: "{% url 'track_creation' 'braindeaf' project %}",
+			url: "{% url 'track_creation' request.user.username project %}",
 			data: {track : track_num},
 			success: function(track_number){
 				alert(track_number);
@@ -858,10 +1051,19 @@ $('#create_track').click(function(){
 	
 var track_data;
 var removed = 0;
+var tracks_selected = 0;
+var array_count = 0;
+
 $('#delete_track').click(function(){
+	var selected_tracks_array = new Array();
+	array_count = 0;
 	$('.track_info').each(function(){
 		if ($(this).is('.ui-selected')){
 			track_data = $(this).data("track_number");
+			
+			selected_tracks_array[array_count] = track_data;
+			array_count += 1;
+			
 			$('.track_window').each(function(){
 				if ($(this).data("track_number") == (track_data)){
 					$(this).remove();
@@ -876,6 +1078,20 @@ $('#delete_track').click(function(){
 			$(this).remove();
 		}
 	});
+	
+	$.ajax({type: "POST",
+		url: "{% url 'track_deletion' request.user.username project %}",
+		data: {track_number : selected_tracks_array},
+		success: function(track_number){
+			alert("track deleted is " + track_number);
+		},
+		error: function(){
+			alert('delete track oops');
+		}
+	});
+			
+	delete selected_tracks_array;
+			
 	track_num = 1;
 	$('.track_info').each(function(){
 		$(this).data("track_number", track_num);
@@ -900,6 +1116,7 @@ $('#delete_track').click(function(){
 		track_num += 1;
 	});
 	removed = 0;
+	tracks_selected = 0;
 	//track_data = 1000;
 });
 
@@ -959,7 +1176,9 @@ $.ajaxSetup({
          }
      } 
 });
-
+test_array = new Array();
+test_array[0] = 1;
+test_array[1] = 2;
 $('#jquery_ajax').click(function(){
 	track_num = 0;
 	$('.track_window').each(function(){
@@ -968,7 +1187,7 @@ $('#jquery_ajax').click(function(){
 	
 	$.ajax({type: "POST",
 			url: "{% url 'project_view.views.projectz_save' request.user.username project %}",
-			data: {track : track_num},
+			data: {track : test_array},
 			success: function(text){
 				alert(text);
 			},
