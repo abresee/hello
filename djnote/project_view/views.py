@@ -21,7 +21,7 @@ def index(request, usernames, project_name):
             tracks = Track.objects.filter(project=p)
             for track in tracks:
                 track_list.append(track)
-            context = RequestContext(request, {"username": usernames, "project": project_name, "track_number": track_list})
+            context = RequestContext(request, {"username": usernames, "project": project_name, "track_number": track_list, "event_window": p.event_window_set.all()})
             return HttpResponse(template.render(context))
         else:
             return redirect('http://127.0.0.1:8000/profile/')   
@@ -140,7 +140,7 @@ def event_container_creation(request, project_name, usernames):
     if request.is_ajax():
         p = Project.objects.get(name=project_name)
         t = Track.objects.get(track_number=request.POST['track'], project=p)
-        e = Event_Window(window_position=request.POST['position'], window_length=request.POST['length'], id_number=request.POST['id'], track=t, project=p)
+        e = Event_Window(position_left=request.POST['position_left'], position_top=request.POST['position_top'], window_length=request.POST['length'], id_number=request.POST['id'], track=t, project=p)
         e.save()
         return HttpResponse('event_window create saved')
     
@@ -150,7 +150,8 @@ def event_container_dragstop(request, project_name, usernames):
         t = Track.objects.get(track_number=request.POST['track'], project=p)
         e = Event_Window.objects.get(id_number=request.POST['id'], project=p)
         e.track = t
-        e.position = request.POST['position']
+        e.position_left = request.POST['position_left']
+        e.position_top = request.POST['position_top']
         e.save()
         return HttpResponse('drag_stop saved')
         
@@ -158,7 +159,8 @@ def event_container_dragstop(request, project_name, usernames):
 def event_container_resizestop(request, project_name, usernames):
     if request.is_ajax():
         p = Project.objects.get(name=project_name)
-        e = Event_Window.objects.get(project=p, id=request.POST['id'])
+        t = Track.objects.get(track_number=request.POST['track'], project=p)
+        e = Event_Window.objects.get(project=p, id_number=request.POST['id'])
         e.window_length = request.POST['length']
         e.save()
         return HttpResponse('window resizestop saved')

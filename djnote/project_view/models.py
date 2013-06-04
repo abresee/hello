@@ -6,7 +6,8 @@ class Project(models.Model):
     ownerz = models.ManyToManyField(User)
 
 class Event_Window(models.Model):
-    window_position = models.IntegerField()
+    position_left = models.IntegerField()
+    position_top = models.IntegerField()
     window_length = models.IntegerField()
     id_number = models.IntegerField()
     project = models.ForeignKey('Project')
