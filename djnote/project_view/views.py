@@ -177,6 +177,13 @@ def event_container_resizestop(request, project_name, usernames):
         e.window_length = request.POST['length']
         e.save()
         return HttpResponse('window resizestop saved')
+        
+def event_window_delete(request, project_name, usernames):
+    if request.is_ajax():
+        p = Project.objects.get(name=project_name)
+        e = Event_Window.objects.get(project=p, id_number=request.POST['id'])
+        e.delete()
+        return HttpResponse('window delete saved')
     
         
         

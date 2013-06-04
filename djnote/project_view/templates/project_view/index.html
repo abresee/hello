@@ -1113,6 +1113,17 @@ $('#create_track').click(function(){
 						}
 					});
 					$(this).remove();
+                    
+                    $.ajax({type: "POST",
+                        url: "{% url 'event_window_delete' request.user.username project %}",
+                        data: {id : container_num},
+                        success: function(track_number){
+                            alert(track_number);
+                        },
+                        error: function(){
+                            alert('delete window oops');
+                        }
+                    });
 				})	
 				.resizable({stop: function(e, ui){
                 
