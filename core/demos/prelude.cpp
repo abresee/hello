@@ -8,7 +8,7 @@
 int main(int argc, char ** argv)
 {
     std::shared_ptr<Player> p(new LocalPlayer());
-    InstrumentHandle wg = InstrumentHandle(new WaveSynth());
+    InstrumentHandle wg = InstrumentHandle(new WaveSynth("data"));
     std::vector<Note> notes;
 
     auto note_length = Config::sample_rate/4;

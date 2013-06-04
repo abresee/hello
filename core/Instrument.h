@@ -4,6 +4,8 @@
 #include <vector>
 #include <tuple>
 #include <mutex>
+#include <fstream>
+#include <string>
 #include "Packet.h"
 #include "Config.h"
 #include "Note.h"
@@ -13,7 +15,8 @@ class Instrument {
 public:
     typedef void (Instrument::* void_Note)(const Note&);
     typedef std::vector<Note> Notes;
-    Instrument() : notes_() {}
+    Instrument();
+    Instrument(std::string dumpname);
     Packet get_samples(const offset_t start_offset, const offset_t end_offset); 
     virtual ~Instrument(){}
     void add_note(const Note& note);
@@ -33,40 +36,38 @@ protected:
     void do_cache(const Note& note);
 
     //utility functions
-    template<typename RAIter>
-        static std::tuple<RAIter,RAIter> 
-            find_zero_crossing(std::tuple<RAIter,RAIter> iters) {
+    template<typename Iter>
+        static std::tuple<Iter,Iter> 
+            find_zero_crossing(std::tuple<Iter,Iter> iters) {
         const auto start = std::get<0>(iters);
         const auto end = std::get<1>(iters);
-        auto is_negative = [] (RAIter it) -> bool {return ((*it) < 0);};
+
+        auto is_negative = [] (Iter it) -> bool {return ((*it) < 0);};
         bool first_was_negative = is_negative(start);
         auto it = start;
+
         for(; it != end; ++it) {
             if((is_negative(it) != first_was_negative) || 
                ((*it) == 0)) {
                 break;
             }
         } 
+        std::cout<<"zc found at "<<it-start<<std::endl;
         return std::make_tuple(start,it);
     }
 
-    template<typename RAIter>
-    static std::tuple<RAIter,RAIter> silence(RAIter it,const RAIter end){
-        return silence(std::make_tuple(it,end));
-    } 
-
-    template<typename RAIter>
-    static std::tuple<RAIter,RAIter> silence(const std::tuple<RAIter,RAIter> iters) {
+    template<typename Iter>
+    static std::tuple<Iter,Iter> silence(const std::tuple<Iter,Iter> iters) {
         auto it = std::get<0>(iters);
         const auto end = std::get<1>(iters);
-        std::for_each(it,end,[](decltype(*it) x) {
-                x=0;});
+        std::cout<<"filling "<<end-it<<" values with 0"<<std::endl;
+        std::fill(it,end,0);
         return std::make_tuple(it,end);
     }
 
 private:
     std::vector<Note> notes_;
-    std::mutex mutex;
+    std::ofstream dump_;
 
 };
 

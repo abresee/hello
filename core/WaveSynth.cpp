@@ -45,6 +45,7 @@ double WaveSynth::Waves::operator()(const double angle) const {
 WaveSynth::WaveSynth():
     waves_(1) { //constructs the "waves_" to have 1 default constructed value ie std::sin)
 } 
+WaveSynth::WaveSynth(std::string s): Instrument(s), waves_(1){}
 WaveSynth::WaveSynth(const Wave& wave_initializer):
     waves_(1,wave_initializer) {
 }

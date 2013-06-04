@@ -6,6 +6,10 @@
 #include "Config.h"
 #include "Instrument.h"
 
+Instrument::Instrument(): notes_() {}
+
+Instrument::Instrument(std::string dumpname): notes_(), dump_(dumpname) {}
+
 Packet Instrument::get_samples(const offset_t start_offset, const offset_t end_offset) {
     std::vector<Note> notes_to_get;
     for(Note note : notes_) {
@@ -74,7 +78,7 @@ void Instrument::render_note(Packet& packet, const Note& note, const offset_t st
 
     for(auto i = begin_output_index; i < end_output_index; ++i) {
         packet.at(i) += note_packet.at(i-index_offset); 
-        std::cout<<packet.at(i)<<" ";
+        dump_<<packet.at(i)<<" ";
     }
 }
 

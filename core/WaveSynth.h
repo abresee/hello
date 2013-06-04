@@ -24,7 +24,7 @@ public:
         const Waves_ waves_;
     public:
         typedef Waves_::size_type size_type;
-        Waves(const size_type size);
+        explicit Waves(const size_type size);
         Waves(const size_type size,const Wave& wave_initializer);
         Waves(std::initializer_list<Wave> l);
 
@@ -32,6 +32,7 @@ public:
     };
 
     WaveSynth();
+    WaveSynth(std::string s);
 
     WaveSynth(const Wave& wave_intializer);
     WaveSynth(Wave&& wave_initializer);
