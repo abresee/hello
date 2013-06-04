@@ -69,9 +69,7 @@ def projectz_save(request, usernames, project_name):
         if flag:
             project.name = new_name
             project.save()
-            
-            
-            
+
             template = loader.get_template('project_view/index.html')
             context = RequestContext(request, {"username": usernames, "project": new_name})
             return HttpResponse(template.render(context))
@@ -106,25 +104,33 @@ def project_logout(request):
         
 def track_creation(request, project_name, usernames):
     if request.is_ajax():
-        print(request.POST['track'])
         number_of_tracks=str(int(request.POST['track']) - 1)
         p = Project.objects.get(name=project_name)
         t = Track(track_number=number_of_tracks, project=p)
         t.save()
-        #Track.objects.filter(project=p) to get all tracks in project object
         track_number = t.track_number
         return HttpResponse(track_number)
         
 def track_deletion(request, project_name, usernames):
     track_number_list = []
+    remaining_windows_list = []
     if request.is_ajax():
         tracks_deleted= request.POST.getlist('track_number[]')
+        remaining_windows = request.POST.getlist('window_positions[]')
+        
+        for i in remaining_windows:
+            remaining_windows_list.append(i)
+        print(remaining_windows_list)
+        
         p = Project.objects.get(name=project_name)
         for i in tracks_deleted:
             t = Track.objects.get(track_number=i, project=p)
             t.delete()
+            e = Event_Window.objects.filter(track=i, project=p)
+            for ee in e:
+                ee.delete()
+            
         tracks = Track.objects.filter(project=p)
-        
         for track in tracks:
             track_number_list.append(track.track_number)
         
@@ -134,6 +140,14 @@ def track_deletion(request, project_name, usernames):
             tt.track_number = count
             tt.save()
             count += 1
+        
+        e = Event_Window.objects.filter(project=p)
+        count = 0
+        for ee in e:
+            ee.position_top = int(remaining_windows_list[count])
+            ee.save()
+            count += 1
+            
         return HttpResponse(tracks_deleted)
         
 def event_container_creation(request, project_name, usernames):
@@ -155,7 +169,6 @@ def event_container_dragstop(request, project_name, usernames):
         e.save()
         return HttpResponse('drag_stop saved')
         
-
 def event_container_resizestop(request, project_name, usernames):
     if request.is_ajax():
         p = Project.objects.get(name=project_name)

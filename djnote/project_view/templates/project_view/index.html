@@ -274,7 +274,6 @@ div.transport_locator{
 	<label for="spinner">BPM</label>
 	<input id="input_bpm" name="value" />
 </p>
-
 </div>
 
 <div id='timeline_black' style="width: 150px; height: 20px; border-bottom-style: solid; border-width: 1px; background: white; z-index: 3; position: fixed; left: 0px; top: 71px;">
@@ -583,7 +582,7 @@ $(document).ready(function(){
                 url: "{% url 'event_window_resizestop' request.user.username project %}",
                 data: {track : $(this).data("track_number"),
                        length: $(this).width(),
-                       id: container_num},
+                       id: {{window.id_number}}},
                 success: function(track_number){
                     alert(track_number);
                 },
@@ -672,7 +671,7 @@ $(document).ready(function(){
             $.ajax({type: "POST",
                 url: "{% url 'event_window_dragstop' request.user.username project %}",
                 data: {track : $(this).data("track_number"),
-                       id: container_num,
+                       id: {{window.id_number}},
                        position_left: $(this).position().left,
                        position_top: $(this).position().top},
                 success: function(track_number){
@@ -1327,6 +1326,7 @@ var array_count = 0;
 
 $('#delete_track').click(function(){
 	var selected_tracks_array = new Array();
+    var selected_windows_array = new Array();
 	array_count = 0;
 	$('.track_info').each(function(){
 		if ($(this).is('.ui-selected')){
@@ -1346,13 +1346,29 @@ $('#delete_track').click(function(){
 					$(this).remove();
 				}
 			});
-			$(this).remove();
+			$(this).remove();  
 		}
 	});
+    
+    max_y = track_num * $('.track_window').height();
+	$('.music_container').each(function(){
+		if ($(this).data("track_number") > track_data){
+			$(this).css({top: ($(this).position().top - (removed * 76))})
+			.data("track_number", ($(this).data("track_number") - removed));
+		}
+		$(this).draggable({containment: [149, 90, $('.track_window').width(), max_y]});
+	});
 	
+    count = 0;
+    $('.music_container').each(function(){
+        selected_windows_array[count] = $(this).position().top;
+        count += 1;
+    });
+    
 	$.ajax({type: "POST",
 		url: "{% url 'track_deletion' request.user.username project %}",
-		data: {track_number : selected_tracks_array},
+		data: {track_number : selected_tracks_array,
+               window_positions: selected_windows_array},
 		success: function(track_number){
 			alert("track deleted is " + track_number);
 		},
@@ -1362,6 +1378,7 @@ $('#delete_track').click(function(){
 	});
 			
 	delete selected_tracks_array;
+    delete selected_windows_array;
 			
 	track_num = 1;
 	$('.track_info').each(function(){
@@ -1369,14 +1386,7 @@ $('#delete_track').click(function(){
 		track_num += 1;
 	});
 	
-	max_y = track_num * $('.track_window').height();
-	$('.music_container').each(function(){
-		if ($(this).data("track_number") > track_data){
-			$(this).css({top: ($(this).position().top - (removed * 76))})
-			.data("track_number", ($(this).data("track_number") - removed));
-		}
-		$(this).draggable({containment: [149, 90, $('.track_window').width(), max_y]});
-	});
+	
 	
 	track_num = 1;
 	$('.track_window').each(function(){
@@ -1392,6 +1402,8 @@ $('#delete_track').click(function(){
 });
 
 //TRANSPORT FUNCTIONS**************************************
+//*********************************************************
+//*********************************************************
 $('#timeline').click(function(e){
 	$('.transport_locator').css({left: e.pageX});
 });
