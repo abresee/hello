@@ -12,10 +12,18 @@ class Event_Window(models.Model):
     id_number = models.IntegerField()
     project = models.ForeignKey('Project')
     track = models.ForeignKey('Track')
+    
    
-
 class Track(models.Model):
     track_number = models.IntegerField()
     project = models.ForeignKey('Project')
+    
+class Note(models.Model):
+    pitch_class = models.IntegerField()
+    octave = models.IntegerField()
+    intensity = models.IntegerField()
+    position = models.IntegerField()
+    duration = models.IntegerField()
+    event_window = models.ForeignKey('Event_Window')
 
     
