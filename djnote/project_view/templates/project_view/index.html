@@ -856,7 +856,7 @@ function left_position(){
     $('.piano_roll').append(theHtml_init);
     $('#id_num_{{note.id_number}}').width({{note.duration}})
     .css({position: 'absolute'})
-    .css({left: {{note.position}}, top: ((25 * {{note.pitch_class}}) * ({{note.octave}} + 1)) + 2})
+    .css({left: {{note.position}}, top: (25 * {{note.pitch_class}}) + ({{note.octave}} * (25 * 12)) + 2})
     .data("piano_roll", 'container_num_{{note.event_window.id_number}}')
     .data("track_number", {{note.event_window.track.track_number}})
     .data("position_left", {{note.position}});
@@ -920,6 +920,21 @@ $('.note').contextmenu(function(e){
             .data("position_left", $(this).position().left);
             });
         }
+        
+        $.ajax({type: "POST",
+			url: "{% url 'note_dragstop' request.user.username project %}",
+			data: {id: $(this).attr("id"),
+                   pitch_class: Math.floor(($(this).position().top / 25) % 12),
+                   octave: Math.floor($(this).position().top / (25 * 12)),
+                   position: $(this).position().left},
+			success: function(track_number){
+				alert(track_number);
+			},
+			error: function(){
+				alert('dragstop note oops');
+			}
+        });
+        
     }})
     .mousedown(function(){
         if ($(this).is('.ui-selected')){

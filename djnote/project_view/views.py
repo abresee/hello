@@ -209,6 +209,18 @@ def note_creation(request, project_name, usernames):
         n = Note(pitch_class=request.POST['pitch_class'], octave=request.POST['octave'], intensity=0, position=request.POST['position'], duration=request.POST['duration'], id_number=request.POST['id'], event_window=e, project=p)
         n.save()
         return HttpResponse('note creation saved')
+
+def note_dragstop(request, project_name, usernames):
+    if request.is_ajax():
+        print(request.POST)
+        p = Project.objects.get(name=project_name, ownerz=request.user)
+        match = re.search(r'id_num_(?P<note_id>[0-9]+$)', request.POST['id'])
+        n = Note.objects.get(project=p, id_number=int(match.group('note_id')))
+        n.pitch_class = request.POST['pitch_class']
+        n.octave = request.POST['octave']
+        n.position = request.POST['position']
+        n.save()
+        return HttpResponse('note drag saved')
     
         
         
