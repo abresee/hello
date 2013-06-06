@@ -920,13 +920,22 @@ $('.note').contextmenu(function(e){
             .data("position_left", $(this).position().left);
             });
         }
-        
+        var note_id = new Array();
+        var note_pos_left = new Array();
+        var note_pos_top = new Array();
+        count = 0;
+        $('.note').each(function(){
+            note_id[count] = $(this).attr("id");
+            note_pos_top[count] = $(this).position().top;
+            note_pos_left[count] = $(this).position().left;
+            count += 1;
+        });
+            
         $.ajax({type: "POST",
 			url: "{% url 'note_dragstop' request.user.username project %}",
-			data: {id: $(this).attr("id"),
-                   pitch_class: Math.floor(($(this).position().top / 25) % 12),
-                   octave: Math.floor($(this).position().top / (25 * 12)),
-                   position: $(this).position().left},
+			data: {id: note_id,
+                   position_left: note_pos_left,
+                   position_top: note_pos_top},   
 			success: function(track_number){
 				alert(track_number);
 			},
@@ -934,6 +943,10 @@ $('.note').contextmenu(function(e){
 				alert('dragstop note oops');
 			}
         });
+        
+        delete note_id;
+        delete note_pos_left;
+        delete note_pos_top;
         
     }})
     .mousedown(function(){

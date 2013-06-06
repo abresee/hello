@@ -1,4 +1,5 @@
 import re
+from math import floor
 
 from django.shortcuts import render, redirect
 from django.db import models
@@ -213,13 +214,27 @@ def note_creation(request, project_name, usernames):
 def note_dragstop(request, project_name, usernames):
     if request.is_ajax():
         print(request.POST)
+        
+        pitch_class_list = []
+        octave_list = []
+        
         p = Project.objects.get(name=project_name, ownerz=request.user)
-        match = re.search(r'id_num_(?P<note_id>[0-9]+$)', request.POST['id'])
-        n = Note.objects.get(project=p, id_number=int(match.group('note_id')))
-        n.pitch_class = request.POST['pitch_class']
-        n.octave = request.POST['octave']
-        n.position = request.POST['position']
-        n.save()
+        ids = request.POST.getlist('id[]')
+        pos_lefts = request.POST.getlist('position_left[]')
+        pos_tops = request.POST.getlist('position_top[]')
+        for pos_top in pos_tops:
+            pitch_class_list.append(floor((int(pos_top) / 25) % 12))
+            octave_list.append(floor(int(pos_top) / (25 * 12)))
+        
+        count = 0
+        for id in ids:
+            match = re.search(r'id_num_(?P<note_id>[0-9]+$)', id)
+            n = Note.objects.get(project=p, id_number=int(match.group('note_id')))
+            n.pitch_class = pitch_class_list[count]
+            n.octave = octave_list[count]
+            n.position = pos_lefts[count]
+            n.save()
+            count += 1
         return HttpResponse('note drag saved')
     
         
