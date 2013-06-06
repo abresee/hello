@@ -3,7 +3,7 @@ import re
 from django.shortcuts import render, redirect
 from django.db import models
 from project_view.forms import RegisterForm
-from project_view.models import Project, Track, Event_Window
+from project_view.models import Project, Track, Event_Window, Note
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.template import Context, loader, Template, RequestContext
@@ -11,7 +11,7 @@ from django.http import HttpResponse
 
 def index(request, usernames, project_name):
     project_list=[]
-    track_list = []
+    track_list=[]
     p = Project.objects.get(name=project_name)
     template = loader.get_template('project_view/index.html')
     if request.user.is_authenticated():
@@ -21,7 +21,7 @@ def index(request, usernames, project_name):
             tracks = Track.objects.filter(project=p)
             for track in tracks:
                 track_list.append(track)
-            context = RequestContext(request, {"username": usernames, "project": project_name, "track_number": track_list, "event_window": p.event_window_set.all()})
+            context = RequestContext(request, {"username": usernames, "project": project_name, "track_number": track_list, "event_window": p.event_window_set.all(), "notes": p.note_set.all()})
             return HttpResponse(template.render(context))
         else:
             return redirect('http://127.0.0.1:8000/profile/')   
@@ -167,6 +167,21 @@ def event_container_dragstop(request, project_name, usernames):
         e.position_left = request.POST['position_left']
         e.position_top = request.POST['position_top']
         e.save()
+        
+        position_list = []
+        positions = request.POST.getlist('note_position[]')
+        for position in positions:
+            position_list.append(position)
+        print('LOLOLOL')
+        print(position_list)
+        
+        count = 0
+        notes = e.note_set.all()
+        for note in notes:
+            note.position = int(position_list[count])
+            note.save()
+            count += 1
+        
         return HttpResponse('drag_stop saved')
         
 def event_container_resizestop(request, project_name, usernames):
@@ -184,6 +199,16 @@ def event_window_delete(request, project_name, usernames):
         e = Event_Window.objects.get(project=p, id_number=request.POST['id'])
         e.delete()
         return HttpResponse('window delete saved')
+        
+def note_creation(request, project_name, usernames):
+    if request.is_ajax():
+        print(request.POST)
+        p = Project.objects.get(name=project_name, ownerz=request.user)
+        match = re.search(r'container_num_(?P<window_number>[0-9]+$)', request.POST['window'])
+        e = Event_Window.objects.get(project=p, id_number=int(match.group('window_number')))
+        n = Note(pitch_class=request.POST['pitch_class'], octave=request.POST['octave'], intensity=0, position=request.POST['position'], duration=request.POST['duration'], id_number=request.POST['id'], event_window=e, project=p)
+        n.save()
+        return HttpResponse('note creation saved')
     
         
         

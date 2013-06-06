@@ -24,6 +24,8 @@ class Note(models.Model):
     intensity = models.IntegerField()
     position = models.IntegerField()
     duration = models.IntegerField()
+    id_number = models.IntegerField()
     event_window = models.ForeignKey('Event_Window')
+    project = models.ForeignKey('Project')
 
     

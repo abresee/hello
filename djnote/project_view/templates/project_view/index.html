@@ -454,6 +454,7 @@ $(document).ready(function(){
                             url: "{% url 'event_window_dragstop' request.user.username project %}",
                             data: {track : $(this).data("track_number"),
                                    id: container_num,
+                                   test: 1000,
                                    position_left: $(this).position().left,
                                    position_top: $(this).position().top},
                             success: function(track_number){
@@ -623,6 +624,10 @@ $(document).ready(function(){
                 music_container_offset_previous = $(this).data("music_container_offset_previous");
                 active_piano_roll = $(this).attr("id");
                 
+                var window_note_array = new Array();
+                var note_position_array = new Array();
+                count = 0;
+                
                 $('.note').each(function(e, ui){
                         $(this).css('visibility', 'visible')
                         .css('z-index', '3');
@@ -632,6 +637,9 @@ $(document).ready(function(){
                         }
                         if ($(this).data("track_number") == track_numberz){
                             if ($(this).data("piano_roll") == active_piano_roll){
+                            
+                                
+                                
                                 $(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
                                 .css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
                                 .css('background', '#9999cc')
@@ -641,6 +649,11 @@ $(document).ready(function(){
                                 if ($(this).is('.ui-selected')){
                                     $(this).css('background-color', '#330066');
                                 }
+                                
+                                window_note_array[count] = $(this).attr('id');
+                                note_position_array[count] = $(this).position().left;
+                                count += 1;
+                                
                             }else{
                                 $(this).css('background-color', 'gray')
                                 .css('opacity', '0.4');
@@ -671,9 +684,12 @@ $(document).ready(function(){
             $.ajax({type: "POST",
                 url: "{% url 'event_window_dragstop' request.user.username project %}",
                 data: {track : $(this).data("track_number"),
+                       note_id: window_note_array,
+                       note_position: note_position_array,
                        id: {{window.id_number}},
                        position_left: $(this).position().left,
-                       position_top: $(this).position().top},
+                       position_top: $(this).position().top,
+                       test: 'cool'},
                 success: function(track_number){
                     alert(track_number);
                 },
@@ -681,6 +697,9 @@ $(document).ready(function(){
                     alert('drag event window oops');
                 }
             });
+            
+            delete window_note_array;
+            delete note_position_array;
                    
         })
         .dblclick(function(){
@@ -742,7 +761,6 @@ var theHtml_container = "<div class='container'></div>";
 var theHtml_time = "<div class='time_container'><div class='time_column'></div></div>";
 var zoom_const = 4;	
 var zoom_time_width = 4;	
-var id_number = 0;
 var id_num;
 var mouse_pos;
 var mouse_pos_x;
@@ -769,6 +787,16 @@ var music_container_previous2 = 0;
 var track_numberz;
 var track_time_width = 160;
 
+{% for note in notes %}
+    count += 1;
+{% endfor %}
+var id_number = count; //number of notes in project on init
+
+
+//PIANO ROLL INIT***************************************************
+//******************************************************************
+//******************************************************************
+count = 0;
 while (count < max_notes){
 	$('.piano_roll').prepend(theHtml_container);
 	count += 1;
@@ -821,13 +849,28 @@ function left_position(){
 	$('#id_num_'+id_num).offset({top: ((Math.ceil(mouse_pos/25) * 25)) + $('.piano_roll').offset().top -23, left: ((Math.floor(mouse_pos_x / ($('.time_column').width() + 0)) * ($('.time_column').width() + 0))) + $('.piano_roll').offset().left});
 }
 
+//NOTE INIT PLACEMENT**************************
+//*********************************************
+{% for note in notes %}
+    var theHtml_init = "<div id='id_num_{{note.id_number}}' class='note'></div>";
+    $('.piano_roll').append(theHtml_init);
+    $('#id_num_{{note.id_number}}').width({{note.duration}})
+    .css({position: 'absolute'})
+    .css({left: {{note.position}}, top: ((25 * {{note.pitch_class}}) * ({{note.octave}} + 1))})
+    .data("piano_roll", 'container_num_{{note.event_window.id_number}}')
+    .data("track_number", {{note.event_window.track.track_number}})
+    .data("position_left", {{note.position}});
+{% endfor %}
+
+//NOTE CREATION*******************************
+//********************************************
+//********************************************
 $('.container').click(function(e){
 	if (select_val == 0){
 		mouse_pos = e.pageY - $('.piano_roll').offset().top;
 		mouse_pos_x = e.pageX - $('.piano_roll').offset().left;
 		id_number += 1;
 		id_num = id_number.toString();
-		
 		
 		var theHtml = "<div id='id_num_"+id_num+"' class='note'></div>";
 		
@@ -839,9 +882,8 @@ $('.container').click(function(e){
 		.resizable({minHeight:24,maxHeight:24, handles: "e"})
 		.css({position:'absolute'})
 		.data("piano_roll", active_piano_roll)
-		//.removeData("track_number")
 		.data("track_number", track_numberz);
-		
+        
 		if (snap_val == 1){
 			$('#id_num_'+id_num).draggable({snap:'.container,.time_column', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'});
 			left_position();
@@ -870,7 +912,6 @@ $('.container').click(function(e){
 				});
 			}
 		})
-
 		.draggable({drag: function(e, ui){
 			if ($(this).is('.ui-selected')){
 				if (variablelol == 1){
@@ -911,9 +952,28 @@ $('.container').click(function(e){
 			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
 			.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
 		}});
+        
+        //DJANGO DB NOTE CREATION
+        $.ajax({type: "POST",
+			url: "{% url 'note_creation' request.user.username project %}",
+			data: {window : $('#id_num_'+id_num).data("piano_roll"),
+                   id: id_num,
+                   pitch_class: Math.floor(($('#id_num_'+id_num).position().top / 25) % 12),
+                   octave: Math.floor($('#id_num_'+id_num).position().top / (25 * 12)),
+                   position: $('#id_num_'+id_num).position().left,
+                   duration: $('#id_num_'+id_num).width()},
+			success: function(track_number){
+				alert(track_number);
+			},
+			error: function(){
+				alert('create note oops');
+			}
+        });
 	}
 });	
 
+//NOTE SELECTING********************************************************
+//**********************************************************************
 var select_val = 0;
 $('#select_tool').click(function(){
 	select_val = (select_val + 1) % 2;
@@ -935,6 +995,8 @@ $('#select_tool').click(function(){
 	}
 });
 
+//NOTE SNAP************************************************************
+//*********************************************************************
 var snap_val = 0
 $('#snap_tool').click(function(){
 	snap_val = (snap_val + 1) % 2;
@@ -947,9 +1009,12 @@ $('#snap_tool').click(function(){
 	}
 });
 
+//PIANO ROLL RESIZE/DRAGGABLE******************************************
 $('#windowresize').resizable({alsoResize: '#window,#windowdrag', minWidth: "311", minHeight: "311"});
 $('#windowdrag').draggable({cancel: '#windowresize', containment: 'document'});
 
+//PIANO ROLL ZOOM******************************************************
+//*********************************************************************
 $('.container').css("width", container_width_default);
 $('#zoom_slider').slider({min: 5, max: 50, step: 5, value:25})
 .slider({change: function(e, ui){
@@ -973,25 +1038,27 @@ $('#zoom_slider').slider({min: 5, max: 50, step: 5, value:25})
 		.css({left: Math.round($('#zoom_slider').slider("value") * (zoom_const / 100) * $(this).data("positionx"))});
 	});
 }});
+
+//PIANO ROLL HIDE ON INIT
 var window_drag;
 $('#windowdrag').hide()
 window_drag = 0;
 
-//********************************************************************
-	
+//PIANO ROLL CLOSE	
 $('#closer').click(function(){
 	$('#windowdrag').hide()
 	window_drag = 0;
 });
 
+//SCROLL FUNCTIONS
 $('#timeline').scrollToFixed({marginTop: 71, zIndex: 2});
-//$('.transport_locator').scrollToFixed({marginTop: 71, zIndex: 2});
-//$('.track_times').scrollToFixed({marginTop: 92, zIndex: 1});
-
 $(window).scroll(function(){
 	$('#track_pane').offset({left: $(window).scrollLeft()});
 });
 
+//TRACK HIGHLIGHTING FUNCTIONS**************************************
+//******************************************************************
+//******************************************************************
 var select_val_project = 0;
 $('#select_tool_project').click(function(){
 	select_val_project = (select_val_project + 1) % 2;
@@ -1018,7 +1085,7 @@ $('#select_tool_project').click(function(){
 	}
 });
 
-//PROJECT DRAW********************************************************
+//PROJECT DRAW UI*****************************************************
 var pencil_val_project = 0;
 $('#pencil_tool_project').click(function(){
 	pencil_val_project = (pencil_val_project + 1) % 2;
@@ -1054,7 +1121,7 @@ while (timeline_x_count < 5010){
 	timeline_y_count += 1;
 }
 
-//TRACK PANE STUFF**************************************************
+//TRACK PANE VARIABLES**************************************************
 var track_info_html = '<div id="okcool" class="track_info">track info</div>';
 var track_num = 1;
 var track_window = 1;
@@ -1063,7 +1130,9 @@ var attr_name;
 var max_y;
 var container_count = 0;
 
-
+//CREATE TRACK FUNCTIONS*******************************************************
+//*****************************************************************************
+//*****************************************************************************
 $('#create_track').click(function(){
 	
 	$('#track_pane').append(track_info_html);
@@ -1222,7 +1291,8 @@ $('#create_track').click(function(){
                         data: {track : $(this).data("track_number"),
                                id: container_num,
                                position_left: $(this).position().left,
-                               position_top: $(this).position().top},
+                               position_top: $(this).position().top,
+                               test: 0},
                         success: function(track_number){
                             alert(track_number);
                         },
@@ -1324,17 +1394,13 @@ $('#create_track').click(function(){
 	
 });
 
-
-
-
-	
-	
-	
+//TRACK DELETE FUNCTIONS*******************************************
+//*****************************************************************
+//*****************************************************************	
 var track_data;
 var removed = 0;
 var tracks_selected = 0;
 var array_count = 0;
-
 $('#delete_track').click(function(){
 	var selected_tracks_array = new Array();
     var selected_windows_array = new Array();

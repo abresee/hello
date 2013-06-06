@@ -11,7 +11,6 @@ urlpatterns = patterns('',
     url(r'^(?P<project_name>[\w\s]+)/event_window_dragstop/$', views.event_container_dragstop, name='event_window_dragstop'),
     url(r'^(?P<project_name>[\w\s]+)/event_window_resizestop/$', views.event_container_resizestop, name='event_window_resizestop'),
     url(r'^(?P<project_name>[\w\s]+)/event_window_delete/$', views.event_window_delete, name='event_window_delete'),
-	url(r'^(?P<project_name>[\w\s]+)/save/$', views.projectz_save, name='project_save'),
-    
-			
+    url(r'^(?P<project_name>[\w\s]+)/create_note/$', views.note_creation, name='note_creation'),
+	url(r'^(?P<project_name>[\w\s]+)/save/$', views.projectz_save, name='project_save'),		
 )
