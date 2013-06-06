@@ -862,7 +862,10 @@ function left_position(){
     .data("position_left", {{note.position}});
     
     //NOTE BEHAVIOR
-     $('#id_num_{{note.id_number}}').resizable({minHeight:24,maxHeight:24, handles: "e"});
+    $('#id_num_{{note.id_number}}').resizable({minHeight:24,maxHeight:24, handles: "e"});
+    
+   
+       
 {% endfor %}
 
 $('.note').each(function(e){
@@ -957,6 +960,30 @@ $('.note').contextmenu(function(e){
     .resizable({stop: function(e, ui){
         $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
         .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+        
+        var note_ids = new Array();
+        var note_width = new Array();
+        count = 0;
+        $('.note').each(function(){
+            note_ids[count] = $(this).attr("id");
+            note_width[count] = $(this).width();
+            count += 1;
+        });
+            
+        $.ajax({type: "POST",
+            url: "{% url 'note_resize' request.user.username project %}",
+            data: {id: note_ids,
+                   width: note_width},   
+            success: function(track_number){
+                alert(track_number);
+            },
+            error: function(){
+                alert('resize note oops');
+            }
+        });
+        
+        delete note_id;
+        delete note_width;
     }});
 
 //NOTE CREATION*******************************
@@ -1039,6 +1066,35 @@ $('.container').click(function(e){
 				.data("position_left", $(this).position().left);
 				});
 			}
+            
+            var note_id = new Array();
+            var note_pos_left = new Array();
+            var note_pos_top = new Array();
+            count = 0;
+            $('.note').each(function(){
+                note_id[count] = $(this).attr("id");
+                note_pos_top[count] = $(this).position().top;
+                note_pos_left[count] = $(this).position().left;
+                count += 1;
+            });
+                
+            $.ajax({type: "POST",
+                url: "{% url 'note_dragstop' request.user.username project %}",
+                data: {id: note_id,
+                       position_left: note_pos_left,
+                       position_top: note_pos_top},   
+                success: function(track_number){
+                    alert(track_number);
+                },
+                error: function(){
+                    alert('dragstop note oops');
+                }
+            });
+            
+            delete note_id;
+            delete note_pos_left;
+            delete note_pos_top;
+            
 		}})
 		.mousedown(function(){
 			if ($(this).is('.ui-selected')){
@@ -1048,6 +1104,31 @@ $('.container').click(function(e){
 		.resizable({stop: function(e, ui){
 			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
 			.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+            
+            var note_ids = new Array();
+            var note_width = new Array();
+            count = 0;
+            $('.note').each(function(){
+                note_ids[count] = $(this).attr("id");
+                note_width[count] = $(this).width();
+                count += 1;
+            });
+                
+            $.ajax({type: "POST",
+                url: "{% url 'note_resize' request.user.username project %}",
+                data: {id: note_ids,
+                       width: note_width},   
+                success: function(track_number){
+                    alert(track_number);
+                },
+                error: function(){
+                    alert('resize note oops');
+                }
+            });
+            
+            delete note_id;
+            delete note_width;
+            
 		}});
         
         //DJANGO DB NOTE CREATION

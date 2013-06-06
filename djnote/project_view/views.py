@@ -236,6 +236,25 @@ def note_dragstop(request, project_name, usernames):
             n.save()
             count += 1
         return HttpResponse('note drag saved')
+        
+def note_resize(request, project_name, usernames):
+    if request.is_ajax():
+        print(request.POST)  
+        note_widths = []
+        p = Project.objects.get(name=project_name, ownerz=request.user)
+        ids = request.POST.getlist('id[]')
+        widths = request.POST.getlist('width[]')
+        for width in widths:
+            note_widths.append(int(width))
+        
+        count = 0
+        for id in ids:
+            match = re.search(r'id_num_(?P<note_id>[0-9]+$)', id)
+            n = Note.objects.get(project=p, id_number=int(match.group('note_id')))
+            n.duration = note_widths[count]
+            n.save()
+            count += 1
+        return HttpResponse('note resize saved')
     
         
         
