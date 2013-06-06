@@ -856,11 +856,80 @@ function left_position(){
     $('.piano_roll').append(theHtml_init);
     $('#id_num_{{note.id_number}}').width({{note.duration}})
     .css({position: 'absolute'})
-    .css({left: {{note.position}}, top: ((25 * {{note.pitch_class}}) * ({{note.octave}} + 1))})
+    .css({left: {{note.position}}, top: ((25 * {{note.pitch_class}}) * ({{note.octave}} + 1)) + 2})
     .data("piano_roll", 'container_num_{{note.event_window.id_number}}')
     .data("track_number", {{note.event_window.track.track_number}})
     .data("position_left", {{note.position}});
+    
+    //NOTE BEHAVIOR
+     $('#id_num_{{note.id_number}}').resizable({minHeight:24,maxHeight:24, handles: "e"});
 {% endfor %}
+
+$('.note').each(function(e){
+    if (snap_val == 1){
+        $(this).draggable({snap:'.container,.time_column', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'});
+        left_position();
+    }else{
+        $(this).draggable({snap:'.container', snapMode:'inner', snapTolerance:20, containment: '.piano_roll'});
+        $(this).offset({top: ((Math.ceil(mouse_pos/25) * 25)) + $('.piano_roll').offset().top -23, left: e.pageX - 10});
+    }
+});
+
+$('.note').contextmenu(function(e){
+        if ($(this).is('.ui-selected')){
+            $('.ui-selected').remove();
+        }else{
+            $(this).remove()
+    }})
+    .on('resize', function(){
+        if ($(this).is('.ui-selected')){
+            $(this).resizable({alsoResize: '.ui-selected'})
+            $('.ui-selected').each(function(){
+            $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+            .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+            });
+        }
+    })
+    .draggable({drag: function(e, ui){
+        if ($(this).is('.ui-selected')){
+            if (variablelol == 1){
+                $(this).addClass("drag_start");
+                drag_start_position_x = $(this).position().left
+                drag_start_position_y = $(this).position().top
+                variablelol = 0;
+                $('.ui-selected').each(function(e, ui){
+                    $(this).data("positionz_x", $(this).position().left);
+                    $(this).data("positionz_y", $(this).position().top);
+                });
+            }
+            $('.ui-selected').each(function(e, ui){
+                $(this).css({left: $('.drag_start').position().left + ($(this).data("positionz_x") - drag_start_position_x), top: $('.drag_start').position().top + ($(this).data("positionz_y") - drag_start_position_y)});
+            });
+        }
+        }})
+    .draggable({stop: function(e, ui){
+        variablelol = 1;
+        $('.drag_start').removeClass("drag_start")
+        $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+        .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+        .data("position_left", $(this).position().left);
+        if ($(this).is('.ui-selected')){
+            $('.ui-selected').each(function(){
+            $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+            .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+            .data("position_left", $(this).position().left);
+            });
+        }
+    }})
+    .mousedown(function(){
+        if ($(this).is('.ui-selected')){
+            $('.ui-selected').trigger('resize');
+        }
+    })
+    .resizable({stop: function(e, ui){
+        $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+        .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+    }});
 
 //NOTE CREATION*******************************
 //********************************************
@@ -1241,6 +1310,10 @@ $('#create_track').click(function(){
 						music_container_offset_previous = $(this).data("music_container_offset_previous");
 						active_piano_roll = $(this).attr("id");
 						
+                        var window_note_array = new Array();
+                        var note_position_array = new Array();
+                        count = 0;
+                        
 						$('.note').each(function(e, ui){
 								$(this).css('visibility', 'visible')
 								.css('z-index', '3');
@@ -1259,6 +1332,11 @@ $('#create_track').click(function(){
 										if ($(this).is('.ui-selected')){
 											$(this).css('background-color', '#330066');
 										}
+                                        
+                                        window_note_array[count] = $(this).attr('id');
+                                        note_position_array[count] = $(this).position().left;
+                                        count += 1;
+                                        
 									}else{
 										$(this).css('background-color', 'gray')
 										.css('opacity', '0.4');
@@ -1286,13 +1364,15 @@ $('#create_track').click(function(){
 						$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
 					}
                     
-                    $.ajax({type: "POST",
+                     $.ajax({type: "POST",
                         url: "{% url 'event_window_dragstop' request.user.username project %}",
                         data: {track : $(this).data("track_number"),
+                               note_id: window_note_array,
+                               note_position: note_position_array,
                                id: container_num,
                                position_left: $(this).position().left,
                                position_top: $(this).position().top,
-                               test: 0},
+                               test: 'cool'},
                         success: function(track_number){
                             alert(track_number);
                         },
@@ -1300,6 +1380,9 @@ $('#create_track').click(function(){
                             alert('drag event window oops');
                         }
                     });
+            
+            delete window_note_array;
+            delete note_position_array;
 				})
 				.dblclick(function(){
 					//DOUBLE CLICK FUNCTION AGAIN LOLLLL************************
