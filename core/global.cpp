@@ -1,4 +1,4 @@
-#include "Config.h"
+#include "global.h"
 namespace Config {
     GstClockTime offset_to_ns(offset_t offset)
     {

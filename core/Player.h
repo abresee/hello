@@ -9,7 +9,7 @@
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
 #include "WaveSynth.h"
-#include "Config.h"
+#include "global.h"
 
 /// @brief master class to handle audio generation and playback
 class Player : public boost::noncopyable {

@@ -3,7 +3,7 @@
 #include <utility>
 #include <iostream>
 #include <boost/numeric/conversion/converter.hpp>
-#include "Config.h"
+#include <boost/assert.hpp>
 #include "Instrument.h"
 
 Instrument::Instrument(): notes_() {}
@@ -48,11 +48,29 @@ double Instrument::frequency(const Note n) const {
     return Config::freq_reference * pow(2,exponent);
 }
 
+double Instrument::period(const Note n) const {
+    return 1.0/frequency(n);
+}
+
+double Instrument::rperiod(const Note n) const {
+    return 1.0/omega(n);
+}
+
+offset_t Instrument::period_i(const Note n) const {
+    auto ret = Config::sample_rate*period(n); 
+    std::cout << ret << std::endl;
+    return static_cast<offset_t>(ret);
+}
+
+offset_t Instrument::rperiod_i(const Note n) const {
+    return Config::sample_rate*rperiod(n);
+}
+
 offset_t Instrument::stream_end() const {
     return notes_.back().off(); 
 }
 
-Sample Instrument::round(double t) {
+Sample Instrument::round(double t) const {
     using namespace boost::numeric;
     converter<Sample
         , double
@@ -72,10 +90,10 @@ void Instrument::render_note(Packet& packet, const Note& note, const offset_t st
     const offset_t begin_output_index = 
         (note_begin_output_index < 0) ? 0 : note_begin_output_index;
     const offset_t end_output_index = 
-        (note_end_output_index > packet.size()) ? packet.size() : note_begin_output_index;
+        (note_end_output_index > packet.size()) ? packet.size() : note_end_output_index;
+    BOOST_ASSERT(begin_output_index < end_output_index);
 
     const offset_t index_offset = note_begin_output_index;
-
     for(auto i = begin_output_index; i < end_output_index; ++i) {
         packet.at(i) += note_packet.at(i-index_offset); 
         dump_<<packet.at(i)<<" ";

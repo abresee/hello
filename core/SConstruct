@@ -4,7 +4,7 @@ import os
 boostincl=' -I'+os.environ.get('BOOSTINCL','')
 boostlibs=' -L'+os.environ.get('BOOSTLIBS','')
 
-core_sources = ['Packet.cpp','Player.cpp', 'Instrument.cpp', 'WaveSynth.cpp', 'Note.cpp','Config.cpp']
+core_sources = ['Packet.cpp','Player.cpp', 'Instrument.cpp', 'WaveSynth.cpp', 'Note.cpp','global.cpp']
 
 env=Environment()
 env['CXX']=os.environ.get('CXX','g++')

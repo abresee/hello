@@ -2,7 +2,7 @@
 #define PACKET_H 
 #include <vector>
 #include <tuple>
-#include "Config.h"
+#include "global.h"
 class Packet {
     
     typedef std::vector<Sample> Packet_;

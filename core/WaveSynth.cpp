@@ -67,8 +67,8 @@ Packet WaveSynth::gen(const Note& note) {
     for(int i = 0; i < note.length(); ++i) {
         ret.at(i)=round(note.intensity()*waves_(omega(note) * (i)));
     }
-
-    silence(find_zero_crossing(std::make_tuple(ret.rbegin(),ret.rend())));
-
+    const offset_t fade_len = 3*period_i(note);
+    fade(std::make_tuple(ret.begin(),ret.begin()+fade_len));
+    fade(std::make_tuple(ret.rbegin(),ret.rbegin()+fade_len));
     return ret;
 }

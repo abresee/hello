@@ -3,7 +3,7 @@
 #include <gst/gst.h>
 #include <functional>
 #include <tuple>
-#include "Config.h"
+#include "global.h"
 
 
 class Note {

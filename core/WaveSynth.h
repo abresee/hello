@@ -1,7 +1,7 @@
 #ifndef WAVESYNTH_H
 #define WAVESYNTH_H 
 #include <functional>
-#include "Config.h"
+#include "global.h"
 #include "Instrument.h"
 
 class WaveSynth : public Instrument {

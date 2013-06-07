@@ -4,10 +4,11 @@
 #include <vector>
 #include <tuple>
 #include <mutex>
+#include <iterator>
 #include <fstream>
 #include <string>
 #include "Packet.h"
-#include "Config.h"
+#include "global.h"
 #include "Note.h"
 /// @brief pure virtual base class for instruments
 class Instrument {
@@ -22,14 +23,19 @@ public:
     void add_note(const Note& note);
     void add_notes(const Notes& notes);
     
-    double omega(const Note note) const;
     double frequency(const Note note) const;
+    double omega(const Note note) const;
+    double period(const Note note) const; 
+    double rperiod(const Note note) const;
+    offset_t period_i(const Note note) const;
+    offset_t rperiod_i(const Note note) const;
+
     offset_t stream_end() const;
 
 protected:
     std::unordered_map<Note, Packet, Note_hash, Note_hash_comp> cache;
 
-    virtual Sample round(double t);
+    virtual Sample round(double t) const;
     virtual Packet gen(const Note& note)=0;
 
     void render_note(Packet& packet,const Note& note,const offset_t start_offset);
@@ -37,8 +43,7 @@ protected:
 
     //utility functions
     template<typename Iter>
-        static std::tuple<Iter,Iter> 
-            find_zero_crossing(std::tuple<Iter,Iter> iters) {
+    std::tuple<Iter,Iter> find_zero_crossing(std::tuple<Iter,Iter> iters) {
         const auto start = std::get<0>(iters);
         const auto end = std::get<1>(iters);
 
@@ -52,17 +57,28 @@ protected:
                 break;
             }
         } 
-        std::cout<<"zc found at "<<it-start<<std::endl;
         return std::make_tuple(start,it);
     }
 
     template<typename Iter>
-    static std::tuple<Iter,Iter> silence(const std::tuple<Iter,Iter> iters) {
-        auto it = std::get<0>(iters);
+    std::tuple<Iter,Iter> silence(const std::tuple<Iter,Iter> iters) {
+        const auto it = std::get<0>(iters);
         const auto end = std::get<1>(iters);
-        std::cout<<"filling "<<end-it<<" values with 0"<<std::endl;
         std::fill(it,end,0);
-        return std::make_tuple(it,end);
+        return iters;
+    }
+
+    template<typename Iter>
+    std::tuple<Iter, Iter> fade(const std::tuple<Iter,Iter> iters) {
+        const Iter start = std::get<0>(iters);
+        const Iter end = std::get<1>(iters);
+        const int count = end - start;
+        const double mult_step = 1.0/count;
+        std::cout<<"mult_step is: "<<mult_step<<std::endl;
+        for(int i = 0; start + i < end; ++i) {
+            *(start + i) = round(*(start + i)*(i*mult_step));
+        }
+        return iters;
     }
 
 private:

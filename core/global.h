@@ -56,6 +56,7 @@ namespace Config {
     const Sample max_intensity = std::numeric_limits<Sample>::max();
     /// player's current sample rate
     const int sample_rate = 44100;
+    const double sample_rate_recip = 1.0 / sample_rate;
     /// reference frequency of the whole system, that is, frequency of pitch_class = 0, octave = 0
     const double freq_reference = 220;
     /// function to convert from offsets to nanoseconds
