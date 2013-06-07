@@ -7,12 +7,11 @@
 
 int main(int argc, char ** argv)
 {
-    std::shared_ptr<Player> p(new LocalPlayer());
+    std::shared_ptr<Player> p(new StreamPlayer());
     InstrumentHandle wg = InstrumentHandle(new WaveSynth("data"));
     std::vector<Note> notes;
 
     auto note_length = Config::sample_rate/4;
-    std::cout<<"each note is "<<note_length<<" samples long"<<std::endl;
     Sample note_intensity = Config::max_intensity/4;
 
     int note_count=0;

@@ -45,35 +45,7 @@ gboolean Player::util::wrap_bus_callback(GstBus * bus, GstMessage * message, gpo
     return this_->bus_callback(bus,message);
 }
 
-void Player::add_instrument(InstrumentHandle instrument_h) {
-    instruments.push_back(instrument_h);
-}
-
-void Player::play() {   
-    offset_t stream_end=0;
-    for(auto instrument_h : instruments) { 
-        stream_end = std::max(stream_end,instrument_h->stream_end());
-    }
-    offset_end = stream_end;
-    g_object_set(G_OBJECT(appsrc),"size",offset_end*Config::word_size,nullptr);
-    gst_element_set_state (pipeline, GST_STATE_PLAYING);
-    g_main_loop_run (loop);
-}
-
-void Player::eos() {
-    GstFlowReturn r = gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
-    if (r!=GST_FLOW_OK)
-    {
-        std::cout<<"shit's fucked"<<std::endl;
-    }
-}
-
-void Player::quit() {
-    gst_element_set_state(pipeline, GST_STATE_NULL);
-    g_main_loop_quit(loop);
-}
-
-Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(), loop(), instruments(), offset(), offset_end(), sourceid(), last_hint() {
+Player::Player() : pipeline(), appsrc(), conv(), audiosink(), loop(), instruments(), offset(), offset_end(), sourceid(), last_hint() {
     if(!gst_is_initialized()) {
         util::initialize_gst();
     }
@@ -84,7 +56,6 @@ Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(
 
     util::build_gst_element(appsrc,"appsrc","source");
     util::build_gst_element(conv,"audioconvert","conv");
-    util::build_gst_element(audiosink,sinktype,"output");
 
     GstBus * bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
     bus_watch_id = gst_bus_add_watch (bus, util::wrap_bus_callback, this);
@@ -109,11 +80,15 @@ Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(
     //the gstreamer main loop is the main event loop for audio generation
     loop = g_main_loop_new (nullptr, FALSE);
 
-    gst_bin_add_many (GST_BIN (pipeline), appsrc, conv, audiosink, nullptr);
-    gst_element_link_many (appsrc, conv, audiosink, nullptr);
+    gst_bin_add_many (GST_BIN (pipeline), appsrc, conv, nullptr);
+    gst_element_link (appsrc, conv);
 
     GstAppSrcCallbacks callbacks = {util::wrap_need_data, util::wrap_enough_data, util::wrap_seek_data};
     gst_app_src_set_callbacks(GST_APP_SRC(appsrc), &callbacks, this, nullptr);
+}
+
+void Player::add_instrument(InstrumentHandle instrument_h) {
+    instruments.push_back(instrument_h);
 }
 
 gboolean Player::push_data() {
@@ -188,8 +163,50 @@ gboolean Player::bus_callback(GstBus * bus, GstMessage * message) {
     return true;
 }
 
+void Player::play() {   
+    offset_t stream_end=0;
+    for(auto instrument_h : instruments) { 
+        stream_end = std::max(stream_end,instrument_h->stream_end());
+    }
+    offset_end = stream_end;
+    g_object_set(G_OBJECT(appsrc),"size",offset_end*Config::word_size,nullptr);
+    gst_element_set_state (pipeline, GST_STATE_PLAYING);
+    g_main_loop_run (loop);
+}
+
+void Player::eos() {
+    GstFlowReturn r = gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
+    if (r!=GST_FLOW_OK)
+    {
+        std::cout<<"shit's fucked"<<std::endl;
+    }
+}
+
+void Player::quit() {
+    gst_element_set_state(pipeline, GST_STATE_NULL);
+    g_main_loop_quit(loop);
+}
+
 Player::~Player() {
     gst_element_set_state (pipeline, GST_STATE_NULL);
     gst_object_unref (GST_OBJECT (pipeline));
     g_main_loop_unref (loop);
 }
+
+LocalPlayer::LocalPlayer() {
+
+    util::build_gst_element(audiosink,"autoaudiosink","output");
+    gst_bin_add(GST_BIN(pipeline),audiosink);
+    gst_element_link(conv, audiosink);
+}
+
+StreamPlayer::StreamPlayer() {
+    util::build_gst_element(vorbisencoder,"vorbisenc", "encoder");
+    util::build_gst_element(oggmuxer,"oggmux", "muxer");
+    util::build_gst_element(audiosink, "filesink", "sink");
+
+    g_object_set(G_OBJECT(audiosink),"location","out.ogg",nullptr);
+    gst_bin_add_many(GST_BIN(pipeline),vorbisencoder,oggmuxer,audiosink,nullptr);
+    gst_element_link_many(conv,vorbisencoder,oggmuxer,audiosink,nullptr);
+}
+    

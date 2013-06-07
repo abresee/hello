@@ -74,7 +74,6 @@ protected:
         const Iter end = std::get<1>(iters);
         const int count = end - start;
         const double mult_step = 1.0/count;
-        std::cout<<"mult_step is: "<<mult_step<<std::endl;
         for(int i = 0; start + i < end; ++i) {
             *(start + i) = round(*(start + i)*(i*mult_step));
         }

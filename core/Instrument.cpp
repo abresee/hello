@@ -58,7 +58,6 @@ double Instrument::rperiod(const Note n) const {
 
 offset_t Instrument::period_i(const Note n) const {
     auto ret = Config::sample_rate*period(n); 
-    std::cout << ret << std::endl;
     return static_cast<offset_t>(ret);
 }
 

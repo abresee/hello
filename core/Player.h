@@ -14,6 +14,22 @@
 /// @brief master class to handle audio generation and playback
 class Player : public boost::noncopyable {
     static const char * format;
+
+public: 
+    /// @brief add an instrument by a InstrumentHandle pointing to it
+    void add_instrument(InstrumentHandle instrument);
+
+    /// @brief start playback
+    void play();
+    /// @brief indicate end of stream
+    void eos();
+    /// @brief stop playback
+    void quit();
+
+    /// @brief dtor
+    virtual ~Player();
+
+protected:
     class util {
     public:
         /// @brief Helper function to initialize gstreamer
@@ -32,22 +48,7 @@ class Player : public boost::noncopyable {
         static gboolean wrap_bus_callback (GstBus *bus, GstMessage *message, gpointer instance);
     };
 
-public: 
-    /// @brief add an instrument by a InstrumentHandle pointing to it
-    void add_instrument(InstrumentHandle instrument);
-
-    /// @brief start playback
-    void play();
-    /// @brief indicate end of stream
-    void eos();
-    /// @brief stop playback
-    void quit();
-
-    /// @brief dtor
-    virtual ~Player();
-
-protected:
-    Player(const char *);
+    Player();
     /// @brief gst object representing the whole pipeline
     GstElement * pipeline;
     /// @brief gst object representing the interface between our code and the pipeline
@@ -85,7 +86,14 @@ protected:
 
 class LocalPlayer : public Player {
 public:
-    LocalPlayer() : Player("autoaudiosink") {
-    }
+    LocalPlayer();
+};
+
+class StreamPlayer : public Player {
+    GstElement * vorbisencoder;
+    GstElement * oggmuxer;
+public:
+    StreamPlayer();    
+
 };
 #endif /* PLAYER_H */
