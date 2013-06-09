@@ -55,10 +55,9 @@ double Instrument::period(const Note n) const {
 double Instrument::rperiod(const Note n) const {
     return 1.0/omega(n);
 }
-
+//TODO: ensure this rounds consistently, create an actual converter object
 offset_t Instrument::period_i(const Note n) const {
     auto ret = Config::sample_rate*period(n); 
-    std::cout << ret << std::endl;
     return static_cast<offset_t>(ret);
 }
 

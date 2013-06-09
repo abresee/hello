@@ -83,6 +83,8 @@ protected:
 
 };
 
+typedef std::shared_ptr<Player> PlayerHandle;
+
 class LocalPlayer : public Player {
 public:
     LocalPlayer() : Player("autoaudiosink") {
