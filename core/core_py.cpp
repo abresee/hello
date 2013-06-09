@@ -25,14 +25,14 @@ BOOST_PYTHON_MODULE(core_py)
         .add_property("off",off_ptr)
         .add_property("length",&Note::length);
 
-    class_<Instrument,std::shared_ptr<Instrument>,boost::noncopyable>("Instrument", "Abstract base class",no_init)
+    class_<Instrument,InstrumentHandle,boost::noncopyable>("Instrument", "Abstract base class",no_init)
         .def("add_note",add_note)
         .def("add_notes",&Instrument::add_notes);
 
     class_<WaveSynth,std::shared_ptr<WaveSynth>,bases<Instrument>,boost::noncopyable>("WaveSynth",
             "creates a signal based on a waveform");
 
-    class_<Player,std::shared_ptr<Player>, boost::noncopyable>("Player", "Abstract base class", no_init)
+    class_<Player,PlayerHandle, boost::noncopyable>("Player", "Abstract base class", no_init)
         .def("play",&Player::play)
         .def("add_instrument",&Player::add_instrument);
 
@@ -40,5 +40,10 @@ BOOST_PYTHON_MODULE(core_py)
             "Plays back locally (i.e out the local machine's speakers)")
         .def("play",&LocalPlayer::play); 
 
+    class_<VorbisPlayer,std::shared_ptr<VorbisPlayer>,bases<Player>,boost::noncopyable>("VorbisPlayer",
+            "saves output to a vorbis file", init<std::string>())
+        .def("play",&VorbisPlayer::play);
+
     implicitly_convertible<std::shared_ptr<WaveSynth>,InstrumentHandle>();
+    implicitly_convertible<std::shared_ptr<VorbisPlayer>,PlayerHandle>();
 }

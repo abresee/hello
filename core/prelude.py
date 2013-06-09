@@ -1,7 +1,7 @@
-from core_py import LocalPlayer, WaveSynth, Note
+from core_py import VorbisPlayer, WaveSynth, Note
 import core_py
 
-p = LocalPlayer()
+p = VorbisPlayer("test.ogg")
 
 wg = WaveSynth()
 

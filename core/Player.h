@@ -100,11 +100,11 @@ public:
     LocalPlayer();
 };
 
-class StreamPlayer : public Player {
+class VorbisPlayer : public Player {
     GstElement * vorbisencoder;
     GstElement * oggmuxer;
 public:
-    StreamPlayer();    
+    VorbisPlayer(std::string);    
 
 };
 #endif /* PLAYER_H */
