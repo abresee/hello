@@ -878,113 +878,134 @@ $('.note').each(function(e){
     }
 });
 
-$('.note').contextmenu(function(e){
-        if ($(this).is('.ui-selected')){
-            $('.ui-selected').remove();
-        }else{
-            $(this).remove()
-    }})
-    .on('resize', function(){
-        if ($(this).is('.ui-selected')){
-            $(this).resizable({alsoResize: '.ui-selected'})
-            $('.ui-selected').each(function(){
-            $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-            .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
-            });
-        }
-    })
-    .draggable({drag: function(e, ui){
-        if ($(this).is('.ui-selected')){
-            if (variablelol == 1){
-                $(this).addClass("drag_start");
-                drag_start_position_x = $(this).position().left
-                drag_start_position_y = $(this).position().top
-                variablelol = 0;
-                $('.ui-selected').each(function(e, ui){
-                    $(this).data("positionz_x", $(this).position().left);
-                    $(this).data("positionz_y", $(this).position().top);
-                });
-            }
-            $('.ui-selected').each(function(e, ui){
-                $(this).css({left: $('.drag_start').position().left + ($(this).data("positionz_x") - drag_start_position_x), top: $('.drag_start').position().top + ($(this).data("positionz_y") - drag_start_position_y)});
-            });
-        }
-        }})
-    .draggable({stop: function(e, ui){
-        variablelol = 1;
-        $('.drag_start').removeClass("drag_start")
-        $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-        .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-        .data("position_left", $(this).position().left);
-        if ($(this).is('.ui-selected')){
-            $('.ui-selected').each(function(){
-            $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-            .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-            .data("position_left", $(this).position().left);
-            });
-        }
-        var note_id = new Array();
-        var note_pos_left = new Array();
-        var note_pos_top = new Array();
-        count = 0;
-        $('.note').each(function(){
-            note_id[count] = $(this).attr("id");
-            note_pos_top[count] = $(this).position().top;
-            note_pos_left[count] = $(this).position().left;
-            count += 1;
+$('.note').contextmenu(function(){
+    	var note_id = new Array();
+	count = 0;
+	if ($(this).is('.ui-selected')){
+		$('.ui-selected').each(function(){
+			note_id[count] = $(this).attr("id");
+			count += 1;
+		});
+		$('.ui-selected').remove();
+	}else{
+		note_id[0] = $(this).attr("id");
+		$(this).remove()
+
+	}
+
+	$.ajax({type: "POST",
+               	url: "{% url 'note_delete' request.user.username project %}",
+               	data: {id: note_id},
+                success: function(track_number){
+                    alert(track_number);
+                },
+                error: function(){
+                    	alert('delete note oops');
+                }
         });
-            
-        $.ajax({type: "POST",
-			url: "{% url 'note_dragstop' request.user.username project %}",
-			data: {id: note_id,
-                   position_left: note_pos_left,
-                   position_top: note_pos_top},   
-			success: function(track_number){
-				alert(track_number);
-			},
-			error: function(){
-				alert('dragstop note oops');
-			}
-        });
-        
-        delete note_id;
-        delete note_pos_left;
-        delete note_pos_top;
-        
-    }})
-    .mousedown(function(){
-        if ($(this).is('.ui-selected')){
-            $('.ui-selected').trigger('resize');
-        }
-    })
-    .resizable({stop: function(e, ui){
-        $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-        .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
-        
-        var note_ids = new Array();
-        var note_width = new Array();
-        count = 0;
-        $('.note').each(function(){
-            note_ids[count] = $(this).attr("id");
-            note_width[count] = $(this).width();
-            count += 1;
-        });
-            
-        $.ajax({type: "POST",
-            url: "{% url 'note_resize' request.user.username project %}",
-            data: {id: note_ids,
-                   width: note_width},   
-            success: function(track_number){
-                alert(track_number);
-            },
-            error: function(){
-                alert('resize note oops');
-            }
-        });
-        
-        delete note_id;
-        delete note_width;
-    }});
+	delete note_id;
+})
+.on('resize', function(){
+if ($(this).is('.ui-selected')){
+    $(this).resizable({alsoResize: '.ui-selected'})
+    $('.ui-selected').each(function(){
+    $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+    .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+    });
+}
+})
+.draggable({drag: function(e, ui){
+if ($(this).is('.ui-selected')){
+    if (variablelol == 1){
+	$(this).addClass("drag_start");
+	drag_start_position_x = $(this).position().left
+	drag_start_position_y = $(this).position().top
+	variablelol = 0;
+	$('.ui-selected').each(function(e, ui){
+	    $(this).data("positionz_x", $(this).position().left);
+	    $(this).data("positionz_y", $(this).position().top);
+	});
+    }
+    $('.ui-selected').each(function(e, ui){
+	$(this).css({left: $('.drag_start').position().left + ($(this).data("positionz_x") - drag_start_position_x), top: $('.drag_start').position().top + ($(this).data("positionz_y") - drag_start_position_y)});
+    });
+}
+}})
+.draggable({stop: function(e, ui){
+variablelol = 1;
+$('.drag_start').removeClass("drag_start")
+$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+.data("position_left", $(this).position().left);
+if ($(this).is('.ui-selected')){
+    $('.ui-selected').each(function(){
+    $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+    .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+    .data("position_left", $(this).position().left);
+    });
+}
+var note_id = new Array();
+var note_pos_left = new Array();
+var note_pos_top = new Array();
+count = 0;
+$('.note').each(function(){
+    note_id[count] = $(this).attr("id");
+    note_pos_top[count] = $(this).position().top;
+    note_pos_left[count] = $(this).position().left;
+    count += 1;
+});
+    
+$.ajax({type: "POST",
+		url: "{% url 'note_dragstop' request.user.username project %}",
+		data: {id: note_id,
+	   position_left: note_pos_left,
+	   position_top: note_pos_top},   
+		success: function(track_number){
+			alert(track_number);
+		},
+		error: function(){
+			alert('dragstop note oops');
+		}
+});
+
+delete note_id;
+delete note_pos_left;
+delete note_pos_top;
+
+}})
+.mousedown(function(){
+if ($(this).is('.ui-selected')){
+    $('.ui-selected').trigger('resize');
+}
+})
+.resizable({stop: function(e, ui){
+$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+
+var note_ids = new Array();
+var note_width = new Array();
+count = 0;
+$('.note').each(function(){
+    note_ids[count] = $(this).attr("id");
+    note_width[count] = $(this).width();
+    count += 1;
+});
+    
+$.ajax({type: "POST",
+    url: "{% url 'note_resize' request.user.username project %}",
+    data: {id: note_ids,
+	   width: note_width},   
+    success: function(track_number){
+	alert(track_number);
+    },
+    error: function(){
+	alert('resize note oops');
+    }
+});
+
+delete note_id;
+delete note_width;
+}});
 
 //NOTE CREATION*******************************
 //********************************************
@@ -1017,10 +1038,29 @@ $('.container').click(function(e){
 		}
 
 		$('.note').contextmenu(function(){
+            		var note_id = new Array();
+			count = 0;
 			if ($(this).is('.ui-selected')){
+				$('.ui-selected').each(function(){
+					note_id[count] = $(this).attr("id");
+					count += 1;
+				});
 				$('.ui-selected').remove();
 			}else{
+				note_id[0] = $(this).attr("id");
 				$(this).remove()
+
+			$.ajax({type: "POST",
+                		url: "{% url 'note_delete' request.user.username project %}",
+               			data: {id: note_id},
+                		success: function(track_number){
+                    			alert(track_number);
+                		},
+                		error: function(){
+                    			alert('delete note oops');
+                		}
+            		});
+			delete note_id;
 		}})
 		.each(function(){ //init placement
 			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
