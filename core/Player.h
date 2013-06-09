@@ -4,6 +4,7 @@
 #include <mutex>
 #include <functional>
 #include <cmath>
+#include <exception>
 #include <boost/shared_ptr.hpp>
 #include <boost/utility.hpp>
 #include <gst/gst.h>
@@ -83,6 +84,16 @@ protected:
     void eos_callback();
 
 };
+
+class BadFlowException : public std::exception {
+    std::string message;
+public:
+    BadFlowException(const char * cstr);
+    BadFlowException(const std::string& str);
+    virtual const char * what();
+};
+
+typedef std::shared_ptr<Player> PlayerHandle;
 
 class LocalPlayer : public Player {
 public:

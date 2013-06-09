@@ -45,7 +45,34 @@ gboolean Player::util::wrap_bus_callback(GstBus * bus, GstMessage * message, gpo
     return this_->bus_callback(bus,message);
 }
 
-Player::Player() : pipeline(), appsrc(), conv(), audiosink(), loop(), instruments(), offset(), offset_end(), sourceid(), last_hint() {
+void Player::add_instrument(InstrumentHandle instrument_h) {
+    instruments.push_back(instrument_h);
+}
+
+void Player::play() {   
+    offset_t stream_end=0;
+    for(auto instrument_h : instruments) { 
+        stream_end = std::max(stream_end,instrument_h->stream_end());
+    }
+    offset_end = stream_end;
+    g_object_set(G_OBJECT(appsrc),"size",offset_end*Config::word_size,nullptr);
+    gst_element_set_state (pipeline, GST_STATE_PLAYING);
+    g_main_loop_run (loop);
+}
+
+void Player::eos() {
+    GstFlowReturn r = gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
+    if (r!=GST_FLOW_OK) {
+        throw BadFlowException("bad flow on end of stream");
+    }
+}
+
+void Player::quit() {
+    gst_element_set_state(pipeline, GST_STATE_NULL);
+    g_main_loop_quit(loop);
+}
+
+Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(), loop(), instruments(), offset(), offset_end(), sourceid(), last_hint() {
     if(!gst_is_initialized()) {
         util::initialize_gst();
     }
@@ -116,8 +143,7 @@ gboolean Player::push_data() {
     BOOST_ASSERT(size==rsize);
     auto ret = gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer); 
     if ( ret != GST_FLOW_OK) {
-        std::cout<<"flow no good!"<<std::endl;
-        return false;
+        throw BadFlowException("bad flow while pushing buffer");
     }
     offset+=data.size();
     return true;
@@ -210,3 +236,15 @@ StreamPlayer::StreamPlayer() {
     gst_element_link_many(conv,vorbisencoder,oggmuxer,audiosink,nullptr);
 }
     
+BadFlowException::BadFlowException(const char * cstr):
+    message(cstr) { 
+}
+
+BadFlowException::BadFlowException(const std::string& str):
+    message(str) {
+}
+
+const char * BadFlowException::what() {
+    return message.c_str();
+}
+
