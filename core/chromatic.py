@@ -12,6 +12,5 @@ notes = [Note(i, -1, note_intensity, note_length*i, note_length) for i in range(
 for note in notes:
     wg.add_note(note)
 
-print(type(wg))
 p.add_instrument(wg)
 p.play()

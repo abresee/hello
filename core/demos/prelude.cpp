@@ -18,15 +18,13 @@ int main(int argc, char ** argv)
     int note_count=0;
     for(int i = 0; i < 4; ++i) {
         for(int j : {0,2,4,7}) {
-            notes.push_back(Note(j,i,note_intensity,note_length*note_count,note_length));
-            note_count++;
+            notes.push_back(Note(j,i,note_intensity,note_length*note_count++,note_length));
         }
     }
 
     for(int i = 3; i >= 0; --i) {
         for(int j : {12,7,4,2}) {
-            notes.push_back(Note(j,i,note_intensity,note_length*note_count,note_length));
-            note_count++;
+            notes.push_back(Note(j,i,note_intensity,note_length*note_count++,note_length));
         }
     }
 
