@@ -62,9 +62,8 @@ void Player::play() {
 
 void Player::eos() {
     GstFlowReturn r = gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
-    if (r!=GST_FLOW_OK)
-    {
-        std::cout<<"shit's fucked"<<std::endl;
+    if (r!=GST_FLOW_OK) {
+        throw BadFlowException("bad flow on end of stream");
     }
 }
 
@@ -141,8 +140,7 @@ gboolean Player::push_data() {
     BOOST_ASSERT(size==rsize);
     auto ret = gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer); 
     if ( ret != GST_FLOW_OK) {
-        std::cout<<"flow no good!"<<std::endl;
-        return false;
+        throw BadFlowException("bad flow while pushing buffer");
     }
     offset+=data.size();
     return true;
@@ -193,3 +191,16 @@ Player::~Player() {
     gst_object_unref (GST_OBJECT (pipeline));
     g_main_loop_unref (loop);
 }
+
+BadFlowException::BadFlowException(const char * cstr):
+    message(cstr) { 
+}
+
+BadFlowException::BadFlowException(const std::string& str):
+    message(str) {
+}
+
+const char * BadFlowException::what() {
+    return message.c_str();
+}
+
