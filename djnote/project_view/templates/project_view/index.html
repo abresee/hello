@@ -650,13 +650,13 @@ $(document).ready(function(){
 		    $('#windowdrag').show();
             track_numberz = $(this).data("track_number");
             $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
-	   	if ($(this).data("music_container_offset_previous") == 0){
-			music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
-		}else{	
-			$(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
-			music_container_offset = $(this).data("music_container_offset");
-			music_container_offset_previous = $(this).data("music_container_offset_previous");
-		}
+            if ($(this).data("music_container_offset_previous") == 0){
+                music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
+            }else{	
+                $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+                music_container_offset = $(this).data("music_container_offset");
+                music_container_offset_previous = $(this).data("music_container_offset_previous");
+            }
             //music_container_offset_previous = $(this).data("music_container_offset_previous");
             active_piano_roll = $(this).attr("id");
             $('.note').each(function(e, ui){
@@ -702,9 +702,31 @@ $(document).ready(function(){
                 }
                 count += 1;
             }
+		}else{ //if the piano roll is not open*****************
+            track_numberz = $(this).data("track_number");
+            $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+            if ($(this).data("music_container_offset_previous") == 0){
+                music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
+            }else{	
+                $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+                music_container_offset = $(this).data("music_container_offset");
+                music_container_offset_previous = $(this).data("music_container_offset_previous");
+            }
+            //music_container_offset_previous = $(this).data("music_container_offset_previous");
+            active_piano_roll = $(this).attr("id");
+            $('.note').each(function(e, ui){
+                if ($(this).data("track_number") == track_numberz){
+                    if ($(this).data("piano_roll") == active_piano_roll){
+                        $(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+                        .data("position_left", (music_container_offset * $('.time_column').width()) + $(this).data("offset") )
+                        .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+                        
+                        note_positions[count] = $(this).data("position_left");
+                        count += 1;
+                    }
+                }
+            });
 		}
-		
-		
 		$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
 		$.ajax({type: "POST",
 		    url: "{% url 'event_window_dragstop' request.user.username project %}",
@@ -728,13 +750,13 @@ $(document).ready(function(){
             $('#windowdrag').show();
             track_numberz = $(this).data("track_number");
             $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
-	   	if ($(this).data("music_container_offset_previous") == 0){
-			music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
-		}else{	
-			$(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
-			music_container_offset = $(this).data("music_container_offset");
-			music_container_offset_previous = $(this).data("music_container_offset_previous");
-		}
+            if ($(this).data("music_container_offset_previous") == 0){
+                music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
+            }else{	
+                $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+                music_container_offset = $(this).data("music_container_offset");
+                music_container_offset_previous = $(this).data("music_container_offset_previous");
+            }
             //music_container_offset_previous = $(this).data("music_container_offset_previous");
             active_piano_roll = $(this).attr("id");
             $('.note').each(function(e, ui){
