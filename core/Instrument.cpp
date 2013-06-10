@@ -13,7 +13,9 @@ Instrument::Instrument(std::string dumpname): notes_(), dump_(dumpname) {}
 Packet Instrument::get_samples(const offset_t start_offset, const offset_t end_offset) {
     std::vector<Note> notes_to_get;
     for(Note note : notes_) {
-        if((note.position() + note.length()) > start_offset && note.position() < end_offset) { 
+        if(
+            (Config::position_to_offset(note.end(), Config::tempo, Config::sample_rate) > start_offset) &&
+            (Config::position_to_offset(note.position(), Config::tempo, Config::sample_rate) < end_offset)) { 
             notes_to_get.push_back(note);
         }
     }

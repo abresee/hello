@@ -4,7 +4,7 @@
 
 BOOST_AUTO_TEST_CASE(note_test) {
     Sample intensity=Config::max_intensity/4;
-    offset_t pos = 0;
+    position_t pos = 0;
     offset_t length = 1000;
     for(int pitch_class = -20; pitch_class < 20; ++pitch_class) {
         for(int octave = -20; octave < 20; ++octave) {

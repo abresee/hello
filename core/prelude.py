@@ -1,11 +1,11 @@
 from core_py import VorbisPlayer, WaveSynth, Note
 import core_py
 
-p = VorbisPlayer("test.ogg")
+p = VorbisPlayer("prelude_py.ogg")
 
 wg = WaveSynth()
 
-note_length = core_py.sample_rate//8
+note_length = core_py.position_t(1,2) 
 note_intensity = core_py.max_intensity//2
 scale_degrees = [0, 2, 4, 7]
 octave_count = 4

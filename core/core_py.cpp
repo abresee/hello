@@ -17,7 +17,7 @@ BOOST_PYTHON_MODULE(core_py)
     scope().attr("max_intensity") = Config::max_intensity;
 
 
-    class_<Note>("Note", init<int,Sample,int,int,int>())
+    class_<Note>("Note", init<int,Sample,int,position_t,position_t>())
         .add_property("pitch_class",pc)
         .add_property("octave", oct)
         .add_property("intensity", &Note::intensity)
@@ -43,6 +43,10 @@ BOOST_PYTHON_MODULE(core_py)
     class_<VorbisPlayer,std::shared_ptr<VorbisPlayer>,bases<Player>,boost::noncopyable>("VorbisPlayer",
             "saves output to a vorbis file", init<std::string>())
         .def("play",&VorbisPlayer::play);
+
+    class_<position_t>("position_t",init<int64_t,int64_t>())
+        .def(self * int())
+        .def(int() * self);
 
     implicitly_convertible<std::shared_ptr<WaveSynth>,InstrumentHandle>();
     implicitly_convertible<std::shared_ptr<VorbisPlayer>,PlayerHandle>();
