@@ -607,8 +607,8 @@ $(document).ready(function(){
         .width({{window.window_length}})
         .draggable({containment: [149, 90, $('.track_window').width(), max_y], snap: '.track_window', snapMode:'inner', snapTolerance:70})
         .resizable({minHeight:76, maxHeight:76, handles: "e"})
-        .data("music_container_offset_previous", 0)
-        .data("music_container_offset", 0)
+        .data("music_container_offset_previous", 123456)
+        //.data("music_container_offset", 0)
         .data("first_pos", {{window.position_left}})
         .contextmenu(function(){
             $('.note').each(function(){
@@ -666,9 +666,9 @@ $(document).ready(function(){
 		    $('#windowdrag').show();
             track_numberz = $(this).data("track_number");
             $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
-            if ($(this).data("music_container_offset_previous") == 0){
-                music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
-            }else{	
+            if ($(this).data("music_container_offset_previous") == 123456){
+                music_container_offset_previous = (((Math.ceil($(this).data("first_pos") / 10)) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
+            }else{
                 $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
                 music_container_offset = $(this).data("music_container_offset");
                 music_container_offset_previous = $(this).data("music_container_offset_previous");
@@ -721,7 +721,7 @@ $(document).ready(function(){
 		}else{ //if the piano roll is not open*****************
             track_numberz = $(this).data("track_number");
             $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
-            if ($(this).data("music_container_offset_previous") == 0){
+            if ($(this).data("music_container_offset_previous") == 123456){
                 music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
             }else{	
                 $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
@@ -766,8 +766,8 @@ $(document).ready(function(){
             $('#windowdrag').show();
             track_numberz = $(this).data("track_number");
             $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
-            if ($(this).data("music_container_offset_previous") == 0){
-                music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
+            if ($(this).data("music_container_offset_previous") == 123456){
+                 music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
             }else{	
                 $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
                 music_container_offset = $(this).data("music_container_offset");
