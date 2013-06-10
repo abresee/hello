@@ -4,7 +4,7 @@
 #include <boost/assert.hpp>
 #include "Player.h"
 
-const char * Player::format = "S16LE";
+const char * Player::format_ = "S16LE";
 
 void Player::util::initialize_gst() {
     GError *err;
@@ -46,116 +46,119 @@ gboolean Player::util::wrap_bus_callback(GstBus * bus, GstMessage * message, gpo
 }
 
 void Player::add_instrument(InstrumentHandle instrument_h) {
-    instruments.push_back(instrument_h);
+    instruments_.push_back(instrument_h);
 }
 
 void Player::play() {   
-    offset_t stream_end=0;
-    for(auto instrument_h : instruments) { 
+    position_t stream_end=0;
+    for(auto instrument_h : instruments_) { 
         stream_end = std::max(stream_end,instrument_h->stream_end());
     }
-    offset_end = stream_end;
-    g_object_set(G_OBJECT(appsrc),"size",offset_end*Config::word_size,nullptr);
-    gst_element_set_state (pipeline, GST_STATE_PLAYING);
-    g_main_loop_run (loop);
+    end_offset_ = Config::position_to_offset(stream_end, Config::tempo, Config::sample_rate);
+    
+    g_object_set(G_OBJECT(appsrc_),"size",end_offset_*Config::word_size,nullptr);
+    gst_element_set_state (pipeline_, GST_STATE_PLAYING);
+    g_main_loop_run (loop_);
 }
 
 void Player::eos() {
-    GstFlowReturn r = gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
+    GstFlowReturn r = gst_app_src_end_of_stream(GST_APP_SRC(appsrc_));
     if (r!=GST_FLOW_OK) {
         throw BadFlowException("bad flow on end of stream");
     }
 }
 
 void Player::quit() {
-    gst_element_set_state(pipeline, GST_STATE_NULL);
-    g_main_loop_quit(loop);
+    gst_element_set_state(pipeline_, GST_STATE_NULL);
+    g_main_loop_quit(loop_);
 }
 
-Player::Player() : pipeline(), appsrc(), conv(), audiosink(), loop(), instruments(), offset(), offset_end(), sourceid(), last_hint() {
+Player::Player() : pipeline_(), appsrc_(), conv_(), audiosink_(), loop_(), instruments_(), current_offset_(), end_offset_(), push_id_(), bus_watch_id_(), last_hint_() {
     if(!gst_is_initialized()) {
         util::initialize_gst();
     }
-    pipeline = gst_pipeline_new ("pipeline");
-    if(pipeline==nullptr) {
+    pipeline_ = gst_pipeline_new ("pipeline");
+    if(pipeline_==nullptr) {
         std::exit(EXIT_FAILURE);
     };
 
-    util::build_gst_element(appsrc,"appsrc","source");
-    util::build_gst_element(conv,"audioconvert","conv");
+    util::build_gst_element(appsrc_,"appsrc","source");
+    util::build_gst_element(conv_,"audioconvert","conv");
 
-    GstBus * bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
-    bus_watch_id = gst_bus_add_watch (bus, util::wrap_bus_callback, this);
+    GstBus * bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline_));
+    bus_watch_id_ = gst_bus_add_watch (bus, util::wrap_bus_callback, this);
     gst_object_unref (bus);
     
 
     GstCaps * caps = gst_caps_new_simple(
         "audio/x-raw",
-        "format", G_TYPE_STRING, format,
+        "format", G_TYPE_STRING, format_,
         "rate", G_TYPE_INT, Config::sample_rate,
         "channels",G_TYPE_INT, Config::channels,
         "signed", G_TYPE_BOOLEAN, TRUE,
         "layout", G_TYPE_STRING, "interleaved",
         nullptr);
 
-    g_object_set(G_OBJECT(appsrc),"caps",caps,nullptr);
-    g_object_set(G_OBJECT(appsrc),"is-live",true,nullptr);
-    g_object_set(G_OBJECT(appsrc),"min-latency",0,nullptr);
-    g_object_set(G_OBJECT(appsrc),"emit-signals",false,nullptr);
-    g_object_set(G_OBJECT(appsrc),"format",GST_FORMAT_TIME,nullptr);
+    g_object_set(G_OBJECT(appsrc_),"caps",caps,nullptr);
+    g_object_set(G_OBJECT(appsrc_),"is-live",true,nullptr);
+    g_object_set(G_OBJECT(appsrc_),"min-latency",0,nullptr);
+    g_object_set(G_OBJECT(appsrc_),"emit-signals",false,nullptr);
+    g_object_set(G_OBJECT(appsrc_),"format",GST_FORMAT_TIME,nullptr);
 
     //the gstreamer main loop is the main event loop for audio generation
-    loop = g_main_loop_new (nullptr, FALSE);
+    loop_ = g_main_loop_new (nullptr, FALSE);
 
-    gst_bin_add_many (GST_BIN (pipeline), appsrc, conv, nullptr);
-    gst_element_link (appsrc, conv);
+    gst_bin_add_many (GST_BIN (pipeline_), appsrc_, conv_, nullptr);
+    gst_element_link (appsrc_, conv_);
 
     GstAppSrcCallbacks callbacks = {util::wrap_need_data, util::wrap_enough_data, util::wrap_seek_data};
-    gst_app_src_set_callbacks(GST_APP_SRC(appsrc), &callbacks, this, nullptr);
+    gst_app_src_set_callbacks(GST_APP_SRC(appsrc_), &callbacks, this, nullptr);
 }
 
 gboolean Player::push_data() {
-    if(offset >= offset_end) {
+    if(current_offset_ >= end_offset_) {
         eos();
         return false;
     }
     
-    const Packet::size_type packet_size = ((offset+last_hint) < offset_end) ? last_hint : offset_end - offset ; 
+    const Packet::size_type packet_size = ((current_offset_+last_hint_) < end_offset_) ? last_hint_ : end_offset_ - current_offset_ ; 
     Packet data(packet_size);
 
-    for (InstrumentHandle instrument_h : instruments) {
-        data+=instrument_h->get_samples(offset,offset+packet_size);
+    for (InstrumentHandle instrument_h : instruments_) {
+        data+=instrument_h->get_samples(current_offset_,current_offset_+packet_size);
     }
 
     GstBuffer * buffer = gst_buffer_new_allocate(
         nullptr, data.size()*Config::word_size, nullptr);
 
-    GST_BUFFER_PTS(buffer) = Config::offset_to_ns(offset);
-    GST_BUFFER_DURATION(buffer) = Config::offset_to_ns(packet_size);
-    GST_BUFFER_OFFSET(buffer) = offset;
-    GST_BUFFER_OFFSET_END(buffer) = offset+packet_size;
+    GST_BUFFER_PTS(buffer) = Config::offset_to_ns(current_offset_,Config::sample_rate);
+    GST_BUFFER_DURATION(buffer) = Config::offset_to_ns(packet_size,Config::sample_rate);
+    GST_BUFFER_OFFSET(buffer) = current_offset_;
+    GST_BUFFER_OFFSET_END(buffer) = current_offset_+packet_size;
+
     auto size = data.size() * Config::word_size;
     auto rsize = gst_buffer_fill(buffer, 0, static_cast<void *>(data.data()), size);
     BOOST_ASSERT(size==rsize);
-    auto ret = gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer); 
+
+    auto ret = gst_app_src_push_buffer(GST_APP_SRC(appsrc_), buffer); 
     if ( ret != GST_FLOW_OK) {
         throw BadFlowException("bad flow while pushing buffer");
     }
-    offset+=data.size();
+    current_offset_+=data.size();
     return true;
 }
 
 void Player::need_data(guint length) {
-    last_hint=length;
-    if(sourceid==0) {
-        sourceid=g_idle_add((GSourceFunc) util::wrap_push_data, this);
+    last_hint_=length;
+    if(push_id_ == 0) {
+        push_id_=g_idle_add((GSourceFunc) util::wrap_push_data, this);
     } 
 }
 
 void Player::enough_data() {
-    if(sourceid!=0) {
-        g_source_remove(sourceid);
-        sourceid=0;
+    if(push_id_ != 0) {
+        g_source_remove(push_id_);
+        push_id_=0;
     }
 }
 
@@ -186,37 +189,37 @@ gboolean Player::bus_callback(GstBus * bus, GstMessage * message) {
 }
 
 Player::~Player() {
-    gst_element_set_state (pipeline, GST_STATE_NULL);
-    gst_object_unref (GST_OBJECT (pipeline));
-    g_main_loop_unref (loop);
+    gst_element_set_state (pipeline_, GST_STATE_NULL);
+    gst_object_unref (GST_OBJECT (pipeline_));
+    g_main_loop_unref (loop_);
 }
 
 LocalPlayer::LocalPlayer() {
 
-    util::build_gst_element(audiosink,"autoaudiosink","output");
-    gst_bin_add(GST_BIN(pipeline),audiosink);
-    gst_element_link(conv, audiosink);
+    util::build_gst_element(audiosink_,"autoaudiosink","output");
+    gst_bin_add(GST_BIN(pipeline_),audiosink_);
+    gst_element_link(conv_, audiosink_);
 }
 
-VorbisPlayer::VorbisPlayer(const std::string name) {
-    util::build_gst_element(vorbisencoder,"vorbisenc", "encoder");
-    util::build_gst_element(oggmuxer,"oggmux", "muxer");
-    util::build_gst_element(audiosink, "filesink", "sink");
+VorbisPlayer::VorbisPlayer(const std::string output_name) {
+    util::build_gst_element(vorbisencoder_,"vorbisenc", "encoder");
+    util::build_gst_element(oggmuxer_,"oggmux", "muxer");
+    util::build_gst_element(audiosink_, "filesink", "sink");
 
-    g_object_set(G_OBJECT(audiosink),"location",name.c_str(),nullptr);
-    gst_bin_add_many(GST_BIN(pipeline),vorbisencoder,oggmuxer,audiosink,nullptr);
-    gst_element_link_many(conv,vorbisencoder,oggmuxer,audiosink,nullptr);
+    g_object_set(G_OBJECT(audiosink_),"location",output_name.c_str(),nullptr);
+    gst_bin_add_many(GST_BIN(pipeline_),vorbisencoder_,oggmuxer_,audiosink_,nullptr);
+    gst_element_link_many(conv_,vorbisencoder_,oggmuxer_,audiosink_,nullptr);
 }
     
 BadFlowException::BadFlowException(const char * cstr):
-    message(cstr) { 
+    message_(cstr) { 
 }
 
 BadFlowException::BadFlowException(const std::string& str):
-    message(str) {
+    message_(str) {
 }
 
 const char * BadFlowException::what() {
-    return message.c_str();
+    return message_.c_str();
 }
 

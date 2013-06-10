@@ -1,7 +1,6 @@
 #ifndef PLAYER_H
 #define PLAYER_H 
 #include <vector>
-#include <mutex>
 #include <functional>
 #include <cmath>
 #include <exception>
@@ -14,7 +13,7 @@
 
 /// @brief master class to handle audio generation and playback
 class Player : public boost::noncopyable {
-    static const char * format;
+    static const char * format_;
 
 public: 
     /// @brief add an instrument by a InstrumentHandle pointing to it
@@ -51,30 +50,28 @@ protected:
 
     Player();
     /// @brief gst object representing the whole pipeline
-    GstElement * pipeline;
+    GstElement * pipeline_;
     /// @brief gst object representing the interface between our code and the pipeline
-    GstElement * appsrc;
+    GstElement * appsrc_;
     /// @brief gst object that converts audio data between appsrc and the sink
-    GstElement * conv;
+    GstElement * conv_;
     /// @brief gst object representing the sink (stream, speakers, whatever)
-    GstElement * audiosink;
+    GstElement * audiosink_;
     /// @brief glib object representing the mainloop used by gstreamer
-    GMainLoop * loop;
+    GMainLoop * loop_;
 
-    std::mutex mutex;
-    
     /// @brief container for the player object's instruments
-    std::vector<InstrumentHandle> instruments;
-    offset_t offset;
-    offset_t offset_end;
-    guint sourceid;
-    guint bus_watch_id;
-    guint last_hint;
+    std::vector<InstrumentHandle> instruments_;
+    offset_t current_offset_;
+    offset_t end_offset_;
+    guint push_id_;
+    guint bus_watch_id_;
+    guint last_hint_;
 
     /// @brief callback that actually inserts data into appsrc
     gboolean push_data();
     /// @brief callback that handles appsrc's need-data signal 
-    void need_data(guint);
+    void need_data(guint hint);
     /// @brief callback that handles appsrc's enough-data signal 
     void enough_data();
     /// @brief callback that handles appsrc's seek-data signal 
@@ -86,7 +83,7 @@ protected:
 };
 
 class BadFlowException : public std::exception {
-    std::string message;
+    std::string message_;
 public:
     BadFlowException(const char * cstr);
     BadFlowException(const std::string& str);
@@ -101,10 +98,10 @@ public:
 };
 
 class VorbisPlayer : public Player {
-    GstElement * vorbisencoder;
-    GstElement * oggmuxer;
+    GstElement * vorbisencoder_;
+    GstElement * oggmuxer_;
 public:
-    VorbisPlayer(std::string);    
+    VorbisPlayer(const std::string output_name);    
 
 };
 #endif /* PLAYER_H */

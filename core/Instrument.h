@@ -30,7 +30,7 @@ public:
     offset_t period_i(const Note note) const;
     offset_t rperiod_i(const Note note) const;
 
-    offset_t stream_end() const;
+    position_t stream_end() const;
 
 protected:
     std::unordered_map<Note, Packet, Note_hash, Note_hash_comp> cache;

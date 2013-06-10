@@ -63,7 +63,7 @@ WaveSynth::WaveSynth(std::initializer_list<Wave> l):
 }
 
 Packet WaveSynth::gen(const Note& note) {
-    Packet ret(note.length());
+    Packet ret(Config::position_to_offset(note.length(),Config::tempo, Config::sample_rate));
     for(int i = 0; i < note.length(); ++i) {
         ret.at(i)=round(note.intensity()*waves_(omega(note) * (i)));
     }

@@ -8,7 +8,7 @@
 
 int main(int argc, char ** argv)
 {
-    auto p = std::make_shared<VorbisPlayer>("test.ogg");
+    auto p = std::make_shared<LocalPlayer>();
     auto wg = std::make_shared<WaveSynth>("data");
     auto note_length = Config::sample_rate/4;
     Sample note_intensity = Config::max_intensity/4;

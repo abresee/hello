@@ -6,12 +6,14 @@
 #include "global.h"
 
 
+
 class Note {
 public:
-    Note(int pc_init, int octave_init, Sample intensity_init, offset_t pos_init, offset_t len_init);
+    Note(int pc_init, int octave_init, Sample intensity_init, position_t pos_init, position_t len_init);
     
     typedef int (Note::* int_void_const)() const;
-    typedef offset_t (Note::* offset_void_const)() const;
+    typedef position_t (Note::* position_void_const)() const;
+    
 
     int pitch_class() const;
     int pitch_class(int ref) const;
@@ -19,18 +21,16 @@ public:
     int octave() const;
     int octave(int ref) const;
 
-    offset_t position() const;
-    offset_t position(offset_t ref) const;
-
-    offset_t off() const;
-    offset_t off(offset_t ref) const;
+    position_t position() const;
+    position_t position(position_t ref) const;
+    position_t end() const;
+    position_t end(position_t red) const;
 
     //note length is consistent in all reference frames, so no overload
-    offset_t length() const;
+    position_t length() const;
     //no such thing as frame of reference for "intensity" -- the scale is by definition absolute, so no need to overload this one either
     Sample intensity() const;
 
-    const offset_t& ref() const;
     bool operator<(const Note&) const;
     bool operator==(const Note&) const;
 
@@ -40,8 +40,8 @@ private:
 
     Sample intensity_;
 
-    offset_t pos_;
-    offset_t length_;
+    position_t pos_;
+    position_t length_;
 }; 
 
 struct Note_hash_comp{
@@ -56,9 +56,8 @@ struct Note_hash_comp{
 
 struct Note_hash {
     size_t operator()(const Note& note) const {
-        return std::hash<std::tuple<int,int,Sample,offset_t>>()(
-            std::make_tuple(
-                note.pitch_class(),note.octave(),note.intensity(),note.length()));
+            return boost::hash_value(std::make_tuple(
+                note.pitch_class(),note.octave(),note.intensity(),boost::rational_cast<double>(note.length())));
     }
 };
 #endif /* NOTE_H */

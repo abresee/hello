@@ -65,8 +65,8 @@ offset_t Instrument::rperiod_i(const Note n) const {
     return Config::sample_rate*rperiod(n);
 }
 
-offset_t Instrument::stream_end() const {
-    return notes_.back().off(); 
+position_t Instrument::stream_end() const {
+    return notes_.back().end(); 
 }
 
 Sample Instrument::round(double t) const {
@@ -83,8 +83,8 @@ Sample Instrument::round(double t) const {
 void Instrument::render_note(Packet& packet, const Note& note, const offset_t start_offset) {
     const Packet note_packet = cache.at(note); 
 
-    const offset_t note_begin_output_index = note.position(start_offset);
-    const offset_t note_end_output_index = note.position(start_offset)+note.length();
+    const offset_t note_begin_output_index = Config::position_to_offset(note.position(),Config::tempo, Config::sample_rate) - start_offset;
+    const offset_t note_end_output_index = note_begin_output_index + Config::position_to_offset(note.length(),Config::tempo, Config::sample_rate);
 
     const offset_t begin_output_index = 
         (note_begin_output_index < 0) ? 0 : note_begin_output_index;

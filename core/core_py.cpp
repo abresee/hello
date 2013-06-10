@@ -6,8 +6,8 @@
 
 Note::int_void_const pc = &Note::pitch_class;
 Note::int_void_const oct = &Note::octave;
-Note::offset_void_const pos = &Note::position;
-Note::offset_void_const off_ptr= &Note::off;
+Note::position_void_const pos = &Note::position;
+Note::position_void_const end_ptr= &Note::end;
 Instrument::void_Note add_note = &Instrument::add_note;
 
 BOOST_PYTHON_MODULE(core_py)
@@ -22,7 +22,7 @@ BOOST_PYTHON_MODULE(core_py)
         .add_property("octave", oct)
         .add_property("intensity", &Note::intensity)
         .add_property("position",pos)
-        .add_property("off",off_ptr)
+        .add_property("end",end_ptr)
         .add_property("length",&Note::length);
 
     class_<Instrument,InstrumentHandle,boost::noncopyable>("Instrument", "Abstract base class",no_init)
