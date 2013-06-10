@@ -169,12 +169,11 @@ def event_container_dragstop(request, project_name, usernames):
         e.position_top = request.POST['position_top']
         e.save()
         
+        print("HAHAHAHAHAHA", request.POST)
         position_list = []
         positions = request.POST.getlist('note_position[]')
         for position in positions:
             position_list.append(position)
-        print('LOLOLOL')
-        print(position_list)
         
         count = 0
         notes = e.note_set.all()
