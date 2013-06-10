@@ -591,9 +591,9 @@ $(document).ready(function(){
         .width({{window.window_length}})
         .draggable({containment: [149, 90, $('.track_window').width(), max_y], snap: '.track_window', snapMode:'inner', snapTolerance:70})
         .resizable({minHeight:76, maxHeight:76, handles: "e"})
-	.data("music_container_offset_previous", 0)
-	.data("music_container_offset", 0)
-	.data("first_pos", {{window.position_left}})
+        .data("music_container_offset_previous", 0)
+        .data("music_container_offset", 0)
+        .data("first_pos", {{window.position_left}})
         .contextmenu(function(){
             $('.note').each(function(){
                 if ($(this).data("piano_roll") == active_piano_roll){
@@ -639,79 +639,69 @@ $(document).ready(function(){
 		count = 0;
 		active_piano_roll = $(this).attr("id");
 		
-		
 		$(this).detach();
 		$('#track_num_'+ drag_stop_window_number).append($(this));
 		$(this).removeData("track_number");
 		$(this).data("track_number", drag_stop_window_number)
 		.data("position_left", (Math.ceil($(this).position.left / 10)) - 15);		
-		if ($(this).data("music_container_offset_previous") == 0){
+		
+		//DOUBLE-CLICK FUNCTION*******************************
+		if (window_drag == 1){ 
+		    $('#windowdrag').show();
+            track_numberz = $(this).data("track_number");
+            $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+	   	if ($(this).data("music_container_offset_previous") == 0){
 			music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
-			first = 0;
-			//need to compensate for this!!
 		}else{	
 			$(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
 			music_container_offset = $(this).data("music_container_offset");
 			music_container_offset_previous = $(this).data("music_container_offset_previous");
 		}
-		
-		track_numberz = $(this).data("track_number");
-
-		$('.note').each(function(e, ui){
-			    if ($(this).data("piano_roll") == active_piano_roll){
-				$(this).removeData("track_number")
-				.data("track_number", track_numberz);
-			    }
-			    if ($(this).data("track_number") == track_numberz){
-				if ($(this).data("piano_roll") == active_piano_roll){
-				    $(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
-				    .data("position_left", $(this).data("position_left") + $(this).data("offset"))
-				    .data("positionx", ($(this).data("position_left") / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
-				    note_positions[count] = $(this).data("position_left");
-				    count += 1;
-				}
-			    }
-		    });
-		
-		//DOUBLE-CLICK FUNCTION*******************************
-		if (window_drag == 1){ 
-		    $('#windowdrag').show();
-		    track_numberz = $(this).data("track_number");
-						    
-		    $('.note').each(function(e, ui){
-			    if ($(this).data("track_number") == track_numberz){
-				if ($(this).data("piano_roll") == active_piano_roll){
-				    $(this).css({left: $(this).data("position_left") })
-				    .css('background', '#9999cc')
-				    .css('opacity', '1.0')
-				    if ($(this).is('.ui-selected')){
-					$(this).css('background-color', '#330066');
-				    }
-				}else{
-				    $(this).css('background-color', 'gray')
-				    .css('opacity', '0.4');
-				}
-			    }else{
-				$(this).css('visibility', 'hidden')
-				.css('z-index', '-1'); 
-			    }
-		    });
-
-		    $('.time_column').each(function(){
-			$(this).css('background-color', '#cccccc')
-			.css('opacity', '0.5');
-		    });
-		    count = 0;
-		    while (count < 500){
-			if (count > (Math.ceil($(this).position().left / 10)) - 15){
-			    if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
-				$('#column_num_'+ count)
-				.css('background-color', 'transparent')
-				.css('opacity', '1.0');
-			    }
-			}
-			count += 1;
-		    }
+            //music_container_offset_previous = $(this).data("music_container_offset_previous");
+            active_piano_roll = $(this).attr("id");
+            $('.note').each(function(e, ui){
+                    $(this).css('visibility', 'visible')
+                    .css('z-index', '3');
+                    if ($(this).data("track_number") == track_numberz){
+                        if ($(this).data("piano_roll") == active_piano_roll){
+                            $(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+                            .css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
+                            .css('background', '#9999cc')
+                            .css('opacity', '1.0')
+                            .data("position_left", $(this).position().left)
+                            .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+                            
+                            note_positions[count] = $(this).data("position_left");
+                            count += 1;
+                            
+                            if ($(this).is('.ui-selected')){
+                                $(this).css('background-color', '#330066');
+                            }
+                        }else{
+                            $(this).css('background-color', 'gray')
+                            .css('opacity', '0.4');
+                        }
+                    }else{
+                        $(this).css('visibility', 'hidden')
+                        .css('z-index', '-1'); 
+                    }
+            });
+            $('.time_column').each(function(){
+                $(this)
+                .css('background-color', '#cccccc')
+                .css('opacity', '0.5');
+            });
+            count = 0;
+            while (count < 500){
+                if (count > (Math.ceil($(this).position().left / 10)) - 15){
+                    if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+                        $('#column_num_'+ count)
+                        .css('background-color', 'transparent')
+                        .css('opacity', '1.0');
+                    }
+                }
+                count += 1;
+            }
 		}
 		
 		
