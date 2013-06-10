@@ -1,6 +1,6 @@
 import re
 from math import floor
-#test
+
 from django.shortcuts import render, redirect
 from django.db import models
 from project_view.forms import RegisterForm
