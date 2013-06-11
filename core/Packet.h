@@ -13,9 +13,13 @@ public:
     typedef Packet_::const_iterator const_iterator;
     typedef Packet_::reverse_iterator reverse_iterator;
     typedef Packet_::const_reverse_iterator const_reverse_iterator;
+
+    typedef const Sample& (Packet::* const_sample_ref_sizetype_const)(size_type) const;
+    typedef Sample& (Packet::* sample_ref_sizetype)(size_type);
+
     Packet() : packet_() {}
-    Packet(const size_type size);   
-    Packet(const size_type size, Sample sample);
+    Packet(const size_type& size);   
+    Packet(const size_type& size, const Sample& sample);
 
     size_type size() const; 
     void reserve(size_type size);

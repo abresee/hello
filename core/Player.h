@@ -3,8 +3,6 @@
 #include <vector>
 #include <functional>
 #include <cmath>
-#include <exception>
-#include <boost/shared_ptr.hpp>
 #include <boost/utility.hpp>
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
@@ -62,8 +60,8 @@ protected:
 
     /// @brief container for the player object's instruments
     std::vector<InstrumentHandle> instruments_;
-    offset_t current_offset_;
-    offset_t end_offset_;
+    Offset current_offset_;
+    Offset end_offset_;
     guint push_id_;
     guint bus_watch_id_;
     guint last_hint_;
@@ -75,33 +73,12 @@ protected:
     /// @brief callback that handles appsrc's enough-data signal 
     void enough_data();
     /// @brief callback that handles appsrc's seek-data signal 
-    gboolean seek_data(offset_t);
+    gboolean seek_data(Offset);
 
     gboolean bus_callback(GstBus * bus, GstMessage * message);
     void eos_callback();
 
 };
 
-class BadFlowException : public std::exception {
-    std::string message_;
-public:
-    BadFlowException(const char * cstr);
-    BadFlowException(const std::string& str);
-    virtual const char * what();
-};
-
 typedef std::shared_ptr<Player> PlayerHandle;
-
-class LocalPlayer : public Player {
-public:
-    LocalPlayer();
-};
-
-class VorbisPlayer : public Player {
-    GstElement * vorbisencoder_;
-    GstElement * oggmuxer_;
-public:
-    VorbisPlayer(const std::string output_name);    
-
-};
 #endif /* PLAYER_H */

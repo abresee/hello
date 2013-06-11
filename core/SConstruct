@@ -1,24 +1,36 @@
 # vim: set syntax=python
 import os
 
-boostincl=' -I'+os.environ.get('BOOSTINCL','')
-boostlibs=' -L'+os.environ.get('BOOSTLIBS','')
+core = [
+    'Packet',
+    'Player', 
+    'LocalPlayer',
+    'VorbisPlayer',
+    'Instrument', 
+    'WaveSynth', 
+    'Note',
+    'Sample',
+    'Time',
+    'Offset',
+    'Beat',
+    'BadFlowException'
+]
 
-core_sources = ['Packet.cpp','Player.cpp', 'Instrument.cpp', 'WaveSynth.cpp', 'Note.cpp','global.cpp']
+core_sources = [i+'.cpp' for i in core]
+py_sources = ['note_core.cpp'] + [i+'_py.cpp' for i in core]
 
 env=Environment()
-env['CXX']=os.environ.get('CXX','g++')
 
 env.ParseConfig('pkg-config gstreamer-1.0 gstreamer-plugins-base-1.0 --cflags --libs')
 env.MergeFlags({ 
-     'CXXFLAGS': ['-std=c++1y']
+     'CXXFLAGS': ['-std=c++1y', '-Wfatal-errors']
     ,'CCFLAGS' : ['-g']
 })
 env.Append(LIBS='gstapp-1.0')
 env_py=env.Clone()
 
 env_py.ParseConfig('python3.3-config --cflags --ldflags')
-env_py.MergeFlags(env.ParseFlags('-fPIC '+boostincl+' '+boostlibs+' -lboost_python3'))
+env_py.MergeFlags(env.ParseFlags('-fPIC -lboost_python3'))
 
 env_py['CCFLAGS'].remove('-Wstrict-prototypes')
 env_py['CCFLAGS'].remove('-O2')
@@ -26,7 +38,5 @@ env_py['CCFLAGS'].remove('-g')
 env_py['CPPDEFINES'].remove('NDEBUG')
 
 prelude=env.Program('prelude',core_sources+['demos/prelude.cpp'])
-chromatic=env.Program('chromatic',core_sources+['demos/chromatic.cpp'])
-note_test=env.Program('note_test',['Note.cpp','tests/Note_test.cpp'])
 
-hello_gstreamer_so=env_py.SharedLibrary('core_py',core_sources+['core_py.cpp'],SHLIBPREFIX='',SHLIBSUFFIX='.so')
+note_core_so=env_py.SharedLibrary('note_core',core_sources+py_sources,SHLIBPREFIX='',SHLIBSUFFIX='.so')

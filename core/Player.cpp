@@ -3,6 +3,8 @@
 #include <memory>
 #include <boost/assert.hpp>
 #include "Player.h"
+#include "Time.h"
+#include "BadFlowException.h"
 
 const char * Player::format_ = "S16LE";
 
@@ -32,7 +34,7 @@ void Player::util::wrap_enough_data(GstAppSrc * src, gpointer instance) {
 
 gboolean Player::util::wrap_seek_data(GstAppSrc * element, guint64 destination, gpointer instance) {
     Player * this_ = static_cast<Player *>(instance);
-    return this_->seek_data(destination);
+    return this_->seek_data(Offset(destination));
 }
 
 gboolean Player::util::wrap_push_data(gpointer instance) {
@@ -50,13 +52,13 @@ void Player::add_instrument(InstrumentHandle instrument_h) {
 }
 
 void Player::play() {   
-    position_t stream_end=0;
+    Beat stream_end(0);
     for(auto instrument_h : instruments_) { 
         stream_end = std::max(stream_end,instrument_h->stream_end());
     }
-    end_offset_ = Config::position_to_offset(stream_end, Config::tempo, Config::sample_rate);
+    end_offset_ = stream_end.to_offset(Config::tempo, Config::sample_rate);
     
-    g_object_set(G_OBJECT(appsrc_),"size",end_offset_*Config::word_size,nullptr);
+    g_object_set(G_OBJECT(appsrc_),"size",end_offset_.value()*Config::word_size,nullptr);
     gst_element_set_state (pipeline_, GST_STATE_PLAYING);
     g_main_loop_run (loop_);
 }
@@ -121,8 +123,8 @@ gboolean Player::push_data() {
         return false;
     }
     
-    const Packet::size_type packet_size = ((current_offset_+last_hint_) < end_offset_) ? last_hint_ : end_offset_ - current_offset_ ; 
-    Packet data(packet_size);
+    Offset packet_size = ((current_offset_+last_hint_) < end_offset_) ? last_hint_ : end_offset_ - current_offset_ ; 
+    Packet data(packet_size.value());
 
     for (InstrumentHandle instrument_h : instruments_) {
         data+=instrument_h->get_samples(current_offset_,current_offset_+packet_size);
@@ -131,10 +133,10 @@ gboolean Player::push_data() {
     GstBuffer * buffer = gst_buffer_new_allocate(
         nullptr, data.size()*Config::word_size, nullptr);
 
-    GST_BUFFER_PTS(buffer) = Config::offset_to_ns(current_offset_,Config::sample_rate);
-    GST_BUFFER_DURATION(buffer) = Config::offset_to_ns(packet_size,Config::sample_rate);
-    GST_BUFFER_OFFSET(buffer) = current_offset_;
-    GST_BUFFER_OFFSET_END(buffer) = current_offset_+packet_size;
+    GST_BUFFER_PTS(buffer) = current_offset_.to_time(Config::sample_rate).value();
+    GST_BUFFER_DURATION(buffer) = packet_size.to_time(Config::sample_rate).value();
+    GST_BUFFER_OFFSET(buffer) = current_offset_.value();
+    GST_BUFFER_OFFSET_END(buffer) = (current_offset_+packet_size).value();
 
     auto size = data.size() * Config::word_size;
     auto rsize = gst_buffer_fill(buffer, 0, static_cast<void *>(data.data()), size);
@@ -162,7 +164,7 @@ void Player::enough_data() {
     }
 }
 
-gboolean Player::seek_data(offset_t destination) {
+gboolean Player::seek_data(Offset destination) {
     //TODO: IMPLEMENT THIS
     return true;
 }
@@ -193,33 +195,3 @@ Player::~Player() {
     gst_object_unref (GST_OBJECT (pipeline_));
     g_main_loop_unref (loop_);
 }
-
-LocalPlayer::LocalPlayer() {
-
-    util::build_gst_element(audiosink_,"autoaudiosink","output");
-    gst_bin_add(GST_BIN(pipeline_),audiosink_);
-    gst_element_link(conv_, audiosink_);
-}
-
-VorbisPlayer::VorbisPlayer(const std::string output_name) {
-    util::build_gst_element(vorbisencoder_,"vorbisenc", "encoder");
-    util::build_gst_element(oggmuxer_,"oggmux", "muxer");
-    util::build_gst_element(audiosink_, "filesink", "sink");
-
-    g_object_set(G_OBJECT(audiosink_),"location",output_name.c_str(),nullptr);
-    gst_bin_add_many(GST_BIN(pipeline_),vorbisencoder_,oggmuxer_,audiosink_,nullptr);
-    gst_element_link_many(conv_,vorbisencoder_,oggmuxer_,audiosink_,nullptr);
-}
-    
-BadFlowException::BadFlowException(const char * cstr):
-    message_(cstr) { 
-}
-
-BadFlowException::BadFlowException(const std::string& str):
-    message_(str) {
-}
-
-const char * BadFlowException::what() {
-    return message_.c_str();
-}
-

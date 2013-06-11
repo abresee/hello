@@ -10,17 +10,17 @@ Instrument::Instrument(): notes_() {}
 
 Instrument::Instrument(std::string dumpname): notes_(), dump_(dumpname) {}
 
-Packet Instrument::get_samples(const offset_t start_offset, const offset_t end_offset) {
+Packet Instrument::get_samples(const Offset start_offset, const Offset end_offset) {
     std::vector<Note> notes_to_get;
     for(Note note : notes_) {
         if(
-            (Config::position_to_offset(note.end(), Config::tempo, Config::sample_rate) > start_offset) &&
-            (Config::position_to_offset(note.position(), Config::tempo, Config::sample_rate) < end_offset)) { 
+            (note.end().to_offset(Config::tempo, Config::sample_rate) > start_offset) &&
+            (note.position().to_offset(Config::tempo, Config::sample_rate) < end_offset)) { 
             notes_to_get.push_back(note);
         }
     }
 
-    Packet ret(Packet::size_type(end_offset-start_offset)); 
+    Packet ret((end_offset-start_offset).value()); 
     for(Note note : notes_to_get) {
         render_note(ret,note,start_offset);
     }
@@ -42,7 +42,7 @@ void Instrument::add_notes(const Notes& notes) {
 }
 
 double Instrument::omega(const Note n) const {
-    return  2 * M_PI * frequency(n) / Config::sample_rate;
+    return  2 * M_PI * frequency(n) / Config::sample_rate.value();
 }
 
 double Instrument::frequency(const Note n) const {
@@ -58,16 +58,16 @@ double Instrument::rperiod(const Note n) const {
     return 1.0/omega(n);
 }
 //TODO: ensure this rounds consistently, create an actual converter object
-offset_t Instrument::period_i(const Note n) const {
-    auto ret = Config::sample_rate*period(n); 
-    return static_cast<offset_t>(ret);
+Offset Instrument::period_i(const Note n) const {
+    Offset ret(Config::sample_rate.value()*period(n)); 
+    return ret;
 }
 
-offset_t Instrument::rperiod_i(const Note n) const {
-    return Config::sample_rate*rperiod(n);
+Offset Instrument::rperiod_i(const Note n) const {
+    return Config::sample_rate.value()*rperiod(n);
 }
 
-position_t Instrument::stream_end() const {
+Beat Instrument::stream_end() const {
     return notes_.back().end(); 
 }
 
@@ -82,21 +82,23 @@ Sample Instrument::round(double t) const {
     return typeconverter(t); 
 }
 
-void Instrument::render_note(Packet& packet, const Note& note, const offset_t start_offset) {
+void Instrument::render_note(Packet& packet, const Note& note, const Offset start_offset) {
     const Packet note_packet = cache.at(note); 
 
-    const offset_t note_begin_output_index = Config::position_to_offset(note.position(),Config::tempo, Config::sample_rate) - start_offset;
-    const offset_t note_end_output_index = note_begin_output_index + Config::position_to_offset(note.length(),Config::tempo, Config::sample_rate);
+    const Offset note_begin_output_index = note.position().to_offset(Config::tempo, Config::sample_rate) - start_offset;
+    const Offset note_end_output_index = note_begin_output_index + note.length().to_offset(Config::tempo, Config::sample_rate);
 
-    const offset_t begin_output_index = 
+    const Offset begin_output_index = 
         (note_begin_output_index < 0) ? 0 : note_begin_output_index;
-    const offset_t end_output_index = 
+    const Offset end_output_index = 
         (note_end_output_index > packet.size()) ? packet.size() : note_end_output_index;
+    std::cout<<"note: "<<note_begin_output_index.value()<<" "<<note_end_output_index.value()<<std::endl;
+    std::cout<<"index: "<<begin_output_index.value()<<" "<<end_output_index.value()<<std::endl;
     BOOST_ASSERT(begin_output_index < end_output_index);
 
-    const offset_t index_offset = note_begin_output_index;
-    for(auto i = begin_output_index; i < end_output_index; ++i) {
-        packet.at(i) += note_packet.at(i-index_offset); 
+    const Offset index_offset = note_begin_output_index;
+    for(int i = begin_output_index.value(); i < end_output_index.value(); ++i) {
+        packet.at(i) += note_packet.at(i-index_offset.value()); 
         dump_<<packet.at(i)<<" ";
     }
 }

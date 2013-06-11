@@ -1,18 +1,17 @@
 #ifndef NOTE_H
 #define NOTE_H 
 #include <gst/gst.h>
+#include <boost/functional/hash.hpp>
 #include <functional>
 #include <tuple>
 #include "global.h"
 
-
-
 class Note {
 public:
-    Note(int pc_init, int octave_init, Sample intensity_init, position_t pos_init, position_t len_init);
+    Note(int pc_init, int octave_init, Sample intensity_init, Beat pos_init, Beat len_init);
     
     typedef int (Note::* int_void_const)() const;
-    typedef position_t (Note::* position_void_const)() const;
+    typedef Beat (Note::* beat_void_const)() const;
     
 
     int pitch_class() const;
@@ -21,13 +20,13 @@ public:
     int octave() const;
     int octave(int ref) const;
 
-    position_t position() const;
-    position_t position(position_t ref) const;
-    position_t end() const;
-    position_t end(position_t red) const;
+    Beat position() const;
+    Beat position(Beat ref) const;
+    Beat end() const;
+    Beat end(Beat red) const;
 
     //note length is consistent in all reference frames, so no overload
-    position_t length() const;
+    Beat length() const;
     //no such thing as frame of reference for "intensity" -- the scale is by definition absolute, so no need to overload this one either
     Sample intensity() const;
 
@@ -40,8 +39,8 @@ private:
 
     Sample intensity_;
 
-    position_t pos_;
-    position_t length_;
+    Beat pos_;
+    Beat length_;
 }; 
 
 struct Note_hash_comp{
@@ -57,7 +56,7 @@ struct Note_hash_comp{
 struct Note_hash {
     size_t operator()(const Note& note) const {
             return boost::hash_value(std::make_tuple(
-                note.pitch_class(),note.octave(),note.intensity(),boost::rational_cast<double>(note.length())));
+                note.pitch_class(),note.octave(),note.intensity().value(),note.length().as_double()));
     }
 };
 #endif /* NOTE_H */

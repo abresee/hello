@@ -2,7 +2,7 @@
 #include <memory>
 #include <iostream>
 #include <stdexcept>
-#include "../Player.h"
+#include "../VorbisPlayer.h"
 #include "../Instrument.h"
 #include "../WaveSynth.h"
 
@@ -10,8 +10,8 @@ int main(int argc, char ** argv)
 {
     auto p = std::make_shared<VorbisPlayer>("prelude_cpp.ogg");
     auto wg = std::make_shared<WaveSynth>("data");
-    position_t note_length(1,2);
-    Sample note_intensity = Config::max_intensity/4;
+    Beat note_length(1,2);
+    Sample note_intensity = Sample::max_intensity;
 
     WaveSynth::Notes notes;
     int note_count=0;
