@@ -6,7 +6,7 @@ p = VorbisPlayer("prelude_py.ogg")
 wg = WaveSynth()
 
 note_length = Beat(1,2) 
-note_intensity = Sample.max_intensity//2
+note_intensity = Sample.max_intensity()/2
 scale_degrees = [0, 2, 4, 7]
 octave_count = 4
 notes = []

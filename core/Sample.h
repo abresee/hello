@@ -9,7 +9,7 @@ public:
     Sample(int16_t sample_initializer);
     typedef int16_t underlying;
     underlying value() const;
-    const static Sample max_intensity;
+    static Sample max_intensity();
     bool operator==(const Sample& other) const;
     bool operator<(const Sample& other) const;
     bool operator>(const Sample& other) const;
