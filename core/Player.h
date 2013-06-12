@@ -35,6 +35,7 @@ protected:
         static gboolean wrap_push_data(gpointer instance);
         static gboolean wrap_bus_callback (GstBus *bus, GstMessage *message, gpointer instance);
     };
+
     Player();
     explicit Player(const Offset& sample_rate_init);
     explicit Player(const double freq_reference_init);
