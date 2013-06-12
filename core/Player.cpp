@@ -7,7 +7,9 @@
 #include "BadFlowException.h"
 
 const char * Player::format_ = "S16LE";
-
+/////////////////////////////////////
+//Player::util inner class definition
+/////////////////////////////////////
 void Player::util::initialize_gst() {
     GError *err;
     if(!gst_init_check(nullptr,nullptr,&err)) {
@@ -47,38 +49,40 @@ gboolean Player::util::wrap_bus_callback(GstBus * bus, GstMessage * message, gpo
     return this_->bus_callback(bus,message);
 }
 
-void Player::add_instrument(InstrumentHandle instrument_h) {
-    instruments_.push_back(instrument_h);
+/////////////////////////
+//Player class definition
+/////////////////////////
+Player::Player():
+    Player(Offset(44100),220.0) {
 }
 
-void Player::play() {   
-    Beat stream_end(0);
-    for(auto instrument_h : instruments_) { 
-        stream_end = std::max(stream_end,instrument_h->stream_end());
-    }
-    end_offset_ = stream_end.to_offset(Config::tempo, Config::sample_rate);
-    
-    g_object_set(G_OBJECT(appsrc_),"size",end_offset_.value()*Config::word_size,nullptr);
-    gst_element_set_state (pipeline_, GST_STATE_PLAYING);
-    g_main_loop_run (loop_);
+Player::Player(const Offset& sample_rate_init):
+    Player(sample_rate_init,220.0) {
 }
 
-void Player::eos() {
-    GstFlowReturn r = gst_app_src_end_of_stream(GST_APP_SRC(appsrc_));
-    if (r!=GST_FLOW_OK) {
-        throw BadFlowException("bad flow on end of stream");
-    }
+Player::Player(const double freq_reference_init):
+    Player(Offset(44100),freq_reference_init) {
 }
 
-void Player::quit() {
-    gst_element_set_state(pipeline_, GST_STATE_NULL);
-    g_main_loop_quit(loop_);
-}
+Player::Player(const Offset& sample_rate_init, const double freq_reference_init):
+    sample_rate_(sample_rate_init),
+    freq_reference_(freq_reference_init),
+    pipeline_(),
+    appsrc_(),
+    conv_(),
+    audiosink_(),
+    loop_(),
+    instruments_(),
+    current_offset_(),
+    end_offset_(),
+    push_id_(),
+    bus_watch_id_(),
+    last_hint_(0) {
 
-Player::Player() : pipeline_(), appsrc_(), conv_(), audiosink_(), loop_(), instruments_(), current_offset_(), end_offset_(), push_id_(), bus_watch_id_(), last_hint_() {
     if(!gst_is_initialized()) {
         util::initialize_gst();
     }
+
     pipeline_ = gst_pipeline_new ("pipeline");
     if(pipeline_==nullptr) {
         std::exit(EXIT_FAILURE);
@@ -116,6 +120,42 @@ Player::Player() : pipeline_(), appsrc_(), conv_(), audiosink_(), loop_(), instr
     GstAppSrcCallbacks callbacks = {util::wrap_need_data, util::wrap_enough_data, util::wrap_seek_data};
     gst_app_src_set_callbacks(GST_APP_SRC(appsrc_), &callbacks, this, nullptr);
 }
+
+void Player::add_instrument(InstrumentHandle instrument_h) {
+    instruments_.push_back(instrument_h);
+}
+
+void Player::play() {   
+    Beat stream_end(0);
+    for(auto instrument_h : instruments_) { 
+        stream_end = std::max(stream_end,instrument_h->stream_end());
+    }
+    end_offset_ = stream_end.to_offset(Config::tempo, Config::sample_rate);
+    
+    g_object_set(G_OBJECT(appsrc_),"size",end_offset_.value()*Config::word_size,nullptr);
+    gst_element_set_state (pipeline_, GST_STATE_PLAYING);
+    g_main_loop_run (loop_);
+}
+
+void Player::eos() {
+    GstFlowReturn r = gst_app_src_end_of_stream(GST_APP_SRC(appsrc_));
+    if (r!=GST_FLOW_OK) {
+        throw BadFlowException("bad flow on end of stream");
+    }
+}
+
+void Player::quit() {
+    gst_element_set_state(pipeline_, GST_STATE_NULL);
+    g_main_loop_quit(loop_);
+}
+
+Offset Player::sample_rate() const {
+    return sample_rate_;
+}
+double Player::freq_reference() const {
+    return freq_reference_;
+}
+
 
 gboolean Player::push_data() {
     if(current_offset_ >= end_offset_) {

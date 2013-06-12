@@ -16,6 +16,6 @@ public:
     Sample operator+(const Sample& other) const;
     Sample& operator+=(const Sample& other);
     Sample operator/(const underlying& other) const;
-    friend std::ostream& operator<<(std::ostream& stream, Sample sample);
 };
+std::ostream& operator<<(std::ostream& stream, const Sample& sample);
 #endif /* SAMPLE_H */

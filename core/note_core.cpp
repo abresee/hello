@@ -16,9 +16,6 @@ void export_BadFlowException();
 
 BOOST_PYTHON_MODULE(note_core)
 {
-    using namespace boost::python;
-    scope().attr("sample_rate") = Config::sample_rate;
-
     export_Packet();
     export_Player();
     export_LocalPlayer();

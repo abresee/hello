@@ -42,25 +42,14 @@ double WaveSynth::Waves::operator()(const double angle) const {
 /////////////////////////////////
 // WaveSynth Class Definition
 /////////////////////////////////
+
 WaveSynth::WaveSynth():
-    waves_(1) { //constructs the "waves_" to have 1 default constructed value ie std::sin)
-} 
-WaveSynth::WaveSynth(std::string s): Instrument(s), waves_(1){}
-WaveSynth::WaveSynth(const Wave& wave_initializer):
-    waves_(1,wave_initializer) {
-}
-WaveSynth::WaveSynth(Wave&& wave_initializer): 
-    waves_(1,std::move(wave_initializer)) {
-}
-WaveSynth::WaveSynth(const Waves& waves_initializer):
-    waves_(waves_initializer) {
-}
-WaveSynth::WaveSynth(Waves&& waves_initializer):
-    waves_(std::move(waves_initializer)) {
-}
-WaveSynth::WaveSynth(std::initializer_list<Wave> l):
-    waves_(l) {
-}
+    Instrument(),
+    waves_(1){}
+
+WaveSynth::WaveSynth(const Offset& sample_rate_init, const double& freq_reference_init, const std::string& dumpname):
+    Instrument(sample_rate_init, freq_reference_init, dumpname),
+    waves_(1){}
 
 Packet WaveSynth::gen(const Note& note) {
     const Offset length = note.length().to_offset(Config::tempo, Config::sample_rate);

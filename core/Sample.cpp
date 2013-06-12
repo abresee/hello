@@ -40,7 +40,7 @@ Sample Sample::operator/(const underlying& other) const {
 
 const Sample Sample::max_intensity(std::numeric_limits<int16_t>::max());
 
-std::ostream& operator<<(std::ostream& stream, Sample sample) {
-    stream<<sample.sample_;
+std::ostream& operator<<(std::ostream& stream, const Sample& sample) {
+    stream<<sample.value();
     return stream;
 }
