@@ -5,7 +5,6 @@
 #include <functional>
 #include <tuple>
 #include "global.h"
-
 class Note {
 public:
     Note(int pc_init, int octave_init, Sample intensity_init, Beat pos_init, Beat len_init);

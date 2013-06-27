@@ -1,6 +1,6 @@
 #include <iostream>
 #include "Note.h"
-
+//heh
 Note::Note(int pc_init, int octave_init, Sample intensity_init, Beat pos_init, Beat len_init): pitch_class_(pc_init), octave_(octave_init), intensity_(intensity_init), pos_(pos_init), length_(len_init) {
 
     using Config::pc_count;

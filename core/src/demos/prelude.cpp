@@ -9,8 +9,10 @@
 int main(int argc, char ** argv)
 {
     auto p = std::make_shared<VorbisPlayer>("prelude_cpp.ogg");
-    auto ws = std::make_shared<WaveSynth>(p->sample_rate(),p->freq_reference(),"wavesynth_dump.txt");
+    auto ws = std::make_shared<WaveSynth>(p->sample_rate(),p->freq_reference(),"wavesynth_dump.log");
+
     Beat note_length(1,2);
+
     Sample note_intensity = Sample::max_intensity()/4;
 
     WaveSynth::Notes notes;

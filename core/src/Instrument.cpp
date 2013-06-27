@@ -130,5 +130,3 @@ void Instrument::do_cache(const Note& note) {
     }
 }
 
-
-
