@@ -52,13 +52,14 @@ WaveSynth::WaveSynth(const Offset& sample_rate_init, const double& freq_referenc
     waves_(1){}
 
 Packet WaveSynth::gen(const Note& note) {
+
     const Offset length = note.length().to_offset(Config::tempo, Config::sample_rate);
     Packet ret(length.value());
     for(int i = 0; i < length.value(); ++i) {
         ret.at(i)=round(note.intensity().value()*waves_(omega(note) * (i)));
     }
-    //const auto fade_len(3*period_i(note).value());
-    //fade(std::make_tuple(ret.begin(),ret.begin()+fade_len));
-    //fade(std::make_tuple(ret.rbegin(),ret.rbegin()+fade_len));
+    const auto fade_len(3*period_i(note).value());
+    fade(std::make_tuple(ret.begin(),ret.begin()+fade_len));
+    fade(std::make_tuple(ret.rbegin(),ret.rbegin()+fade_len));
     return ret;
 }

@@ -76,7 +76,7 @@ Offset Instrument::period_i(const Note& n) const {
 }
 
 Offset Instrument::rperiod_i(const Note& n) const {
-    return Config::sample_rate.value()*rperiod(n);
+    return Offset(Config::sample_rate.value()*rperiod(n));
 }
 
 Beat Instrument::stream_end() const {
@@ -109,9 +109,9 @@ void Instrument::render_note(Packet& packet, const Note& note, const Offset& sta
     const Offset note_end_output_index = note_begin_output_index + note.length().to_offset(Config::tempo, Config::sample_rate);
 
     const Offset begin_output_index = 
-        (note_begin_output_index < 0) ? 0 : note_begin_output_index;
+        (note_begin_output_index < Offset(0)) ? Offset(0) : note_begin_output_index;
     const Offset end_output_index = 
-        (note_end_output_index > packet.size()) ? packet.size() : note_end_output_index;
+        (note_end_output_index > Offset(packet.size())) ? Offset(packet.size()) : note_end_output_index;
     std::cout<<"note: "<<note_begin_output_index.value()<<" "<<note_end_output_index.value()<<std::endl;
     std::cout<<"index: "<<begin_output_index.value()<<" "<<end_output_index.value()<<std::endl;
     BOOST_ASSERT(begin_output_index < end_output_index);

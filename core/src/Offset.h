@@ -8,7 +8,7 @@ class Offset {
 public:
     typedef int64_t underlying;
     Offset();
-    Offset(underlying offset_initializer);
+    explicit Offset(underlying offset_initializer);
     Time to_time(const Offset& sample_rate) const;
     Beat to_beat(const Offset& sample_rate, const Beat& tempo) const;
     bool operator<(const Offset& other) const;
@@ -18,12 +18,8 @@ public:
     bool operator==(const Offset& other) const;
     Offset operator-(const Offset& other) const;
     Offset operator+(const Offset& other) const;
-    Offset operator+(const underlying& other) const;
-    Offset operator+=(const underlying& other);
-    Offset operator*(const underlying& other) const;
+    Offset& operator+=(const Offset& other);
     underlying value() const;
-    double as_double() const;
 };
 
-Offset operator*(const Offset::underlying& lhs, const Offset& rhs);
 #endif /* OFFSET_H */

@@ -163,7 +163,7 @@ gboolean Player::push_data() {
         return false;
     }
     
-    Offset packet_size = ((current_offset_+last_hint_) < end_offset_) ? last_hint_ : end_offset_ - current_offset_ ; 
+    Offset packet_size = ((current_offset_+Offset(last_hint_)) < end_offset_) ? Offset(last_hint_) : end_offset_ - current_offset_ ; 
     Packet data(packet_size.value());
 
     for (InstrumentHandle instrument_h : instruments_) {
@@ -186,7 +186,7 @@ gboolean Player::push_data() {
     if ( ret != GST_FLOW_OK) {
         throw BadFlowException("bad flow while pushing buffer");
     }
-    current_offset_+=data.size();
+    current_offset_+=Offset(data.size());
     return true;
 }
 
