@@ -1,6 +1,7 @@
 #include <iterator>
 #include <iostream>
 #include <memory>
+#include <future>
 #include <boost/assert.hpp>
 #include "Player.h"
 #include "Time.h"
@@ -134,7 +135,13 @@ void Player::play() {
     
     g_object_set(G_OBJECT(appsrc_),"size",end_offset_.value()*Config::word_size,nullptr);
     gst_element_set_state (pipeline_, GST_STATE_PLAYING);
-    g_main_loop_run (loop_);
+    main_loop_done_ = std::async(std::launch::async,
+        [this]()
+            { return g_main_loop_run (loop_); });
+}
+
+void Player::wait_until_ready() {
+    main_loop_done_.get(); 
 }
 
 void Player::eos() {

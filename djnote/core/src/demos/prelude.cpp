@@ -32,4 +32,5 @@ int main(int argc, char ** argv)
     ws->add_notes(notes);
     p->add_instrument(ws);
     p->play();
+    p->wait_until_ready();
 }

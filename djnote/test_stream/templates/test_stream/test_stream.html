@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {% load staticfiles %}
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="{% static "test_stream/test.js" %}"></script>
+    </head>
+    <body onload='initialize()'>
+        <audio controls>
+            <source id="test_source" type="audio/ogg" preload="none">
+        </audio>
+    </body>
+</html>

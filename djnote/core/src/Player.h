@@ -3,6 +3,7 @@
 #include <vector>
 #include <functional>
 #include <cmath>
+#include <future>
 #include <boost/utility.hpp>
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
@@ -16,6 +17,7 @@ class Player : public boost::noncopyable {
 public: 
     void add_instrument(InstrumentHandle instrument);
     void play();
+    void wait_until_ready();
     void eos();
     void quit();
 
@@ -65,6 +67,7 @@ protected:
     guint push_id_;
     guint bus_watch_id_;
     guint last_hint_;
+    std::future<void> main_loop_done_;
 
 };
 
