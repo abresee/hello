@@ -48,10 +48,14 @@ $.ajaxSetup({
 });
 
 //End AJAX csrf boilerplate
+
 function initialize() {
     $.get("is_ready",
         function(data) {
-            alert(data);
+            var aud = $("#test_player")[0];
+            $("#test_source").attr("src",data);
+            aud.load();
+            aud.play();
         }
     )
 }

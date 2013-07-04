@@ -3,7 +3,7 @@ import note_core
 
 p = VorbisPlayer("prelude_py.ogg")
 
-wg = WaveSynth()
+ws = WaveSynth()
 
 note_length = Beat(1,2) 
 note_intensity = Sample.max_intensity()/2
@@ -33,7 +33,7 @@ for octave in reversed(range(octave_count)):
             Note(v,octave,note_intensity,note_s.__next__(),note_length)) 
 
 for note in notes:
-    wg.add_note(note) 
+    ws.add_note(note) 
 
-p.add_instrument(wg)
+p.add_instrument(ws)
 p.play()

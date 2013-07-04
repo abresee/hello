@@ -112,8 +112,6 @@ void Instrument::render_note(Packet& packet, const Note& note, const Offset& sta
         (note_begin_output_index < Offset(0)) ? Offset(0) : note_begin_output_index;
     const Offset end_output_index = 
         (note_end_output_index > Offset(packet.size())) ? Offset(packet.size()) : note_end_output_index;
-    std::cout<<"note: "<<note_begin_output_index.value()<<" "<<note_end_output_index.value()<<std::endl;
-    std::cout<<"index: "<<begin_output_index.value()<<" "<<end_output_index.value()<<std::endl;
     BOOST_ASSERT(begin_output_index < end_output_index);
 
     const Offset index_offset = note_begin_output_index;
