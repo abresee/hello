@@ -1,4 +1,4 @@
-# Django settings for djnote project.
+# Django settings for note project.
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -111,10 +111,10 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'djnote.urls'
+ROOT_URLCONF = 'note.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'djnote.wsgi.application'
+WSGI_APPLICATION = 'note.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
