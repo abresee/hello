@@ -43,10 +43,6 @@ double WaveSynth::Waves::operator()(const double angle) const {
 // WaveSynth Class Definition
 /////////////////////////////////
 
-WaveSynth::WaveSynth():
-    Instrument(),
-    waves_(1){}
-
 WaveSynth::WaveSynth(const Offset& sample_rate_init, const double& freq_reference_init, const std::string& dumpname):
     Instrument(sample_rate_init, freq_reference_init, dumpname),
     waves_(1){}

@@ -11,64 +11,88 @@
 #include "global.h"
 
 /// @brief master class to handle audio generation and playback
-class Player : public boost::noncopyable {
+class Player : public boost::noncopyable, public std::enable_shared_from_this<Player> {
     static const char * format_;
 
 public: 
-    void add_instrument(InstrumentHandle instrument);
+    enum BackendType {local,vorbis};
+    Player(BackendType backend_type, const Offset& sample_rate_init, const double freq_reference_init, const std::string& output_name);
     void play();
-    void wait_until_ready();
+    void add_instrument(InstrumentHandle instrument);
+    std::string wait_until_ready();
     void eos();
     void quit();
-
     Offset sample_rate() const;
     double freq_reference() const;
 
-    virtual ~Player();
-
 protected:
-    class util {
-    public:
-        static void initialize_gst();
+    void need_data(guint hint);
+    void enough_data();
+    gboolean seek_data(Offset);
+    gboolean push_data();
+
+    class Backend {
+    protected:
         static void build_gst_element(GstElement * &element, const char * kind, const char * name);
+
         static void wrap_need_data(GstAppSrc * element, guint length, gpointer instance);
         static void wrap_enough_data(GstAppSrc * element, gpointer instance);
         static gboolean wrap_seek_data(GstAppSrc * element, guint64 destination, gpointer instance);
         static gboolean wrap_push_data(gpointer instance);
         static gboolean wrap_bus_callback (GstBus *bus, GstMessage *message, gpointer instance);
+
+        void need_data(guint hint);
+        void enough_data();
+        gboolean seek_data(Offset);
+        gboolean bus_callback(GstBus * bus, GstMessage * message);
+
+        GstElement * pipeline_;
+        GstElement * appsrc_;
+        GstElement * conv_;
+        GstElement * audiosink_;
+        GMainLoop * loop_;
+        guint push_id_;
+        guint bus_watch_id_;
+        guint last_hint_;
+        std::future<void> main_loop_done_;
+        Player * player_;
+
+    public:
+        Backend(Player * player);
+        virtual ~Backend();
+        bool push_data(Packet& data, Offset current_offset);
+        void play(Offset);
+        void eos();
+        void quit();
+        virtual void wait_until_ready() = 0;
+        virtual std::string where()=0;
     };
 
-    Player();
-    explicit Player(const Offset& sample_rate_init);
-    explicit Player(const double freq_reference_init);
-    Player(const Offset& sample_rate_init, const double freq_reference_init);
+    class LocalBackend : public Backend {
+    public:
+        LocalBackend(Player * player);
+        virtual void wait_until_ready() override;
+        virtual std::string where() override;
+    };
 
-    gboolean push_data();
-    void need_data(guint hint);
-    void enough_data();
-    gboolean seek_data(Offset);
-    gboolean bus_callback(GstBus * bus, GstMessage * message);
-
-    void eos_callback();
+    class VorbisBackend : public Backend {
+        GstElement * vorbisencoder_;
+        GstElement * oggmuxer_;
+        std::string where_;
+    public:
+        std::string where();
+        VorbisBackend(Player * player, const std::string& output_name);
+        virtual void wait_until_ready() override;
+    };
 
 
     const Offset sample_rate_;
     const double freq_reference_;
-
-    GstElement * pipeline_;
-    GstElement * appsrc_;
-    GstElement * conv_;
-    GstElement * audiosink_;
-    GMainLoop * loop_;
-
     std::vector<InstrumentHandle> instruments_;
     Offset current_offset_;
     Offset end_offset_;
-    guint push_id_;
-    guint bus_watch_id_;
-    guint last_hint_;
-    std::future<void> main_loop_done_;
-
+    Offset last_hint_;
+    std::unique_ptr<Backend> backend_;
 };
 
 typedef std::shared_ptr<Player> PlayerHandle;

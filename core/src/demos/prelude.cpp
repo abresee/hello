@@ -1,15 +1,14 @@
 #include <cmath>
 #include <memory>
 #include <iostream>
-#include <stdexcept>
-#include "../VorbisPlayer.h"
+#include "../Player.h"
 #include "../Instrument.h"
 #include "../WaveSynth.h"
 
 int main(int argc, char ** argv)
 {
-    auto p = std::make_shared<VorbisPlayer>("prelude_cpp.ogg");
-    auto ws = std::make_shared<WaveSynth>(p->sample_rate(),p->freq_reference(),"wavesynth_dump.log");
+    auto p = std::make_shared<Player>(Player::BackendType::vorbis, Offset(441000), 220, "prelude_cpp.ogg");
+    auto ws = std::make_shared<WaveSynth>(p->sample_rate(), p->freq_reference(), "wavesynth_dump.log");
 
     Beat note_length(1,2);
 

@@ -1,9 +1,9 @@
-from note_core import VorbisPlayer, WaveSynth, Note, Beat, Sample
+from note_core import Player, WaveSynth, Note, Offset, Beat, Sample
 import note_core 
 
-p = VorbisPlayer("prelude_py.ogg")
+p = Player(Player.BackendType.vorbis,Offset(44100),220,"prelude_py.ogg")
 
-ws = WaveSynth()
+ws = WaveSynth(p.sample_rate(), p.freq_reference(),"wavesynth_dump.log")
 
 note_length = Beat(1,2) 
 note_intensity = Sample.max_intensity()/2
@@ -37,3 +37,4 @@ for note in notes:
 
 p.add_instrument(ws)
 p.play()
+p.wait_until_ready()

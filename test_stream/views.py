@@ -3,13 +3,13 @@ from django.http import HttpResponse
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from os.path import basename
-from note_core import VorbisPlayer, WaveSynth, Beat, Sample, Note  
+from note_core import Player, WaveSynth, Offset, Beat, Sample, Note  
 
 remember={}
 def make_test_player():
-    p = VorbisPlayer("test_stream/static/test_stream/prelude_py.ogg")
+    p = Player(Player.BackendType.vorbis,Offset(44100),220,"prelude_py.ogg")
 
-    ws = WaveSynth()
+    ws = WaveSynth(p.sample_rate(), p.freq_reference(),"wavesynth_dump.log")
 
     note_length = Beat(1,2) 
     note_intensity = Sample.max_intensity()/2
@@ -54,7 +54,6 @@ def index(request):
 
 def is_ready(request):
     p=remember["last"]
-    p.wait_until_ready()
-    path=basename(p.where())
+    path=basename(p.wait_until_ready())
     return HttpResponse("/static/test_stream/"+path)
 
