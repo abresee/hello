@@ -31,6 +31,8 @@ nosetests.xml
 # Translations
 *.mo
 
+*.db
+
 # vorbis output files
 *.ogg
 #vim
@@ -39,3 +41,4 @@ nosetests.xml
 #
 docs/*
 .sconsign.dblite
+
