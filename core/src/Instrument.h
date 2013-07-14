@@ -11,7 +11,7 @@
 #include "Packet.h"
 #include "global.h"
 #include "Note.h"
-/// @brief pure virtual base class for instruments
+
 class Instrument {
     const Offset sample_rate_;
     const double freq_reference_;

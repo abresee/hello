@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iterator>
 #include <iostream>
 #include <memory>
@@ -254,10 +255,13 @@ void Player::add_instrument(InstrumentHandle instrument_h) {
 }
 
 void Player::play() {   
-    Beat stream_end(0);
-    for(auto instrument_h : instruments_) { 
-        stream_end = std::max(stream_end,instrument_h->stream_end());
-    }
+    Beat stream_end{
+        (*std::max_element(
+            instruments_.begin(),
+            instruments_.end(),
+            [](InstrumentHandle l, InstrumentHandle r) -> bool {
+                return l->stream_end() < r->stream_end();})
+         )->stream_end()};
     end_offset_ = stream_end.to_offset(Config::tempo, Config::sample_rate);
     backend_->play(end_offset_);
 }
