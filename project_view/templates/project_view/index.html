@@ -321,242 +321,280 @@ $(document).ready(function(){
 //TRACK INIT***********************************************************
 //*********************************************************************
 //*********************************************************************
+	var first = 1;
 	{% for track in track_number %}
 		$('#track_pane').append(track_info_html);
-        $('#track_project_window').append('<div id="track_num_' + (track_window) + '" class="track_window"></div>');
-        track_num = 1;
-        track_window += 1;
-        $('.track_info').each(function(){
-            $(this).data("track_number", track_num);
-            track_num += 1;
-        });
-        
-        track_num = 1;
-        $('.track_window').each(function(){
-            $(this).data("track_number", track_num);
-            track_num_str = track_num.toString();
-            attr_name = ("track_num_" + track_num_str);
-            $(this).attr("id", attr_name);
-            track_num += 1;
-        })
-        $('#track_num_'+ (track_window - 1)).click(function(e){
-            if (pencil_val_project == 1){
-                container_num += 1;
-                var music_container_html = '<div id="container_num_'+container_num+'" class="music_container"></div>';
+		$('#track_project_window').append('<div id="track_num_' + (track_window) + '" class="track_window"></div>');
+		track_num = 1;
+		track_window += 1;
+		$('.track_info').each(function(){
+		    $(this).data("track_number", track_num);
+		    track_num += 1;
+		});
+		
+		track_num = 1;
+		$('.track_window').each(function(){
+		    $(this).data("track_number", track_num);
+		    track_num_str = track_num.toString();
+		    attr_name = ("track_num_" + track_num_str);
+		    $(this).attr("id", attr_name);
+		    track_num += 1;
+		});
+		$('#track_num_'+ (track_window - 1)).click(function(e){
+		    if (pencil_val_project == 1){
+			container_num += 1;
+			var music_container_html = '<div id="container_num_'+container_num+'" class="music_container"></div>';
+			var drag_stop_window_number = (($(this).position().top - 15) / 76);
+		  
+			$(this).append(music_container_html);
+			$('#container_num_'+container_num).data("track_number", $(this).data("track_number"));
+			    $('#container_num_'+container_num).draggable({containment: [149, 90, $('.track_window').width(), max_y], snap: '.track_window', snapMode:'inner', snapTolerance:70})
+			    .offset({top: ((Math.ceil(e.pageY/76) * 76) -61), left: e.pageX - 10})
+			    .resizable({minHeight:76, maxHeight:76, handles: "e"})
+			    .contextmenu(function(){
+				$('.note').each(function(){
+				    if ($(this).data("piano_roll") == active_piano_roll){
+					$(this).remove();
+				    }
+				});
+				$(this).remove();
+			    })	
+			    .resizable({stop: function(e, ui){
+			    
+				$.ajax({type: "POST",
+				    url: "{% url 'event_window_resizestop' request.user.username project %}",
+				    data: {track : $(this).data("track_number"),
+					   length: $(this).width(),
+					   id: container_num},
+				    success: function(track_number){
+					alert(track_number);
+				    },
+				    error: function(){
+					alert('resize event window oops');
+				    }
+				});
+			    
+				$('.time_column').each(function(){
+				    $(this).css('background-color', '#cccccc')
+				    .css('opacity', '0.5');
+				    });
+				count = 0;
+				while (count < 500){
+				    if (count > (Math.ceil($(this).position().left / 10)) - 15){
+					if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+					    $('#column_num_'+ count)
+					    .css('background-color', 'transparent')
+					    .css('opacity', '1.0');
+					}
+				    }
+				    count += 1;
+				}
+			    }})			
+			    .on("dragstop", function(e, ui){
                 var drag_stop_window_number = (($(this).position().top - 15) / 76);
-          
-                $(this).append(music_container_html);
-                $('#container_num_'+container_num).data("track_number", $(this).data("track_number"));
-                    $('#container_num_'+container_num).draggable({containment: [149, 90, $('.track_window').width(), max_y], snap: '.track_window', snapMode:'inner', snapTolerance:70})
-                    .offset({top: ((Math.ceil(e.pageY/76) * 76) -61), left: e.pageX - 10})
-                    .resizable({minHeight:76, maxHeight:76, handles: "e"})
-                    .contextmenu(function(){
-                        $('.note').each(function(){
-                            if ($(this).data("piano_roll") == active_piano_roll){
-                                $(this).remove();
-                            }
-                        });
-                        $(this).remove();
-                    })	
-                    .resizable({stop: function(e, ui){
-                    
-                        $.ajax({type: "POST",
-                            url: "{% url 'event_window_resizestop' request.user.username project %}",
-                            data: {track : $(this).data("track_number"),
-                                   length: $(this).width(),
-                                   id: container_num},
-                            success: function(track_number){
-                                alert(track_number);
-                            },
-                            error: function(){
-                                alert('resize event window oops');
-                            }
-                        });
-                    
-                        $('.time_column').each(function(){
-                            $(this).css('background-color', '#cccccc')
-                            .css('opacity', '0.5');
-                            });
-                        count = 0;
-                        while (count < 500){
-                            if (count > (Math.ceil($(this).position().left / 10)) - 15){
-                                if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
-                                    $('#column_num_'+ count)
-                                    .css('background-color', 'transparent')
-                                    .css('opacity', '1.0');
-                                }
-                            }
-                            count += 1;
-                        }
-                    }})			
-                    .on("dragstop", function(e, ui){
-                        var drag_stop_window_number = (($(this).position().top - 15) / 76);
-                        $(this).detach();
-                        $('#track_num_'+ drag_stop_window_number).append($(this));
-                        $(this).removeData("track_number");
-                        $(this).data("track_number", drag_stop_window_number)
-                        .data("position_left", (Math.ceil($(this).position.left / 10)) - 15);		
-                        //DOUBLE-CLICK FUNCTION*******************************
-                        if (window_drag == 1){
-                            $('#windowdrag').show();
-                            track_numberz = $(this).data("track_number");
-                            $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
-                            music_container_offset = $(this).data("music_container_offset");
-                            music_container_offset_previous = $(this).data("music_container_offset_previous");
-                            active_piano_roll = $(this).attr("id");
-                            
-                            $('.note').each(function(e, ui){
-                                    $(this).css('visibility', 'visible')
-                                    .css('z-index', '3');
-                                    if ($(this).data("piano_roll") == active_piano_roll){
-                                        $(this).removeData("track_number")
-                                        .data("track_number", track_numberz);
-                                    }
-                                    if ($(this).data("track_number") == track_numberz){
-                                        if ($(this).data("piano_roll") == active_piano_roll){
-                                            $(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
-                                            .css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
-                                            .css('background', '#9999cc')
-                                            .css('opacity', '1.0')
-                                            .data("position_left", $(this).position().left)
-                                            .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
-                                            if ($(this).is('.ui-selected')){
-                                                $(this).css('background-color', '#330066');
-                                            }
-                                        }else{
-                                            $(this).css('background-color', 'gray')
-                                            .css('opacity', '0.4');
-                                        }
-                                    }else{
-                                        $(this).css('visibility', 'hidden')
-                                        .css('z-index', '-1'); 
-                                    }
-                            });
-                            $('.time_column').each(function(){
-                                $(this).css('background-color', '#cccccc')
-                                .css('opacity', '0.5');
-                            });
-                            count = 0;
-                            while (count < 500){
-                                if (count > (Math.ceil($(this).position().left / 10)) - 15){
-                                    if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
-                                        $('#column_num_'+ count)
-                                        .css('background-color', 'transparent')
-                                        .css('opacity', '1.0');
-                                    }
-                                }
-                                count += 1;
-                            }
-                            $(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
-                        }
-                        
-                        $.ajax({type: "POST",
-                            url: "{% url 'event_window_dragstop' request.user.username project %}",
-                            data: {track : $(this).data("track_number"),
-                                   id: container_num,
-                                   test: 1000,
-                                   position_left: $(this).position().left,
-                                   position_top: $(this).position().top},
-                            success: function(track_number){
-                                alert(track_number);
-                            },
-                            error: function(){
-                                alert('drag event window oops');
-                            }
-                        });
-                        
-                    })
-                    .dblclick(function(){
-                        //DOUBLE CLICK FUNCTION AGAIN LOLLLL************************
-                        $('#windowdrag').show();
-                        track_numberz = $(this).data("track_number");
+                var note_positions = new Array();
+                count = 0;
+                active_piano_roll = $(this).attr("id");
+                
+                $(this).detach();
+                $('#track_num_'+ drag_stop_window_number).append($(this));
+                $(this).removeData("track_number");
+                $(this).data("track_number", drag_stop_window_number)
+                .data("position_left", (Math.ceil($(this).position.left / 10)) - 15);		
+                
+                //DOUBLE-CLICK FUNCTION*******************************
+                if (window_drag == 1){ 
+                    $('#windowdrag').show();
+                    track_numberz = $(this).data("track_number");
+                    $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+                    if ($(this).data("music_container_offset_previous") == 0){
+                        music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
+                    }else{	
                         $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
                         music_container_offset = $(this).data("music_container_offset");
                         music_container_offset_previous = $(this).data("music_container_offset_previous");
-                        active_piano_roll = $(this).attr("id");
-                        $('.note').each(function(e, ui){
-                                $(this).css('visibility', 'visible')
-                                .css('z-index', '3');
-                                if ($(this).data("track_number") == track_numberz){
-                                    if ($(this).data("piano_roll") == active_piano_roll){
-                                        $(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
-                                        .css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
-                                        .css('background', '#9999cc')
-                                        .css('opacity', '1.0')
-                                        .data("position_left", $(this).position().left)
-                                        .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
-                                        if ($(this).is('.ui-selected')){
-                                            $(this).css('background-color', '#330066');
-                                        }
-                                    }else{
-                                        $(this).css('background-color', 'gray')
-                                        .css('opacity', '0.4');
+                    }
+                    //music_container_offset_previous = $(this).data("music_container_offset_previous");
+                    active_piano_roll = $(this).attr("id");
+                    $('.note').each(function(e, ui){
+                            $(this).css('visibility', 'visible')
+                            .css('z-index', '3');
+                            if ($(this).data("track_number") == track_numberz){
+                                if ($(this).data("piano_roll") == active_piano_roll){
+                                    $(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+                                    .css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
+                                    .css('background', '#9999cc')
+                                    .css('opacity', '1.0')
+                                    .data("position_left", $(this).position().left)
+                                    .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+                                    
+                                    note_positions[count] = $(this).data("position_left");
+                                    count += 1;
+                                    
+                                    if ($(this).is('.ui-selected')){
+                                        $(this).css('background-color', '#330066');
                                     }
                                 }else{
-                                    $(this).css('visibility', 'hidden')
-                                    .css('z-index', '-1'); 
+                                    $(this).css('background-color', 'gray')
+                                    .css('opacity', '0.4');
                                 }
-                        });
-                        $('.time_column').each(function(){
-                            $(this)
-                            .css('background-color', '#cccccc')
-                            .css('opacity', '0.5');
-                        });
-                        count = 0;
-                        while (count < 500){
-                            if (count > (Math.ceil($(this).position().left / 10)) - 15){
-                                if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
-                                    $('#column_num_'+ count)
-                                    .css('background-color', 'transparent')
-                                    .css('opacity', '1.0');
-                                }
+                            }else{
+                                $(this).css('visibility', 'hidden')
+                                .css('z-index', '-1'); 
                             }
-                            count += 1;
-                        }
-                        $(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
-                        window_drag = 1;
                     });
-                    
-                    $.ajax({type: "POST",
-                        url: "{% url 'event_window' request.user.username project %}",
-                        data: {track : $(this).data("track_number"),
-                               id: container_num,
-                               position_left: $('#container_num_'+container_num).position().left,
-                               position_top:  $('#container_num_'+container_num).position().top,
-                               length: $('#container_num_'+container_num).width()},
-                        success: function(track_number){
-                            alert(track_number);
-                        },
-                        error: function(){
-                            alert('create event window oops');
+                    $('.time_column').each(function(){
+                        $(this)
+                        .css('background-color', '#cccccc')
+                        .css('opacity', '0.5');
+                    });
+                    count = 0;
+                    while (count < 500){
+                        if (count > (Math.ceil($(this).position().left / 10)) - 15){
+                            if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+                                $('#column_num_'+ count)
+                                .css('background-color', 'transparent')
+                                .css('opacity', '1.0');
+                            }
+                        }
+                        count += 1;
+                    }
+                }else{ //if the piano roll is not open*****************
+                    track_numberz = $(this).data("track_number");
+                    $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+                    if ($(this).data("music_container_offset_previous") == 0){
+                        music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
+                    }else{	
+                        $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+                        music_container_offset = $(this).data("music_container_offset");
+                        music_container_offset_previous = $(this).data("music_container_offset_previous");
+                    }
+                    //music_container_offset_previous = $(this).data("music_container_offset_previous");
+                    active_piano_roll = $(this).attr("id");
+                    $('.note').each(function(e, ui){
+                        if ($(this).data("track_number") == track_numberz){
+                            if ($(this).data("piano_roll") == active_piano_roll){
+                                $(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+                                .data("position_left", (music_container_offset * $('.time_column').width()) + $(this).data("offset") )
+                                .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+                                
+                                note_positions[count] = $(this).data("position_left");
+                                count += 1;
+                            }
                         }
                     });
-                
                 }
-            });
-        max_y = track_num * $('.track_window').height();
-        $('.music_container').each(function(){
-            $(this).draggable({containment: [149, 90, $('.track_window').width(), max_y]})
-        });
-            
-        
-        $('.track_info').click(function(){
-            $('.track_info').each(function(){
-                if (select_val_project == 0){
-                $(this).removeClass('ui-selected')
-                .css('background', 'green');}
-            });
-            $(this).addClass('ui-selected')
-            .css('background-color', 'yellow');
-            $('.track_window').each(function(){
-                $(this).css({'border-right': 'blue'});
-            });
-            $('.track_window').each(function(){
-                $(this).css('background', 'none');
-            });
-            $('#track_num_'+($(this).data("track_number") )).css('background', "#ffffcc");
-            
-        });
+				
+				
+				$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
+				$.ajax({type: "POST",
+				    url: "{% url 'event_window_dragstop' request.user.username project %}",
+				    data: {track : $(this).data("track_number"),
+					   id: container_num,
+					   note_position: note_positions,
+					   position_left: $(this).position().left,
+					   position_top: $(this).position().top},
+				    success: function(track_number){
+					alert(track_number);
+				    },
+				    error: function(){
+					alert('drag event window oops');
+				    }
+				});
+				delete note_positions;
+				
+			    })
+			    .dblclick(function(){
+				//DOUBLE CLICK FUNCTION AGAIN LOLLLL************************
+				$('#windowdrag').show();
+				track_numberz = $(this).data("track_number");
+				$(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+				music_container_offset = $(this).data("music_container_offset");
+				music_container_offset_previous = $(this).data("music_container_offset_previous");
+				active_piano_roll = $(this).attr("id");
+				$('.note').each(function(e, ui){
+					$(this).css('visibility', 'visible')
+					.css('z-index', '3');
+					if ($(this).data("track_number") == track_numberz){
+					    if ($(this).data("piano_roll") == active_piano_roll){
+						$(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+						.css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
+						.css('background', '#9999cc')
+						.css('opacity', '1.0')
+						.data("position_left", $(this).position().left)
+						.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+						if ($(this).is('.ui-selected')){
+						    $(this).css('background-color', '#330066');
+						}
+					    }else{
+						$(this).css('background-color', 'gray')
+						.css('opacity', '0.4');
+					    }
+					}else{
+					    $(this).css('visibility', 'hidden')
+					    .css('z-index', '-1'); 
+					}
+				});
+				$('.time_column').each(function(){
+				    $(this)
+				    .css('background-color', '#cccccc')
+				    .css('opacity', '0.5');
+				});
+				count = 0;
+				while (count < 500){
+				    if (count > (Math.ceil($(this).position().left / 10)) - 15){
+					if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+					    $('#column_num_'+ count)
+					    .css('background-color', 'transparent')
+					    .css('opacity', '1.0');
+					}
+				    }
+				    count += 1;
+				}
+				$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
+				window_drag = 1;
+			    });
+			    
+			    $.ajax({type: "POST",
+				url: "{% url 'event_window' request.user.username project %}",
+				data: {track : $(this).data("track_number"),
+				       id: container_num,
+				       position_left: $('#container_num_'+container_num).position().left,
+				       position_top:  $('#container_num_'+container_num).position().top,
+				       length: $('#container_num_'+container_num).width()},
+				success: function(track_number){
+				    alert(track_number);
+				},
+				error: function(){
+				    alert('create event window oops');
+				}
+			    });
+			
+			}
+		    });
+		max_y = track_num * $('.track_window').height();
+		$('.music_container').each(function(){
+		    $(this).draggable({containment: [149, 90, $('.track_window').width(), max_y]})
+		});
+		    
+		
+		$('.track_info').click(function(){
+		    $('.track_info').each(function(){
+			if (select_val_project == 0){
+			$(this).removeClass('ui-selected')
+			.css('background', 'green');}
+		    });
+		    $(this).addClass('ui-selected')
+		    .css('background-color', 'yellow');
+		    $('.track_window').each(function(){
+			$(this).css({'border-right': 'blue'});
+		    });
+		    $('.track_window').each(function(){
+			$(this).css('background', 'none');
+		    });
+		    $('#track_num_'+($(this).data("track_number") )).css('background', "#ffffcc");
+		    
+		});
 	{% endfor %}	
 //EVENT WINDOW INIT******************************************
 //***********************************************************
@@ -569,6 +607,9 @@ $(document).ready(function(){
         .width({{window.window_length}})
         .draggable({containment: [149, 90, $('.track_window').width(), max_y], snap: '.track_window', snapMode:'inner', snapTolerance:70})
         .resizable({minHeight:76, maxHeight:76, handles: "e"})
+        .data("music_container_offset_previous", 123456)
+        //.data("music_container_offset", 0)
+        .data("first_pos", {{window.position_left}})
         .contextmenu(function(){
             $('.note').each(function(){
                 if ($(this).data("piano_roll") == active_piano_roll){
@@ -609,106 +650,128 @@ $(document).ready(function(){
             }
         }})			
         .on("dragstop", function(e, ui){
-            var drag_stop_window_number = (($(this).position().top - 15) / 76);
-            $(this).detach();
-            $('#track_num_'+ drag_stop_window_number).append($(this));
-            $(this).removeData("track_number");
-            $(this).data("track_number", drag_stop_window_number)
-            .data("position_left", (Math.ceil($(this).position.left / 10)) - 15);		
-            //DOUBLE-CLICK FUNCTION*******************************
-            if (window_drag == 1){
-                $('#windowdrag').show();
-                track_numberz = $(this).data("track_number");
+		var drag_stop_window_number = (($(this).position().top - 15) / 76);
+		var note_positions = new Array();
+		count = 0;
+		active_piano_roll = $(this).attr("id");
+		
+		$(this).detach();
+		$('#track_num_'+ drag_stop_window_number).append($(this));
+		$(this).removeData("track_number");
+		$(this).data("track_number", drag_stop_window_number)
+		.data("position_left", (Math.ceil($(this).position.left / 10)) - 15);		
+		
+		//DOUBLE-CLICK FUNCTION*******************************
+		if (window_drag == 1){ 
+		    $('#windowdrag').show();
+            track_numberz = $(this).data("track_number");
+            $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+            if ($(this).data("music_container_offset_previous") == 123456){
+                music_container_offset_previous = (((Math.ceil($(this).data("first_pos") / 10)) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
+            }else{
                 $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
                 music_container_offset = $(this).data("music_container_offset");
                 music_container_offset_previous = $(this).data("music_container_offset_previous");
-                active_piano_roll = $(this).attr("id");
-                
-                var window_note_array = new Array();
-                var note_position_array = new Array();
-                count = 0;
-                
-                $('.note').each(function(e, ui){
-                        $(this).css('visibility', 'visible')
-                        .css('z-index', '3');
+            }
+            active_piano_roll = $(this).attr("id");
+            $('.note').each(function(e, ui){
+                    $(this).css('visibility', 'visible')
+                    .css('z-index', '3');
+                    if ($(this).data("track_number") == track_numberz){
                         if ($(this).data("piano_roll") == active_piano_roll){
-                            $(this).removeData("track_number")
-                            .data("track_number", track_numberz);
-                        }
-                        if ($(this).data("track_number") == track_numberz){
-                            if ($(this).data("piano_roll") == active_piano_roll){
+                            $(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+                            .css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
+                            .css('background', '#9999cc')
+                            .css('opacity', '1.0')
+                            .data("position_left", $(this).position().left)
+                            .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
                             
-                                
-                                
-                                $(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
-                                .css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
-                                .css('background', '#9999cc')
-                                .css('opacity', '1.0')
-                                .data("position_left", $(this).position().left)
-                                .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
-                                if ($(this).is('.ui-selected')){
-                                    $(this).css('background-color', '#330066');
-                                }
-                                
-                                window_note_array[count] = $(this).attr('id');
-                                note_position_array[count] = $(this).position().left;
-                                count += 1;
-                                
-                            }else{
-                                $(this).css('background-color', 'gray')
-                                .css('opacity', '0.4');
+                            note_positions[count] = $(this).data("position_left");
+                            count += 1;
+                            
+                            if ($(this).is('.ui-selected')){
+                                $(this).css('background-color', '#330066');
                             }
                         }else{
-                            $(this).css('visibility', 'hidden')
-                            .css('z-index', '-1'); 
+                            $(this).css('background-color', 'gray')
+                            .css('opacity', '0.4');
                         }
-                });
-                $('.time_column').each(function(){
-                    $(this).css('background-color', '#cccccc')
-                    .css('opacity', '0.5');
-                });
-                count = 0;
-                while (count < 500){
-                    if (count > (Math.ceil($(this).position().left / 10)) - 15){
-                        if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
-                            $('#column_num_'+ count)
-                            .css('background-color', 'transparent')
-                            .css('opacity', '1.0');
-                        }
+                    }else{
+                        $(this).css('visibility', 'hidden')
+                        .css('z-index', '-1'); 
                     }
-                    count += 1;
+            });
+            $('.time_column').each(function(){
+                $(this)
+                .css('background-color', '#cccccc')
+                .css('opacity', '0.5');
+            });
+            count = 0;
+            while (count < 500){
+                if (count > (Math.ceil($(this).position().left / 10)) - 15){
+                    if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+                        $('#column_num_'+ count)
+                        .css('background-color', 'transparent')
+                        .css('opacity', '1.0');
+                    }
                 }
-                $(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
+                count += 1;
             }
-            
-            $.ajax({type: "POST",
-                url: "{% url 'event_window_dragstop' request.user.username project %}",
-                data: {track : $(this).data("track_number"),
-                       note_id: window_note_array,
-                       note_position: note_position_array,
-                       id: {{window.id_number}},
-                       position_left: $(this).position().left,
-                       position_top: $(this).position().top,
-                       test: 'cool'},
-                success: function(track_number){
-                    alert(track_number);
-                },
-                error: function(){
-                    alert('drag event window oops');
+		}else{ //if the piano roll is not open*****************
+            track_numberz = $(this).data("track_number");
+            $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+            if ($(this).data("music_container_offset_previous") == 123456){
+                music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
+            }else{	
+                $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+                music_container_offset = $(this).data("music_container_offset");
+                music_container_offset_previous = $(this).data("music_container_offset_previous");
+            }
+            active_piano_roll = $(this).attr("id");
+            $('.note').each(function(e, ui){
+                if ($(this).data("track_number") == track_numberz){
+                    if ($(this).data("piano_roll") == active_piano_roll){
+                        $(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+                        .data("position_left", (music_container_offset * $('.time_column').width()) + $(this).data("offset") )
+                        .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+                        
+                        note_positions[count] = $(this).data("position_left");
+                        count += 1;
+                    }
                 }
             });
-            
-            delete window_note_array;
-            delete note_position_array;
-                   
-        })
+		}
+		$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
+		$.ajax({type: "POST",
+		    url: "{% url 'event_window_dragstop' request.user.username project %}",
+		    data: {track : $(this).data("track_number"),
+			   id: {{window.id_number}},
+			   note_position: note_positions,
+			   position_left: $(this).position().left,
+			   position_top: $(this).position().top},
+		    success: function(track_number){
+			alert(track_number);
+		    },
+		    error: function(){
+			alert('drag event window oops');
+		    }
+		});
+		delete note_positions;
+		
+	    })
         .dblclick(function(){
             //DOUBLE CLICK FUNCTION AGAIN LOLLLL************************
             $('#windowdrag').show();
             track_numberz = $(this).data("track_number");
             $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
-            music_container_offset = $(this).data("music_container_offset");
-            music_container_offset_previous = $(this).data("music_container_offset_previous");
+            if ($(this).data("music_container_offset_previous") == 123456){
+                 music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
+            }else{	
+                $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+                music_container_offset = $(this).data("music_container_offset");
+                music_container_offset_previous = $(this).data("music_container_offset_previous");
+            }
+            //music_container_offset_previous = $(this).data("music_container_offset_previous");
             active_piano_roll = $(this).attr("id");
             $('.note').each(function(e, ui){
                     $(this).css('visibility', 'visible')
@@ -878,113 +941,134 @@ $('.note').each(function(e){
     }
 });
 
-$('.note').contextmenu(function(e){
-        if ($(this).is('.ui-selected')){
-            $('.ui-selected').remove();
-        }else{
-            $(this).remove()
-    }})
-    .on('resize', function(){
-        if ($(this).is('.ui-selected')){
-            $(this).resizable({alsoResize: '.ui-selected'})
-            $('.ui-selected').each(function(){
-            $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-            .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
-            });
-        }
-    })
-    .draggable({drag: function(e, ui){
-        if ($(this).is('.ui-selected')){
-            if (variablelol == 1){
-                $(this).addClass("drag_start");
-                drag_start_position_x = $(this).position().left
-                drag_start_position_y = $(this).position().top
-                variablelol = 0;
-                $('.ui-selected').each(function(e, ui){
-                    $(this).data("positionz_x", $(this).position().left);
-                    $(this).data("positionz_y", $(this).position().top);
-                });
-            }
-            $('.ui-selected').each(function(e, ui){
-                $(this).css({left: $('.drag_start').position().left + ($(this).data("positionz_x") - drag_start_position_x), top: $('.drag_start').position().top + ($(this).data("positionz_y") - drag_start_position_y)});
-            });
-        }
-        }})
-    .draggable({stop: function(e, ui){
-        variablelol = 1;
-        $('.drag_start').removeClass("drag_start")
-        $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-        .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-        .data("position_left", $(this).position().left);
-        if ($(this).is('.ui-selected')){
-            $('.ui-selected').each(function(){
-            $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-            .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-            .data("position_left", $(this).position().left);
-            });
-        }
-        var note_id = new Array();
-        var note_pos_left = new Array();
-        var note_pos_top = new Array();
-        count = 0;
-        $('.note').each(function(){
-            note_id[count] = $(this).attr("id");
-            note_pos_top[count] = $(this).position().top;
-            note_pos_left[count] = $(this).position().left;
-            count += 1;
+$('.note').contextmenu(function(){
+    	var note_id = new Array();
+	count = 0;
+	if ($(this).is('.ui-selected')){
+		$('.ui-selected').each(function(){
+			note_id[count] = $(this).attr("id");
+			count += 1;
+		});
+		$('.ui-selected').remove();
+	}else{
+		note_id[0] = $(this).attr("id");
+		$(this).remove()
+
+	}
+
+	$.ajax({type: "POST",
+               	url: "{% url 'note_delete' request.user.username project %}",
+               	data: {id: note_id},
+                success: function(track_number){
+                    alert(track_number);
+                },
+                error: function(){
+                    	alert('delete note oops');
+                }
         });
-            
-        $.ajax({type: "POST",
-			url: "{% url 'note_dragstop' request.user.username project %}",
-			data: {id: note_id,
-                   position_left: note_pos_left,
-                   position_top: note_pos_top},   
-			success: function(track_number){
-				alert(track_number);
-			},
-			error: function(){
-				alert('dragstop note oops');
-			}
-        });
-        
-        delete note_id;
-        delete note_pos_left;
-        delete note_pos_top;
-        
-    }})
-    .mousedown(function(){
-        if ($(this).is('.ui-selected')){
-            $('.ui-selected').trigger('resize');
-        }
-    })
-    .resizable({stop: function(e, ui){
-        $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
-        .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
-        
-        var note_ids = new Array();
-        var note_width = new Array();
-        count = 0;
-        $('.note').each(function(){
-            note_ids[count] = $(this).attr("id");
-            note_width[count] = $(this).width();
-            count += 1;
-        });
-            
-        $.ajax({type: "POST",
-            url: "{% url 'note_resize' request.user.username project %}",
-            data: {id: note_ids,
-                   width: note_width},   
-            success: function(track_number){
-                alert(track_number);
-            },
-            error: function(){
-                alert('resize note oops');
-            }
-        });
-        
-        delete note_id;
-        delete note_width;
-    }});
+	delete note_id;
+})
+.on('resize', function(){
+if ($(this).is('.ui-selected')){
+    $(this).resizable({alsoResize: '.ui-selected'})
+    $('.ui-selected').each(function(){
+    $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+    .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+    });
+}
+})
+.draggable({drag: function(e, ui){
+if ($(this).is('.ui-selected')){
+    if (variablelol == 1){
+	$(this).addClass("drag_start");
+	drag_start_position_x = $(this).position().left
+	drag_start_position_y = $(this).position().top
+	variablelol = 0;
+	$('.ui-selected').each(function(e, ui){
+	    $(this).data("positionz_x", $(this).position().left);
+	    $(this).data("positionz_y", $(this).position().top);
+	});
+    }
+    $('.ui-selected').each(function(e, ui){
+	$(this).css({left: $('.drag_start').position().left + ($(this).data("positionz_x") - drag_start_position_x), top: $('.drag_start').position().top + ($(this).data("positionz_y") - drag_start_position_y)});
+    });
+}
+}})
+.draggable({stop: function(e, ui){
+variablelol = 1;
+$('.drag_start').removeClass("drag_start")
+$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+.data("position_left", $(this).position().left);
+if ($(this).is('.ui-selected')){
+    $('.ui-selected').each(function(){
+    $(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+    .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+    .data("position_left", $(this).position().left);
+    });
+}
+var note_id = new Array();
+var note_pos_left = new Array();
+var note_pos_top = new Array();
+count = 0;
+$('.note').each(function(){
+    note_id[count] = $(this).attr("id");
+    note_pos_top[count] = $(this).position().top;
+    note_pos_left[count] = $(this).position().left;
+    count += 1;
+});
+    
+$.ajax({type: "POST",
+		url: "{% url 'note_dragstop' request.user.username project %}",
+		data: {id: note_id,
+	   position_left: note_pos_left,
+	   position_top: note_pos_top},   
+		success: function(track_number){
+			alert(track_number);
+		},
+		error: function(){
+			alert('dragstop note oops');
+		}
+});
+
+delete note_id;
+delete note_pos_left;
+delete note_pos_top;
+
+}})
+.mousedown(function(){
+if ($(this).is('.ui-selected')){
+    $('.ui-selected').trigger('resize');
+}
+})
+.resizable({stop: function(e, ui){
+$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
+.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+
+var note_ids = new Array();
+var note_width = new Array();
+count = 0;
+$('.note').each(function(){
+    note_ids[count] = $(this).attr("id");
+    note_width[count] = $(this).width();
+    count += 1;
+});
+    
+$.ajax({type: "POST",
+    url: "{% url 'note_resize' request.user.username project %}",
+    data: {id: note_ids,
+	   width: note_width},   
+    success: function(track_number){
+	alert(track_number);
+    },
+    error: function(){
+	alert('resize note oops');
+    }
+});
+
+delete note_id;
+delete note_width;
+}});
 
 //NOTE CREATION*******************************
 //********************************************
@@ -1017,10 +1101,29 @@ $('.container').click(function(e){
 		}
 
 		$('.note').contextmenu(function(){
+            		var note_id = new Array();
+			count = 0;
 			if ($(this).is('.ui-selected')){
+				$('.ui-selected').each(function(){
+					note_id[count] = $(this).attr("id");
+					count += 1;
+				});
 				$('.ui-selected').remove();
 			}else{
+				note_id[0] = $(this).attr("id");
 				$(this).remove()
+
+			$.ajax({type: "POST",
+                		url: "{% url 'note_delete' request.user.username project %}",
+               			data: {id: note_id},
+                		success: function(track_number){
+                    			alert(track_number);
+                		},
+                		error: function(){
+                    			alert('delete note oops');
+                		}
+            		});
+			delete note_id;
 		}})
 		.each(function(){ //init placement
 			$(this).data("length", ($(this).width() / ((zoom_const * $('#zoom_slider').slider("value")) / 100)))
@@ -1349,7 +1452,7 @@ $('#create_track').click(function(){
             track_num = $(this).data("track_number");
 			$(this).append(music_container_html);
             
-			$('#container_num_'+container_num).data("track_number", $(this).data("track_number"));
+       	$('#container_num_'+container_num).data("track_number", $(this).data("track_number"));
             $('#container_num_'+container_num).draggable({containment: [149, 90, $('.track_window').width(), max_y], snap: '.track_window', snapMode:'inner', snapTolerance:70})
 				.offset({top: ((Math.ceil(e.pageY/76) * 76) -61), left: e.pageX - 10})
 				.resizable({minHeight:76, maxHeight:76, handles: "e"})
@@ -1404,94 +1507,117 @@ $('#create_track').click(function(){
 					}
 				}})			
 				.on("dragstop", function(e, ui){
-					var drag_stop_window_number = (($(this).position().top - 15) / 76);
-					$(this).detach();
-					$('#track_num_'+ drag_stop_window_number).append($(this));
-					$(this).removeData("track_number");
-					$(this).data("track_number", drag_stop_window_number)
-					.data("position_left", (Math.ceil($(this).position.left / 10)) - 15);		
-					//DOUBLE-CLICK FUNCTION*******************************
-					if (window_drag == 1){
-						$('#windowdrag').show();
-						track_numberz = $(this).data("track_number");
-						$(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
-						music_container_offset = $(this).data("music_container_offset");
-						music_container_offset_previous = $(this).data("music_container_offset_previous");
-						active_piano_roll = $(this).attr("id");
-						
-                        var window_note_array = new Array();
-                        var note_position_array = new Array();
-                        count = 0;
-                        
-						$('.note').each(function(e, ui){
-								$(this).css('visibility', 'visible')
-								.css('z-index', '3');
-								if ($(this).data("piano_roll") == active_piano_roll){
-									$(this).removeData("track_number")
-									.data("track_number", track_numberz);
-								}
-								if ($(this).data("track_number") == track_numberz){
-									if ($(this).data("piano_roll") == active_piano_roll){
-										$(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
-										.css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
-										.css('background', '#9999cc')
-										.css('opacity', '1.0')
-										.data("position_left", $(this).position().left)
-										.data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
-										if ($(this).is('.ui-selected')){
-											$(this).css('background-color', '#330066');
-										}
-                                        
-                                        window_note_array[count] = $(this).attr('id');
-                                        note_position_array[count] = $(this).position().left;
-                                        count += 1;
-                                        
-									}else{
-										$(this).css('background-color', 'gray')
-										.css('opacity', '0.4');
-									}
-								}else{
-									$(this).css('visibility', 'hidden')
-									.css('z-index', '-1'); 
-								}
-						});
-						$('.time_column').each(function(){
-							$(this).css('background-color', '#cccccc')
-							.css('opacity', '0.5');
-						});
-						count = 0;
-						while (count < 500){
-							if (count > (Math.ceil($(this).position().left / 10)) - 15){
-								if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
-									$('#column_num_'+ count)
-									.css('background-color', 'transparent')
-									.css('opacity', '1.0');
-								}
-							}
-							count += 1;
-						}
-						$(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
-					}
+                var drag_stop_window_number = (($(this).position().top - 15) / 76);
+                var note_positions = new Array();
+                count = 0;
+                active_piano_roll = $(this).attr("id");
+                
+                $(this).detach();
+                $('#track_num_'+ drag_stop_window_number).append($(this));
+                $(this).removeData("track_number");
+                $(this).data("track_number", drag_stop_window_number)
+                .data("position_left", (Math.ceil($(this).position.left / 10)) - 15);		
+                
+                //DOUBLE-CLICK FUNCTION*******************************
+                if (window_drag == 1){ 
+                    $('#windowdrag').show();
+                    track_numberz = $(this).data("track_number");
+                    $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+                    if ($(this).data("music_container_offset_previous") == 0){
+                        music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
+                    }else{	
+                        $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+                        music_container_offset = $(this).data("music_container_offset");
+                        music_container_offset_previous = $(this).data("music_container_offset_previous");
+                    }
+                    //music_container_offset_previous = $(this).data("music_container_offset_previous");
+                    active_piano_roll = $(this).attr("id");
+                    $('.note').each(function(e, ui){
+                            $(this).css('visibility', 'visible')
+                            .css('z-index', '3');
+                            if ($(this).data("track_number") == track_numberz){
+                                if ($(this).data("piano_roll") == active_piano_roll){
+                                    $(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+                                    .css({left: (music_container_offset * $('.time_column').width()) + $(this).data("offset") })
+                                    .css('background', '#9999cc')
+                                    .css('opacity', '1.0')
+                                    .data("position_left", $(this).position().left)
+                                    .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+                                    
+                                    note_positions[count] = $(this).data("position_left");
+                                    count += 1;
+                                    
+                                    if ($(this).is('.ui-selected')){
+                                        $(this).css('background-color', '#330066');
+                                    }
+                                }else{
+                                    $(this).css('background-color', 'gray')
+                                    .css('opacity', '0.4');
+                                }
+                            }else{
+                                $(this).css('visibility', 'hidden')
+                                .css('z-index', '-1'); 
+                            }
+                    });
+                    $('.time_column').each(function(){
+                        $(this)
+                        .css('background-color', '#cccccc')
+                        .css('opacity', '0.5');
+                    });
+                    count = 0;
+                    while (count < 500){
+                        if (count > (Math.ceil($(this).position().left / 10)) - 15){
+                            if (count < ((Math.ceil($(this).position().left / 10)) - 14) + Math.ceil($(this).width() / 10)){ 
+                                $('#column_num_'+ count)
+                                .css('background-color', 'transparent')
+                                .css('opacity', '1.0');
+                            }
+                        }
+                        count += 1;
+                    }
                     
-                     $.ajax({type: "POST",
-                        url: "{% url 'event_window_dragstop' request.user.username project %}",
-                        data: {track : $(this).data("track_number"),
-                               note_id: window_note_array,
-                               note_position: note_position_array,
-                               id: container_num,
-                               position_left: $(this).position().left,
-                               position_top: $(this).position().top,
-                               test: 'cool'},
-                        success: function(track_number){
-                            alert(track_number);
-                        },
-                        error: function(){
-                            alert('drag event window oops');
+                }else{ //if the piano roll is not open*****************
+                    track_numberz = $(this).data("track_number");
+                    $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+                    if ($(this).data("music_container_offset_previous") == 0){
+                        music_container_offset_previous = ((Math.ceil($(this).data("first_pos") / 10) - 15) - ((Math.ceil($(this).position().left / 10)) - 15));
+                    }else{	
+                        $(this).data("music_container_offset", (Math.ceil($(this).position().left / 10)) - 15);
+                        music_container_offset = $(this).data("music_container_offset");
+                        music_container_offset_previous = $(this).data("music_container_offset_previous");
+                    }
+                    //music_container_offset_previous = $(this).data("music_container_offset_previous");
+                    active_piano_roll = $(this).attr("id");
+                    $('.note').each(function(e, ui){
+                        if ($(this).data("track_number") == track_numberz){
+                            if ($(this).data("piano_roll") == active_piano_roll){
+                                $(this).data("offset", ($(this).data("position_left") - (music_container_offset_previous * $('.time_column').width())))
+                                .data("position_left", (music_container_offset * $('.time_column').width()) + $(this).data("offset") )
+                                .data("positionx", ($(this).position().left / ((zoom_const * $('#zoom_slider').slider("value")) / 100)));
+                                
+                                note_positions[count] = $(this).data("position_left");
+                                count += 1;
+                            }
                         }
                     });
-            
-            delete window_note_array;
-            delete note_position_array;
+                }
+                            
+                $(this).data("music_container_offset_previous", (Math.ceil($(this).position().left / 10)) - 15);
+                $.ajax({type: "POST",
+                    url: "{% url 'event_window_dragstop' request.user.username project %}",
+                    data: {track : $(this).data("track_number"),
+                       id: container_num,
+                       note_position: note_positions,
+                       position_left: $(this).position().left,
+                       position_top: $(this).position().top},
+                    success: function(track_number){
+                    alert(track_number);
+                    },
+                    error: function(){
+                    alert('drag event window oops');
+                    }
+                });
+                delete note_positions;
 				})
 				.dblclick(function(){
 					//DOUBLE CLICK FUNCTION AGAIN LOLLLL************************

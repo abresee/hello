@@ -169,12 +169,11 @@ def event_container_dragstop(request, project_name, usernames):
         e.position_top = request.POST['position_top']
         e.save()
         
+        print("HAHAHAHAHAHA", request.POST)
         position_list = []
         positions = request.POST.getlist('note_position[]')
         for position in positions:
             position_list.append(position)
-        print('LOLOLOL')
-        print(position_list)
         
         count = 0
         notes = e.note_set.all()
@@ -255,6 +254,24 @@ def note_resize(request, project_name, usernames):
             n.save()
             count += 1
         return HttpResponse('note resize saved')
+
+def note_delete(request, project_name, usernames):
+    if request.is_ajax():
+        print(request.POST)  
+        note_widths = []
+        p = Project.objects.get(name=project_name, ownerz=request.user)
+        ids = request.POST.getlist('id[]')
+        
+        count = 0
+        for id in ids:
+            match = re.search(r'id_num_(?P<note_id>[0-9]+$)', id)
+            n = Note.objects.get(project=p, id_number=int(match.group('note_id')))
+            n.delete()
+            count += 1
+        return HttpResponse('note delete saved')
+    
+        
+        
     
         
         
