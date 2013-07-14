@@ -12,7 +12,6 @@ class Event_Window(models.Model):
     id_number = models.IntegerField()
     project = models.ForeignKey('Project')
     track = models.ForeignKey('Track')
-    
    
 class Track(models.Model):
     track_number = models.IntegerField()
@@ -27,5 +26,3 @@ class Note(models.Model):
     id_number = models.IntegerField()
     event_window = models.ForeignKey('Event_Window')
     project = models.ForeignKey('Project')
-
-    

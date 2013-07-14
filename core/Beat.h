@@ -8,6 +8,7 @@ class Beat {
 public:
     typedef boost::rational<int64_t> underlying_rational;
     typedef int64_t underlying;
+
     Beat(underlying_rational beat_initializer);
     Beat(underlying num, underlying denom);
     Time to_time(Beat tempo) const;
