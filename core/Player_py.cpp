@@ -11,6 +11,6 @@ void export_Player() {
         .def("sample_rate",&Player::sample_rate)
         .def("freq_reference",&Player::freq_reference);
     enum_<Player::BackendType>("BackendType")
-        .value("local", Player::local)
-        .value("vorbis", Player::vorbis);    
+        .value("local", Player::BackendType::local)
+        .value("vorbis", Player::BackendType::vorbis);    
 }

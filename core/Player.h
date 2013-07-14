@@ -15,8 +15,9 @@ class Player : public boost::noncopyable, public std::enable_shared_from_this<Pl
     static const char * format_;
 
 public: 
-    enum BackendType {local,vorbis};
+    enum class BackendType {local,vorbis};
     Player(BackendType backend_type, const Offset& sample_rate_init, const double freq_reference_init, const std::string& output_name);
+    Beat get_stream_end() const;
     void play();
     void add_instrument(InstrumentHandle instrument);
     std::string wait_until_ready();

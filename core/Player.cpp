@@ -241,10 +241,10 @@ Player::Player(BackendType backend_type, const Offset& sample_rate_init, const d
     current_offset_(),
     end_offset_() {
     switch(backend_type) {
-        case local:
+        case BackendType::local:
             backend_ = std::unique_ptr<LocalBackend>(new LocalBackend(this));
             break;
-        case vorbis:
+        case BackendType::vorbis:
             backend_ = std::unique_ptr<VorbisBackend>(new VorbisBackend(this,output_name));
             break;
     }
@@ -254,14 +254,18 @@ void Player::add_instrument(InstrumentHandle instrument_h) {
     instruments_.push_back(instrument_h);
 }
 
+Beat Player::get_stream_end() const {
+    auto comp_by_stream_end = [](InstrumentHandle l, InstrumentHandle r) 
+        -> bool {return l->stream_end() < r->stream_end();};
+    return (*std::max_element(
+        instruments_.begin(),
+        instruments_.end(),
+        comp_by_stream_end
+    ))->stream_end();
+}
+
 void Player::play() {   
-    Beat stream_end{
-        (*std::max_element(
-            instruments_.begin(),
-            instruments_.end(),
-            [](InstrumentHandle l, InstrumentHandle r) -> bool {
-                return l->stream_end() < r->stream_end();})
-         )->stream_end()};
+    Beat stream_end{get_stream_end()};
     end_offset_ = stream_end.to_offset(Config::tempo, Config::sample_rate);
     backend_->play(end_offset_);
 }
