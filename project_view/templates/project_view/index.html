@@ -71,7 +71,7 @@
             <div id='closer'></div>
             <div id='select_tool' class='select'>select</div>
             <div id='snap_tool' class='select'>snap</div>
-            <div id='zoom_slider' style="width: 300px; position: absolute; bottom: -20px; right:5px"></div>
+            <div id='zoom_slider'></div>
             <div id='window'>
                 <div id='selectable' class='piano_roll'></div>
             </div>
@@ -636,14 +636,15 @@
             }
 
         count = 0;
-        while (count < 1000){
+        while (count < 1000){ //TODO: fix magic number
             $('.piano_roll').after(theHtml_time);
             count += 1
             }
 
         count = 0;
-        while (count < 30){
-            $('#track_project_window').append('<div class="track_times" style="left: '+((160 * count) + 294)+'px"></div>');
+        while (count < 30){ //TODO: fix magic number
+            $('#track_project_window').append(
+                    '<div class="track_times" style="left: '+((160 * count) + 294)+'px"></div>'); //TODO: fix magic number
             count += 1;
         }
 

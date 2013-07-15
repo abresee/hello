@@ -118,7 +118,14 @@ div.select {background-color:gray;
     background: purple;
     z-index: 3;
 }	
-#selectable .ui-selecting{ background: #663399; }
+
+#zoom_slider {
+    width: 300px;
+    position: absolute; 
+    bottom: -20px;
+    right:5px
+}
+#selectable .ui-selecting { background: #663399; }
 #selectable .ui-selected { background: #330066; z-index: 4}
 
 div.track_info{
