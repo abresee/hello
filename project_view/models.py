@@ -16,7 +16,17 @@ class Event_Window(models.Model):
 class Track(models.Model):
     track_number = models.IntegerField()
     project = models.ForeignKey('Project')
-    
+
+
+class BeatField(models.CharField, metaclass=models.SubfieldBase):
+
+    description = "A rational valued duration in 'beat' units. Useful for time points and time intervals" 
+    def __init__(self, *args, **kwargs):
+        super(BeatField,self).__init__(*args, **kwargs)
+
+    def to_python(self,value):
+        
+
 class Note(models.Model):
     pitch_class = models.IntegerField()
     octave = models.IntegerField()

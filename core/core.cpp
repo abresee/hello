@@ -12,7 +12,7 @@ void export_Offset();
 void export_Beat();
 void export_BadFlowException();
 
-BOOST_PYTHON_MODULE(note_core)
+BOOST_PYTHON_MODULE(core)
 {
     export_Packet();
     export_Player();

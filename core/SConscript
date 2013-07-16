@@ -1,8 +1,6 @@
-# vim: set syntax=python
-import os
+# vim: syntax=python
 
-# classes
-core = [
+classes = [
     'Packet',
     'Player', 
     'Instrument', 
@@ -15,27 +13,46 @@ core = [
     'BadFlowException'
 ]
 
-core_sources = [i+'.cpp' for i in core]
-py_sources = ['note_core.cpp'] + [i+'_py.cpp' for i in core]
+sources = [i+'.cpp' for i in classes]
+py_sources = ['core.cpp'] + [i+'_py.cpp' for i in classes]
 
-env=Environment()
+# initialize the environment with just the stuff pure C++ targets need
+cpp=Environment()
 
-env.ParseConfig('pkg-config gstreamer-1.0 gstreamer-plugins-base-1.0 --cflags --libs')
-env.MergeFlags({ 
-     'CXXFLAGS': ['-std=c++1y', '-Wfatal-errors']
-    ,'CCFLAGS' : ['-g']
-})
-env.Append(LIBS='gstapp-1.0')
-env_py=env.Clone()
+# note implicit concatenation -- make sure to leave spaces at the ends!
+cpp.MergeFlags([
+    '!pkg-config --cflags --libs ' 
+        'gstreamer-1.0 '
+        'gstreamer-plugins-base-1.0 ',
+    '-std=c++1y',
+    '-Wfatal-errors',
+    '-g',
+    '-lgstapp-1.0'
+])
 
-env_py.ParseConfig('python3.3-config --cflags --ldflags')
-env_py.MergeFlags(env.ParseFlags('-fPIC -lboost_python3'))
+# define pure C++ targets
+prelude=cpp.Program(
+    'prelude',
+    sources+['demos/prelude.cpp']
+)
 
-env_py['CCFLAGS'].remove('-Wstrict-prototypes')
-env_py['CCFLAGS'].remove('-O2')
-env_py['CCFLAGS'].remove('-g')
-env_py['CPPDEFINES'].remove('NDEBUG')
+# initialize environment for building stuff with boost.python
+py=cpp.Clone()
+pyflags=py.ParseFlags([
+    '!python3.3-config --cflags --ldflags',
+    '-fPIC',
+    '-lboost_python3'
+])
+# this flag is output by python3.3-config but g++ complains about it 
+pyflags['CCFLAGS'].remove('-Wstrict-prototypes')
+# if NDEBUG is defined, asserts don't work :(
+pyflags['CPPDEFINES'].remove('NDEBUG')
 
+py.MergeFlags(pyflags)
 
-prelude=env.Program('prelude',core_sources+['demos/prelude.cpp'])
-note_core_so=env_py.SharedLibrary('note_core',core_sources+py_sources,SHLIBPREFIX='',SHLIBSUFFIX='.so')
+# define python targets
+core_so=py.SharedLibrary(
+    'core',
+    sources+py_sources,
+    SHLIBPREFIX='',SHLIBSUFFIX='.so'
+)

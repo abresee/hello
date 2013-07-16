@@ -1,5 +1,4 @@
-from note_core import Player, WaveSynth, Note, Offset, Beat, Sample
-import note_core 
+from core import Player, WaveSynth, Note, Offset, Beat, Sample
 
 p = Player(Player.BackendType.vorbis,Offset(44100),220,"prelude_py.ogg")
 
