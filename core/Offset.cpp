@@ -3,13 +3,6 @@
 #include "Time.h"
 #include "global.h"
 
-Offset::Offset():
-    offset_(){
-}
-
-Offset::Offset(underlying offset_initializer):
-    offset_(offset_initializer) {
-}
 //offset(samples) * 1/sample_rate (secs/samples) * 1e9 ns/second = time
 //offset(samples)   |             (secs)    | 1e9 (ns)
 //                  | sample_rate (samples) | 1   (secs)

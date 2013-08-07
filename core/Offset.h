@@ -7,8 +7,8 @@ class Offset {
     int64_t offset_;
 public:
     typedef int64_t underlying;
-    Offset();
-    explicit Offset(underlying offset_initializer);
+    constexpr Offset(): offset_() {}
+    constexpr explicit Offset(underlying offset_init): offset_(offset_init) {}
     Time to_time(const Offset& sample_rate) const;
     Beat to_beat(const Offset& sample_rate, const Beat& tempo) const;
     bool operator<(const Offset& other) const;

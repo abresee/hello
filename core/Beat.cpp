@@ -3,13 +3,6 @@
 #include "Time.h"
 #include "Offset.h"
 #include "global.h"
-Beat::Beat(boost::rational<int64_t> beat_initializer):
-    beat_(beat_initializer) {
-}
-
-Beat::Beat(int64_t num, int64_t denom):
-    beat_(num,denom) {
-}
 
 //position(beats) / tempo(beats/sec) * 1e9 ns/second = time
 //position(beats)   |     (sec)     | 1e9 (ns)
@@ -65,5 +58,13 @@ double Beat::as_double() const {
 
 Beat operator*(const Beat::underlying& lhs, const Beat& rhs) {
     return rhs*lhs;
+}
+
+Beat::underlying Beat::num() const {
+    return beat_.numerator();
+}
+
+Beat::underlying Beat::denom() const {
+    return beat_.denominator();
 }
 

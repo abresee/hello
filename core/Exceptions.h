@@ -1,5 +1,5 @@
-#ifndef BADFLOWEXCEPTION_H
-#define BADFLOWEXCEPTION_H 
+#ifndef EXCEPTIONS_H
+#define EXCEPTIONS_H 
 #include <exception>
 #include <string>
 class BadFlowException : public std::exception {
@@ -10,4 +10,4 @@ public:
     virtual const char * what();
 };
 
-#endif /* BADFLOWEXCEPTION_H */
+#endif /* EXCEPTIONS_H */

@@ -4,7 +4,7 @@ from math import floor
 from django.shortcuts import render, redirect
 from django.db import models
 from project_view.forms import RegisterForm
-from project_view.models import Project, Track, Event_Window, Note
+from project_view.models import Project, Track, EventWindow, Note
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.template import Context, loader, Template, RequestContext
@@ -89,7 +89,7 @@ def create_project(request):
     if flag:
         p = Project(name=request.POST.get('project_name'))
         p.save()
-        p.ownerz.add(request.user)
+        p.owners.add(request.user)
         return redirect('http://127.0.0.1:8000/' + request.user.username)
     else:
         template = loader.get_template('accounts/profile.html')
@@ -127,7 +127,7 @@ def track_deletion(request, project_name, usernames):
         for i in tracks_deleted:
             t = Track.objects.get(track_number=i, project=p)
             t.delete()
-            e = Event_Window.objects.filter(track=i, project=p)
+            e = EventWindow.objects.filter(track=i, project=p)
             for ee in e:
                 ee.delete()
             
@@ -142,7 +142,7 @@ def track_deletion(request, project_name, usernames):
             tt.save()
             count += 1
         
-        e = Event_Window.objects.filter(project=p)
+        e = EventWindow.objects.filter(project=p)
         count = 0
         for ee in e:
             ee.position_top = int(remaining_windows_list[count])
@@ -155,7 +155,7 @@ def event_container_creation(request, project_name, usernames):
     if request.is_ajax():
         p = Project.objects.get(name=project_name)
         t = Track.objects.get(track_number=request.POST['track'], project=p)
-        e = Event_Window(position_left=request.POST['position_left'], position_top=request.POST['position_top'], window_length=request.POST['length'], id_number=request.POST['id'], track=t, project=p)
+        e = EventWindow(position_left=request.POST['position_left'], position_top=request.POST['position_top'], window_length=request.POST['length'], id_number=request.POST['id'], track=t, project=p)
         e.save()
         return HttpResponse('event_window create saved')
     
@@ -163,7 +163,7 @@ def event_container_dragstop(request, project_name, usernames):
     if request.is_ajax():
         p = Project.objects.get(name=project_name)
         t = Track.objects.get(track_number=request.POST['track'], project=p)
-        e = Event_Window.objects.get(id_number=request.POST['id'], project=p)
+        e = EventWindow.objects.get(id_number=request.POST['id'], project=p)
         e.track = t
         e.position_left = request.POST['position_left']
         e.position_top = request.POST['position_top']
@@ -188,7 +188,7 @@ def event_container_resizestop(request, project_name, usernames):
     if request.is_ajax():
         p = Project.objects.get(name=project_name)
         t = Track.objects.get(track_number=request.POST['track'], project=p)
-        e = Event_Window.objects.get(project=p, id_number=request.POST['id'])
+        e = EventWindow.objects.get(project=p, id_number=request.POST['id'])
         e.window_length = request.POST['length']
         e.save()
         return HttpResponse('window resizestop saved')
@@ -196,16 +196,16 @@ def event_container_resizestop(request, project_name, usernames):
 def event_window_delete(request, project_name, usernames):
     if request.is_ajax():
         p = Project.objects.get(name=project_name)
-        e = Event_Window.objects.get(project=p, id_number=request.POST['id'])
+        e = EventWindow.objects.get(project=p, id_number=request.POST['id'])
         e.delete()
         return HttpResponse('window delete saved')
         
 def note_creation(request, project_name, usernames):
     if request.is_ajax():
         print(request.POST)
-        p = Project.objects.get(name=project_name, ownerz=request.user)
+        p = Project.objects.get(name=project_name, owners=request.user)
         match = re.search(r'container_num_(?P<window_number>[0-9]+$)', request.POST['window'])
-        e = Event_Window.objects.get(project=p, id_number=int(match.group('window_number')))
+        e = EventWindow.objects.get(project=p, id_number=int(match.group('window_number')))
         n = Note(pitch_class=request.POST['pitch_class'], octave=request.POST['octave'], intensity=0, position=request.POST['position'], duration=request.POST['duration'], id_number=request.POST['id'], event_window=e, project=p)
         n.save()
         return HttpResponse('note creation saved')
@@ -217,7 +217,7 @@ def note_dragstop(request, project_name, usernames):
         pitch_class_list = []
         octave_list = []
         
-        p = Project.objects.get(name=project_name, ownerz=request.user)
+        p = Project.objects.get(name=project_name, owners=request.user)
         ids = request.POST.getlist('id[]')
         pos_lefts = request.POST.getlist('position_left[]')
         pos_tops = request.POST.getlist('position_top[]')
@@ -240,7 +240,7 @@ def note_resize(request, project_name, usernames):
     if request.is_ajax():
         print(request.POST)  
         note_widths = []
-        p = Project.objects.get(name=project_name, ownerz=request.user)
+        p = Project.objects.get(name=project_name, owners=request.user)
         ids = request.POST.getlist('id[]')
         widths = request.POST.getlist('width[]')
         for width in widths:
@@ -259,7 +259,7 @@ def note_delete(request, project_name, usernames):
     if request.is_ajax():
         print(request.POST)  
         note_widths = []
-        p = Project.objects.get(name=project_name, ownerz=request.user)
+        p = Project.objects.get(name=project_name, owners=request.user)
         ids = request.POST.getlist('id[]')
         
         count = 0

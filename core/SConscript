@@ -1,6 +1,6 @@
 # vim: syntax=python
 
-classes = [
+t_units = [
     'Packet',
     'Player', 
     'Instrument', 
@@ -10,11 +10,11 @@ classes = [
     'Time',
     'Offset',
     'Beat',
-    'BadFlowException'
+    'Exceptions'
 ]
 
-sources = [i+'.cpp' for i in classes]
-py_sources = ['core.cpp'] + [i+'_py.cpp' for i in classes]
+sources = [i+'.cpp' for i in t_units]
+py_sources = ['core.cpp'] + [i+'_py.cpp' for i in t_units]
 
 # initialize the environment with just the stuff pure C++ targets need
 cpp=Environment()
@@ -40,7 +40,6 @@ prelude=cpp.Program(
 py=cpp.Clone()
 pyflags=py.ParseFlags([
     '!python3.3-config --cflags --ldflags',
-    '-fPIC',
     '-lboost_python3'
 ])
 # this flag is output by python3.3-config but g++ complains about it 

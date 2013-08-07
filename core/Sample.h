@@ -5,9 +5,9 @@
 class Sample {
     int16_t sample_;
 public:
-    Sample();
-    Sample(int16_t sample_initializer);
     typedef int16_t underlying;
+    constexpr Sample(): sample_{} {}
+    constexpr Sample(underlying sample_init): sample_{} {}
     underlying value() const;
     static Sample max_intensity();
     bool operator==(const Sample& other) const;

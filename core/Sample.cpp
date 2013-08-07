@@ -1,13 +1,7 @@
 #include <limits>
 #include "Sample.h"
 
-Sample::Sample():
-    sample_() {
-}
 
-Sample::Sample(int16_t sample_initializer):
-    sample_(sample_initializer) {
-}
 
 Sample::underlying Sample::value() const {
     return sample_;
