@@ -31,16 +31,7 @@ public:
         double operator()(const double angle) const;
     };
 
-    WaveSynth();
-    WaveSynth(std::string s);
-
-    WaveSynth(const Wave& wave_intializer);
-    WaveSynth(Wave&& wave_initializer);
-
-    WaveSynth(const Waves& waves_initializer);
-    WaveSynth(Waves&& waves_initializer);
-    WaveSynth(std::initializer_list<Wave> l);
-
+WaveSynth(const Offset& sample_rate_init,const double& freq_reference_init, const std::string& dumpname);
     WaveSynth(const WaveSynth& this_initializer)=delete;
     WaveSynth(WaveSynth&& this_initializer)=delete;
 

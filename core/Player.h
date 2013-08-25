@@ -1,11 +1,9 @@
 #ifndef PLAYER_H
 #define PLAYER_H 
 #include <vector>
-#include <mutex>
 #include <functional>
 #include <cmath>
-#include <exception>
-#include <boost/shared_ptr.hpp>
+#include <future>
 #include <boost/utility.hpp>
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
@@ -13,90 +11,90 @@
 #include "global.h"
 
 /// @brief master class to handle audio generation and playback
-class Player : public boost::noncopyable {
-    static const char * format;
-    class util {
-    public:
-        /// @brief Helper function to initialize gstreamer
-        static void initialize_gst();
-        /// @brief Helper function to build gst elements to centralize boilerplate error checking.
-        static void build_gst_element(GstElement * &element, const char * kind, const char * name);
-        /// @brief wrapper for member function b/c gst can't handle member functions
-        static void wrap_need_data(GstAppSrc * element, guint length, gpointer instance);
-        /// @brief wrapper for member function b/c gst can't handle member functions
-        static void wrap_enough_data(GstAppSrc * element, gpointer instance);
-        /// @brief wrapper for member function b/c gst can't handle member functions
-        static gboolean wrap_seek_data(GstAppSrc * element, guint64 destination, gpointer instance);
-        /// @brief wrapper for member function b/c gst can't handle member functions
-        static gboolean wrap_push_data(gpointer instance);
-
-        static gboolean wrap_bus_callback (GstBus *bus, GstMessage *message, gpointer instance);
-    };
+class Player : public boost::noncopyable, public std::enable_shared_from_this<Player> {
+    static const char * format_;
 
 public: 
-    /// @brief add an instrument by a InstrumentHandle pointing to it
-    void add_instrument(InstrumentHandle instrument);
-
-    /// @brief start playback
+    enum class BackendType {local,vorbis};
+    Player(BackendType backend_type, const Offset& sample_rate_init, const double freq_reference_init, const std::string& output_name);
+    Beat get_stream_end() const;
     void play();
-    /// @brief indicate end of stream
+    void add_instrument(InstrumentHandle instrument);
+    std::string wait_until_ready();
     void eos();
-    /// @brief stop playback
     void quit();
-
-    /// @brief dtor
-    virtual ~Player();
+    Offset sample_rate() const;
+    double freq_reference() const;
 
 protected:
-    Player(const char *);
-    /// @brief gst object representing the whole pipeline
-    GstElement * pipeline;
-    /// @brief gst object representing the interface between our code and the pipeline
-    GstElement * appsrc;
-    /// @brief gst object that converts audio data between appsrc and the sink
-    GstElement * conv;
-    /// @brief gst object representing the sink (stream, speakers, whatever)
-    GstElement * audiosink;
-    /// @brief glib object representing the mainloop used by gstreamer
-    GMainLoop * loop;
-
-    std::mutex mutex;
-    
-    /// @brief container for the player object's instruments
-    std::vector<InstrumentHandle> instruments;
-    offset_t offset;
-    offset_t offset_end;
-    guint sourceid;
-    guint bus_watch_id;
-    guint last_hint;
-
-    /// @brief callback that actually inserts data into appsrc
-    gboolean push_data();
-    /// @brief callback that handles appsrc's need-data signal 
-    void need_data(guint);
-    /// @brief callback that handles appsrc's enough-data signal 
+    void need_data(guint hint);
     void enough_data();
-    /// @brief callback that handles appsrc's seek-data signal 
-    gboolean seek_data(offset_t);
+    gboolean seek_data(Offset);
+    gboolean push_data();
 
-    gboolean bus_callback(GstBus * bus, GstMessage * message);
-    void eos_callback();
+    class Backend {
+    protected:
+        static void build_gst_element(GstElement * &element, const char * kind, const char * name);
 
-};
+        static void wrap_need_data(GstAppSrc * element, guint length, gpointer instance);
+        static void wrap_enough_data(GstAppSrc * element, gpointer instance);
+        static gboolean wrap_seek_data(GstAppSrc * element, guint64 destination, gpointer instance);
+        static gboolean wrap_push_data(gpointer instance);
+        static gboolean wrap_bus_callback (GstBus *bus, GstMessage *message, gpointer instance);
 
-class BadFlowException : public std::exception {
-    std::string message;
-public:
-    BadFlowException(const char * cstr);
-    BadFlowException(const std::string& str);
-    virtual const char * what();
+        void need_data(guint hint);
+        void enough_data();
+        gboolean seek_data(Offset);
+        gboolean bus_callback(GstBus * bus, GstMessage * message);
+
+        GstElement * pipeline_;
+        GstElement * appsrc_;
+        GstElement * conv_;
+        GstElement * audiosink_;
+        GMainLoop * loop_;
+        guint push_id_;
+        guint bus_watch_id_;
+        guint last_hint_;
+        std::future<void> main_loop_done_;
+        Player * player_;
+
+    public:
+        Backend(Player * player);
+        virtual ~Backend();
+        bool push_data(Packet& data, Offset current_offset);
+        void play(Offset);
+        void eos();
+        void quit();
+        virtual void wait_until_ready() = 0;
+        virtual std::string where()=0;
+    };
+
+    class LocalBackend : public Backend {
+    public:
+        LocalBackend(Player * player);
+        virtual void wait_until_ready() override;
+        virtual std::string where() override;
+    };
+
+    class VorbisBackend : public Backend {
+        GstElement * vorbisencoder_;
+        GstElement * oggmuxer_;
+        std::string where_;
+    public:
+        std::string where();
+        VorbisBackend(Player * player, const std::string& output_name);
+        virtual void wait_until_ready() override;
+    };
+
+
+    const Offset sample_rate_;
+    const double freq_reference_;
+    std::vector<InstrumentHandle> instruments_;
+    Offset current_offset_;
+    Offset end_offset_;
+    Offset last_hint_;
+    std::unique_ptr<Backend> backend_;
 };
 
 typedef std::shared_ptr<Player> PlayerHandle;
-
-class LocalPlayer : public Player {
-public:
-    LocalPlayer() : Player("autoaudiosink") {
-    }
-};
 #endif /* PLAYER_H */

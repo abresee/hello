@@ -3,6 +3,7 @@
 # C extensions
 *.so
 *.o
+*.os
 
 # Packages
 *.egg
@@ -30,14 +31,14 @@ nosetests.xml
 # Translations
 *.mo
 
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
+*.db
 
+# vorbis output files
+*.ogg
 #vim
 *.swp
 # specific files
 #
 docs/*
 .sconsign.dblite
+

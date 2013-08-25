@@ -1,9 +1,9 @@
 #include "Packet.h"
 #include <algorithm>
-Packet::Packet(const size_type size): packet_(size) {
+Packet::Packet(const size_type& size): packet_(size) {
 }
 
-Packet::Packet(const size_type size, Sample sample): packet_(size,sample) {
+Packet::Packet(const size_type& size, const Sample& sample): packet_(size,sample) {
 }
 
 Packet::size_type Packet::size() const {

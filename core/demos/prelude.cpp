@@ -1,18 +1,18 @@
 #include <cmath>
 #include <memory>
 #include <iostream>
-#include <stdexcept>
 #include "../Player.h"
 #include "../Instrument.h"
 #include "../WaveSynth.h"
 
 int main(int argc, char ** argv)
 {
-    auto p = std::make_shared<LocalPlayer>();
-    auto wg = std::make_shared<WaveSynth>("data");
+    auto p = std::make_shared<Player>(Player::BackendType::vorbis, Offset(441000), 220, "prelude_cpp.ogg");
+    auto ws = std::make_shared<WaveSynth>(p->sample_rate(), p->freq_reference(), "wavesynth_dump.log");
 
-    auto note_length = Config::sample_rate/4;
-    Sample note_intensity = Config::max_intensity/4;
+    Beat note_length(1,2);
+
+    Sample note_intensity = Sample::max_intensity()/4;
 
     WaveSynth::Notes notes;
     int note_count=0;
@@ -28,7 +28,8 @@ int main(int argc, char ** argv)
         }
     }
 
-    wg->add_notes(notes);
-    p->add_instrument(wg);
+    ws->add_notes(notes);
+    p->add_instrument(ws);
     p->play();
+    p->wait_until_ready();
 }

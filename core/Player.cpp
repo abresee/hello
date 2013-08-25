@@ -1,171 +1,169 @@
+#include <algorithm>
 #include <iterator>
 #include <iostream>
 #include <memory>
-#include <boost/assert.hpp>
+#include <future>
 #include "Player.h"
+#include "Time.h"
+#include "Exceptions.h"
 
-const char * Player::format = "S16LE";
+/////////////////////////////////////
+//Player::Backend inner class definition
+/////////////////////////////////////
 
-void Player::util::initialize_gst() {
-    GError *err;
-    if(!gst_init_check(nullptr,nullptr,&err)) {
-        std::exit(err->code);
-    }
-}
-
-void Player::util::build_gst_element(GstElement * &element, const char * kind, const char * name) {
-    element = gst_element_factory_make(kind,name);
-    if(element==nullptr) {
-        std::exit(EXIT_FAILURE);
-    }
-}
-
-void Player::util::wrap_need_data(GstAppSrc * element, guint length, gpointer instance) {
-    Player * this_ = static_cast<Player *>(instance);
-    this_->need_data(length);
-}
-
-void Player::util::wrap_enough_data(GstAppSrc * src, gpointer instance) {
-    Player * this_ = static_cast<Player *>(instance);
-    this_->enough_data();
-}
-
-gboolean Player::util::wrap_seek_data(GstAppSrc * element, guint64 destination, gpointer instance) {
-    Player * this_ = static_cast<Player *>(instance);
-    return this_->seek_data(destination);
-}
-
-gboolean Player::util::wrap_push_data(gpointer instance) {
-    Player * this_ = static_cast<Player *>(instance);
-    return this_->push_data();
-}
-
-gboolean Player::util::wrap_bus_callback(GstBus * bus, GstMessage * message, gpointer instance) {
-    Player * this_ = static_cast<Player *>(instance);
-    return this_->bus_callback(bus,message);
-}
-
-void Player::add_instrument(InstrumentHandle instrument_h) {
-    instruments.push_back(instrument_h);
-}
-
-void Player::play() {   
-    offset_t stream_end=0;
-    for(auto instrument_h : instruments) { 
-        stream_end = std::max(stream_end,instrument_h->stream_end());
-    }
-    offset_end = stream_end;
-    g_object_set(G_OBJECT(appsrc),"size",offset_end*Config::word_size,nullptr);
-    gst_element_set_state (pipeline, GST_STATE_PLAYING);
-    g_main_loop_run (loop);
-}
-
-void Player::eos() {
-    GstFlowReturn r = gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
-    if (r!=GST_FLOW_OK) {
-        throw BadFlowException("bad flow on end of stream");
-    }
-}
-
-void Player::quit() {
-    gst_element_set_state(pipeline, GST_STATE_NULL);
-    g_main_loop_quit(loop);
-}
-
-Player::Player(const char * sinktype) : pipeline(), appsrc(), conv(), audiosink(), loop(), instruments(), offset(), offset_end(), sourceid(), last_hint() {
+Player::Backend::Backend(Player * player):
+    pipeline_(),
+    appsrc_(),
+    conv_(),
+    audiosink_(),
+    loop_(),
+    push_id_(),
+    bus_watch_id_(),
+    player_(player) {
     if(!gst_is_initialized()) {
-        util::initialize_gst();
+        GError *err;
+        if(!gst_init_check(nullptr,nullptr,&err)) {
+            std::exit(err->code);
+        }
     }
-    pipeline = gst_pipeline_new ("pipeline");
-    if(pipeline==nullptr) {
+
+    pipeline_ = gst_pipeline_new ("pipeline");
+
+    if(pipeline_==nullptr) {
         std::exit(EXIT_FAILURE);
     };
 
-    util::build_gst_element(appsrc,"appsrc","source");
-    util::build_gst_element(conv,"audioconvert","conv");
-    util::build_gst_element(audiosink,sinktype,"output");
+    build_gst_element(appsrc_,"appsrc","source");
+    build_gst_element(conv_,"audioconvert","conv");
 
-    GstBus * bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
-    bus_watch_id = gst_bus_add_watch (bus, util::wrap_bus_callback, this);
+    GstBus * bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline_));
+    bus_watch_id_ = gst_bus_add_watch (bus, wrap_bus_callback, this);
     gst_object_unref (bus);
     
-
-    GstCaps * caps = gst_caps_new_simple (
+    GstCaps * caps = gst_caps_new_simple(
         "audio/x-raw",
-        "format", G_TYPE_STRING, format,
+        "format", G_TYPE_STRING, format_,
         "rate", G_TYPE_INT, Config::sample_rate,
         "channels",G_TYPE_INT, Config::channels,
         "signed", G_TYPE_BOOLEAN, TRUE,
         "layout", G_TYPE_STRING, "interleaved",
         nullptr);
 
-    g_object_set( G_OBJECT(appsrc), "caps", caps, nullptr);
-    g_object_set( G_OBJECT(appsrc),"is-live",true,nullptr);
-    g_object_set( G_OBJECT(appsrc),"min-latency",0,nullptr);
-    g_object_set( G_OBJECT(appsrc),"emit-signals",false,nullptr);
-    g_object_set( G_OBJECT(appsrc),"format",GST_FORMAT_TIME,nullptr);
+    g_object_set(G_OBJECT(appsrc_),"caps",caps,nullptr);
+    g_object_set(G_OBJECT(appsrc_),"is-live",true,nullptr);
+    g_object_set(G_OBJECT(appsrc_),"min-latency",0,nullptr);
+    g_object_set(G_OBJECT(appsrc_),"emit-signals",false,nullptr);
+    g_object_set(G_OBJECT(appsrc_),"format",GST_FORMAT_TIME,nullptr);
 
     //the gstreamer main loop is the main event loop for audio generation
-    loop = g_main_loop_new (nullptr, FALSE);
+    loop_ = g_main_loop_new (nullptr, FALSE);
 
-    gst_bin_add_many (GST_BIN (pipeline), appsrc, conv, audiosink, nullptr);
-    gst_element_link_many (appsrc, conv, audiosink, nullptr);
+    gst_bin_add_many (GST_BIN (pipeline_), appsrc_, conv_, nullptr);
+    gst_element_link (appsrc_, conv_);
 
-    GstAppSrcCallbacks callbacks = {util::wrap_need_data, util::wrap_enough_data, util::wrap_seek_data};
-    gst_app_src_set_callbacks(GST_APP_SRC(appsrc), &callbacks, this, nullptr);
+    GstAppSrcCallbacks callbacks = {wrap_need_data, wrap_enough_data, wrap_seek_data};
+    gst_app_src_set_callbacks(GST_APP_SRC(appsrc_), &callbacks, this, nullptr);
 }
 
-gboolean Player::push_data() {
-    if(offset >= offset_end) {
-        eos();
-        return false;
-    }
-    
-    const Packet::size_type packet_size = ((offset+last_hint) < offset_end) ? last_hint : offset_end - offset ; 
-    Packet data(packet_size);
+Player::Backend::~Backend() {
+    gst_element_set_state (pipeline_, GST_STATE_NULL);
+    gst_object_unref (GST_OBJECT (pipeline_));
+    g_main_loop_unref (loop_);
+}
 
-    for (InstrumentHandle instrument_h : instruments) {
-        data+=instrument_h->get_samples(offset,offset+packet_size);
+void Player::Backend::build_gst_element(GstElement * &element, const char * kind, const char * name) {
+    element = gst_element_factory_make(kind,name);
+    if(element==nullptr) {
+        std::exit(EXIT_FAILURE);
     }
+}
 
+void Player::Backend::wrap_need_data(GstAppSrc * element, guint length, gpointer instance) {
+    Backend * this_ = static_cast<Backend *>(instance);
+    this_->need_data(length);
+}
+
+void Player::Backend::wrap_enough_data(GstAppSrc * src, gpointer instance) {
+    Backend * this_ = static_cast<Backend *>(instance);
+    this_->enough_data();
+}
+
+gboolean Player::Backend::wrap_seek_data(GstAppSrc * element, guint64 destination, gpointer instance) {
+    Backend * this_ = static_cast<Backend *>(instance);
+    return this_->seek_data(Offset(destination));
+}
+
+gboolean Player::Backend::wrap_push_data(gpointer instance) {
+    Backend * this_ = static_cast<Backend *>(instance);
+    return this_->player_->push_data();
+}
+
+bool Player::Backend::push_data(Packet& data, Offset current_offset) {
     GstBuffer * buffer = gst_buffer_new_allocate(
         nullptr, data.size()*Config::word_size, nullptr);
+    Offset packet_size = Offset(data.size());
 
-    GST_BUFFER_PTS(buffer) = Config::offset_to_ns(offset);
-    GST_BUFFER_DURATION(buffer) = Config::offset_to_ns(packet_size);
-    GST_BUFFER_OFFSET(buffer) = offset;
-    GST_BUFFER_OFFSET_END(buffer) = offset+packet_size;
+    GST_BUFFER_PTS(buffer) = current_offset.to_time(Config::sample_rate).value();
+    GST_BUFFER_DURATION(buffer) = packet_size.to_time(Config::sample_rate).value();
+    GST_BUFFER_OFFSET(buffer) = current_offset.value();
+    GST_BUFFER_OFFSET_END(buffer) = (current_offset+packet_size).value();
+
     auto size = data.size() * Config::word_size;
     auto rsize = gst_buffer_fill(buffer, 0, static_cast<void *>(data.data()), size);
-    BOOST_ASSERT(size==rsize);
-    auto ret = gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer); 
+    assert(size==rsize);
+
+    auto ret = gst_app_src_push_buffer(GST_APP_SRC(appsrc_), buffer); 
     if ( ret != GST_FLOW_OK) {
         throw BadFlowException("bad flow while pushing buffer");
     }
-    offset+=data.size();
     return true;
 }
 
-void Player::need_data(guint length) {
-    last_hint=length;
-    if(sourceid==0) {
-        sourceid=g_idle_add((GSourceFunc) util::wrap_push_data, this);
-    } 
+gboolean Player::Backend::wrap_bus_callback(GstBus * bus, GstMessage * message, gpointer instance) {
+    Backend * this_ = static_cast<Backend *>(instance);
+    return this_->bus_callback(bus,message);
 }
 
-void Player::enough_data() {
-    if(sourceid!=0) {
-        g_source_remove(sourceid);
-        sourceid=0;
+void Player::Backend::play(Offset end_offset) {
+    g_object_set(G_OBJECT(appsrc_),"size",end_offset.value()*Config::word_size,nullptr);
+    gst_element_set_state (pipeline_, GST_STATE_PLAYING);
+    main_loop_done_ = std::async(std::launch::async,
+        [this](){return g_main_loop_run (loop_);});
+}
+
+void Player::Backend::eos() {
+    GstFlowReturn r = gst_app_src_end_of_stream(GST_APP_SRC(appsrc_));
+    if (r!=GST_FLOW_OK) {
+        throw BadFlowException("bad flow on end of stream");
     }
 }
 
-gboolean Player::seek_data(offset_t destination) {
+void Player::Backend::quit() {
+    gst_element_set_state(pipeline_, GST_STATE_NULL);
+    g_main_loop_quit(loop_);
+}
+
+void Player::Backend::need_data(guint length) {
+    player_->last_hint_ = Offset(length);
+    if(push_id_ == 0) {
+        push_id_=g_idle_add((GSourceFunc) Backend::wrap_push_data, this);
+    } 
+}
+
+void Player::Backend::enough_data() {
+    if(push_id_ != 0) {
+        g_source_remove(push_id_);
+        push_id_=0;
+    }
+}
+
+gboolean Player::Backend::seek_data(Offset destination) {
     //TODO: IMPLEMENT THIS
+    assert(false);
     return true;
 }
 
-gboolean Player::bus_callback(GstBus * bus, GstMessage * message) {
+gboolean Player::Backend::bus_callback(GstBus * bus, GstMessage * message) {
     switch(GST_MESSAGE_TYPE(message)) {
         case GST_MESSAGE_ERROR:
             GError *err;
@@ -186,21 +184,130 @@ gboolean Player::bus_callback(GstBus * bus, GstMessage * message) {
     return true;
 }
 
-Player::~Player() {
-    gst_element_set_state (pipeline, GST_STATE_NULL);
-    gst_object_unref (GST_OBJECT (pipeline));
-    g_main_loop_unref (loop);
+//////////////////////////////////////
+// LocalBackend inner class definition
+//////////////////////////////////////
+Player::LocalBackend::LocalBackend(Player * player):
+    Backend(player) {
+    build_gst_element(audiosink_,"autoaudiosink","output");
+    gst_bin_add(GST_BIN(pipeline_),audiosink_);
+    gst_element_link(conv_, audiosink_);
 }
 
-BadFlowException::BadFlowException(const char * cstr):
-    message(cstr) { 
+void Player::LocalBackend::wait_until_ready() {
+    assert(false);
 }
 
-BadFlowException::BadFlowException(const std::string& str):
-    message(str) {
+std::string Player::LocalBackend::where(){
+    assert(false);
 }
 
-const char * BadFlowException::what() {
-    return message.c_str();
+
+///////////////////////////////////////
+// VorbisBackend inner class definition
+///////////////////////////////////////
+
+Player::VorbisBackend::VorbisBackend(Player * player, const std::string& output_name):
+    Backend(player),
+    where_(output_name) {
+    build_gst_element(vorbisencoder_,"vorbisenc", "encoder");
+    build_gst_element(oggmuxer_,"oggmux", "muxer");
+    build_gst_element(audiosink_, "filesink", "sink");
+
+    g_object_set(G_OBJECT(audiosink_),"location",output_name.c_str(),nullptr);
+    gst_bin_add_many(GST_BIN(pipeline_),vorbisencoder_,oggmuxer_,audiosink_,nullptr);
+    gst_element_link_many(conv_,vorbisencoder_,oggmuxer_,audiosink_,nullptr);
 }
 
+std::string Player::VorbisBackend::where() {
+    return where_;
+}
+
+void Player::VorbisBackend::wait_until_ready() {
+    main_loop_done_.get(); 
+}
+
+/////////////////////////
+//Player class definition
+/////////////////////////
+
+//init static member variables
+const char * Player::format_ = "S16LE";
+
+Player::Player(BackendType backend_type, const Offset& sample_rate_init, const double freq_reference_init, const std::string& output_name):
+    sample_rate_(sample_rate_init),
+    freq_reference_(freq_reference_init),
+    instruments_(),
+    current_offset_(),
+    end_offset_() {
+    switch(backend_type) {
+        case BackendType::local:
+            backend_ = std::unique_ptr<LocalBackend>(new LocalBackend(this));
+            break;
+        case BackendType::vorbis:
+            backend_ = std::unique_ptr<VorbisBackend>(new VorbisBackend(this,output_name));
+            break;
+    }
+}
+
+void Player::add_instrument(InstrumentHandle instrument_h) {
+    instruments_.push_back(instrument_h);
+}
+
+Beat Player::get_stream_end() const {
+    auto comp_by_stream_end = [](InstrumentHandle l, InstrumentHandle r) 
+        -> bool {return l->stream_end() < r->stream_end();};
+    return (*std::max_element(
+        instruments_.begin(),
+        instruments_.end(),
+        comp_by_stream_end
+    ))->stream_end();
+}
+
+void Player::play() {   
+    Beat stream_end{get_stream_end()};
+    end_offset_ = stream_end.to_offset(Config::tempo, Config::sample_rate);
+    backend_->play(end_offset_);
+}
+
+std::string Player::wait_until_ready() {
+    backend_->wait_until_ready();
+    return backend_->where();
+}
+
+void Player::eos() {
+    backend_->eos();
+}
+
+void Player::quit() {
+    backend_->quit();
+}
+
+Offset Player::sample_rate() const {
+    return sample_rate_;
+}
+
+double Player::freq_reference() const {
+    return freq_reference_;
+}
+
+gboolean Player::push_data() {
+    if(current_offset_ >= end_offset_) {
+        eos();
+        return false;
+    }
+    
+    Offset packet_size = ((current_offset_+last_hint_) < end_offset_) ? last_hint_ : end_offset_ - current_offset_ ; 
+    Packet data(packet_size.value());
+
+    for (InstrumentHandle instrument_h : instruments_) {
+        data+=instrument_h->get_samples(current_offset_,current_offset_+packet_size);
+    }
+    if (backend_->push_data(data,current_offset_));
+    {
+        current_offset_+=Offset(data.size());
+        return true;
+    }
+    assert(false);
+    return false; //shouldn't happen
+}

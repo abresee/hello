@@ -1,0 +1,293 @@
+div.container {width:10000px;
+    border-top-style:solid;
+    border-width:1px;
+    height:24px;
+    position:relative;
+    top:1px;
+    left:1px;
+    z-index: 3;
+    }
+div.note {background-color: #9999cc;
+    width:59px;
+    height:24px;
+    position:relative;
+    top:0px;
+    left:0px;
+    border-left-style: solid;
+    border-width:1px;
+    white-space: nowrap;
+    cursor: move;
+    z-index:3}
+div.music_container {background-color: blue;
+    width:59px;
+    height:75px;
+    position:absolute;
+    top:0px;
+    left:0px;
+    border-left-style: solid;
+    border-bottom-style: solid;
+    border-width:1px;
+    cursor: move;
+    z-index:1}
+div.piano_roll {
+    width:10002px;
+    height:2700px;
+    position:absolute;
+    top:0px;
+    left:0px;
+}
+div.time_column {
+    width:29px;
+    height:2700px;
+    position:absolute;
+    border-right-style:solid;
+    border-color: black;
+    border-width:1px;
+    top:0px;
+    left:0px;
+    z-index: 1;
+}
+#select_tool {
+    background-color:gray;
+    top:-40px;
+    left:15px;
+}
+
+#select_tool_project {
+    bottom: 0px;
+}
+
+#snap_tool {
+    background-color:gray;
+    top:-40px;
+    left:56px;
+}
+
+#snap_tool_project {
+    bottom: 0px; left: 40px;
+}
+
+#pencil_tool_project {
+    bottom: 0px; left: 80px;
+}
+
+#play {
+    bottom: 30px; left: 200px;
+}
+
+div.select {background-color:gray;
+    width:38px;
+    height:20px;
+    position:absolute;
+}
+#window {
+    width:1022px;
+    height:502px;
+    position:absolute;
+    top:0px;
+    left:0px;
+    overflow: auto;
+    border-style: outset}
+#windowresize {
+    width:1029px;
+    height:509px;
+    position:absolute;
+    top:20px;
+    left:0px;
+    overflow: visible;
+    background: white;
+}
+#closer {
+    width:12px;
+    height:12px;
+    position:absolute;
+    top:-16px;
+    right:5px;
+    overflow: visible;
+    background: red;
+    z-index: 3;
+}
+#windowdrag {
+    width:1028px;
+    height:20px;
+    min-height: 20px;
+    max-height: 20px;
+    position:fixed;
+    top:200px;
+    left:300px;
+    background: purple;
+    z-index: 3;
+}	
+
+#zoom_slider {
+    width: 300px;
+    position: absolute; 
+    bottom: -20px;
+    right:5px
+}
+#selectable .ui-selecting { background: #663399; }
+#selectable .ui-selected { background: #330066; z-index: 4}
+
+div.track_info{
+    width: 149px;
+    height: 75px;
+    top: 0px; left: 0px;
+    position: static;
+    border-bottom-style: solid;
+    border-right-style: solid;
+    border-width: 1px;
+    background: green;
+    z-index: 1
+}
+div.track_window{
+    width: 4850px;
+    height: 75px;
+    top: 91px;
+    position: static;
+    border-bottom-style: solid;
+    border-width: 1px;
+    border-color: black;
+    float: left;
+    
+    z-index: 3;
+}
+
+#track_window_offset {
+    height:  83px;
+}
+
+#track_pane{
+    width: 149px;
+    height: 4000px;
+    position: absolute;
+    top: 91px; left: 0px;
+    border-right-style: solid;
+    border-width: 1px;
+    background: gray;
+    float: left;
+    z-index: 2;
+}
+#transport_pane{
+    width: 1905px;
+    height: 70px;
+    position: fixed;
+    top: 0px; left: 0px;
+    z-index: 3;
+    border-bottom-style: solid;
+    border-width: 1px;
+    background: white;
+}
+#timeline{
+    background-color: #cccccc;
+    position: absolute;
+    left: 0px; top: 71px;
+    border-bottom-style: solid;
+    border-width: 1px;
+    z-index: 4;
+}
+
+#timeline_black{
+    width: 150px; 
+    height: 20px; 
+    border-bottom-style: solid; 
+    border-width: 1px; 
+    background: white; 
+    z-index: 3; 
+    position: fixed; 
+    left: 0px; 
+    top: 71px;
+}
+
+#create_track {
+    width: 20px; 
+    height: 12px; 
+    background: gray; 
+    position: absolute; 
+    left: 4px; 
+    top: 4px;
+}
+
+#delete_track {
+    width: 20px; 
+    height: 12px; 
+    background: gray; 
+    position: absolute; 
+    left: 28px; 
+    top: 4px;
+}
+
+#timeline {
+    width: 5000px;
+    height: 20;
+    z-index: 1;
+}
+
+div.track_times{
+    width: 15px;
+    height: 4000px;
+    position: absolute;
+    top: 92px;
+    left: 300px;
+    border-right-style: solid;
+    border-width: 2px;
+    z-index: 0;
+}
+.hider{
+    visibility: hidden;
+}
+
+div.transport_locator{
+    width: 2px;
+    height: 4020px;
+    position: absolute;
+    top:70px;
+    left:150px;
+    background: red;
+    z-index: 2;
+}
+
+#bpm{
+    position: absolute;
+    left: 300px;
+    top: -5px;
+}
+
+#input_bpm{
+    width: 40px;
+}
+
+#save_form{
+    position: absolute;
+    right: 100px;
+    top: 5px;
+}
+
+#logout_form{
+    position: absolute;
+    right: 220px;
+    top: 33px;
+}
+
+#profile{
+    position: absolute;
+    right: 155px;
+    top: 33px;
+}
+
+#jquery_ajax{
+    position: absolute;
+    right: 340px;
+    top: 33px;
+}
+
+#title{
+    text-align: center;
+    position: relative;
+    top: -25px;
+}
+
+#error{
+    position: absolute;
+    right: 355px;
+    top: 9px;
+}

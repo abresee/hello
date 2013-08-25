@@ -2,7 +2,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <memory>
-#include "../Player.h"
+#include "../LocalPlayer.h"
 #include "../Instrument.h"
 #include "../WaveSynth.h"
 
@@ -11,8 +11,8 @@ int main(int argc, char ** argv)
     PlayerHandle p = std::make_shared<LocalPlayer>();
     InstrumentHandle wg = std::make_shared<WaveSynth>("data");
 
-    offset_t note_length = Config::sample_rate/8;
-    Sample note_intensity = Config::max_intensity/4;
+    Beat note_length(1);
+    Sample note_intensity = Sample::max_intensity;
     WaveSynth::Notes notes;
     for(int i = 0; i < 80; ++i) {
         notes.push_back(

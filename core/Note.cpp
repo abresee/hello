@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Note.h"
-
-Note::Note(int pc_init, int octave_init, Sample intensity_init, offset_t pos_init, offset_t len_init): pitch_class_(pc_init), octave_(octave_init), intensity_(intensity_init), pos_(pos_init), length_(len_init) {
+//heh
+Note::Note(int pc_init, int octave_init, Sample intensity_init, Beat pos_init, Beat len_init): pitch_class_(pc_init), octave_(octave_init), intensity_(intensity_init), pos_(pos_init), length_(len_init) {
 
     using Config::pc_count;
     if (pitch_class_ < 0) {
@@ -30,21 +30,21 @@ int Note::octave(int ref) const {
     return octave() - ref;
 }
 
-offset_t Note::position() const {
+Beat Note::position() const {
     return pos_;
 }
-offset_t Note::position(offset_t ref) const {
+Beat Note::position(Beat ref) const {
     return position() - ref; 
 }
 
-offset_t Note::off() const {
+Beat Note::end() const {
     return position() + length();
 }
-offset_t Note::off(offset_t ref) const {
+Beat Note::end(Beat ref) const {
     return position(ref) + length();
 }
 
-offset_t Note::length() const {
+Beat Note::length() const {
     return length_;
 }
 
