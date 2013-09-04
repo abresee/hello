@@ -1,6 +1,6 @@
 $ = jQuery
 
-init = ->
+$(document).ready ->
     $.get "is_ready", (data) ->
         aud = $("#test_player")[0]
         $("#test_source").attr "src", data

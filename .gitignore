@@ -37,6 +37,9 @@ nosetests.xml
 *.ogg
 #vim
 *.swp
+#js
+*.js
+
 # specific files
 #
 docs/*

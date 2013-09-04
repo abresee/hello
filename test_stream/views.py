@@ -4,7 +4,6 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 from os.path import basename
 from core import Player, WaveSynth, Offset, Beat, Sample, Note  
-from test_stream import models
 
 remember={}
 def make_test_player():
