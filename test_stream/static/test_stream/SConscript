@@ -1,0 +1,2 @@
+# vim: syntax=python
+Command('test.js', 'test.coffee', 'coffee -c $SOURCE')
