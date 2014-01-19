@@ -1,0 +1,31 @@
+# vim: syntax=python
+cythonBuilder = Builder(action = 'cython $SOURCE --cplus',
+                        suffix = '.cpp',
+                        src_suffix = '.pyx')
+
+env = Environment(BUILDERS={'Py2C':cythonBuilder},
+                  SCONS_CXX_STANDARD="c++11"
+                 )
+
+# note implicit concatenation -- make sure to leave spaces at the ends!
+env.MergeFlags([
+    '!pkg-config --cflags --libs '
+        'gstreamer-1.0 '
+        'gstreamer-plugins-base-1.0 ',
+    '!python-config --cflags --libs',
+    '-std=c++1y',
+    '-Wfatal-errors',
+    '-g',
+    '-lgstapp-1.0'
+])
+
+def cythonPseudoBuilder(env,source):
+    cCode = env.Py2C(source)
+    env.SharedLibrary(source,cCode,LIBPREFIX='')
+
+env.AddMethod(cythonPseudoBuilder,'Cython')
+ 
+c=env.Cython('player')
+o=env.Object('aux.cpp')
+
+
