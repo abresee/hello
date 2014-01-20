@@ -1,4 +1,5 @@
 #include "player.h"
+
 static gboolean bus_call(GstBus* bus, GstMessage* msg, gpointer data){
     Player* my_player = (Player*) data;
     switch (GST_MESSAGE_TYPE (msg)) {
@@ -67,10 +68,10 @@ void Player::_d_Player(){
 void Player::play_sample(char* sample_name){
     std::string _count = std::to_string(count);
 
-    GstElement* _source   = gst_element_factory_make("filesrc", (std::string("file-source") + _count).c_str());
-    GstElement* _demuxer  = gst_element_factory_make ("oggdemux",      (std::string("ogg-demuxer")+_count).c_str());
-    GstElement* _decoder  = gst_element_factory_make ("vorbisdec",     (std::string("vorbis-decoder")+_count).c_str());
-    GstElement* _conv     = gst_element_factory_make ("audioconvert",  (std::string("converter")+_count).c_str());
+    GstElement* _source   = gst_element_factory_make("filesrc", (std::string("file-source")+_count).c_str());
+    GstElement* _demuxer  = gst_element_factory_make ("oggdemux",(std::string("ogg-demuxer")+_count).c_str());
+    GstElement* _decoder  = gst_element_factory_make ("vorbisdec",(std::string("vorbis-decoder")+_count).c_str());
+    GstElement* _conv     = gst_element_factory_make ("audioconvert",(std::string("converter")+_count).c_str());
 
     if (!_source || !_demuxer || !_decoder || !_conv){
         printf("One element couldn't be created.");
@@ -84,10 +85,6 @@ void Player::play_sample(char* sample_name){
     printf("linking decoder and conv %d\n", gst_element_link(_decoder, _conv));
     printf("linking conv and adder   %d\n", gst_element_link(_conv, adder));
 
-    gst_element_set_state(_source, GST_STATE_READY);
-    gst_element_set_state(_demuxer, GST_STATE_READY);
-    gst_element_set_state(_decoder, GST_STATE_READY);
-    gst_element_set_state(_conv, GST_STATE_READY);
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
 
     count++;
