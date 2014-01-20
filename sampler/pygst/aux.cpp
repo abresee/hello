@@ -10,13 +10,10 @@ static gboolean bus_call(GstBus* bus, GstMessage* msg, gpointer data){
         case GST_MESSAGE_ERROR: {
              gchar  *debug;
              GError *error;
-
              gst_message_parse_error (msg, &error, &debug);
              g_free (debug);
-
              g_printerr ("Error: %s\n", error->message);
              g_error_free (error);
-
              g_main_loop_quit (loop);
              break;
         }
@@ -61,7 +58,7 @@ Player::Player(){
 }
 
 void Player::_d_Player(){
-    g_print("destructor");
+    g_print("destructor\n");
     gst_element_set_state(pipeline, GST_STATE_NULL);
     gst_object_unref(GST_OBJECT(pipeline));
     g_source_remove(bus_watch_id);
@@ -84,8 +81,15 @@ void Player::print_gst_version() {
 }
 
 void Player::play(char* track_name){
-    g_object_set(G_OBJECT(source), "location", track_name, NULL);
-    gst_element_set_state(pipeline, GST_STATE_PLAYING);
+    GstState* state;
+    gst_element_get_state(pipeline, state, NULL, GST_CLOCK_TIME_NONE);
+    if (*state == GST_STATE_PLAYING){
+        gst_element_set_state(pipeline, GST_STATE_PAUSED);
+    }else{
+        g_object_set(G_OBJECT(source), "location", track_name, NULL);
+        gst_element_set_state(pipeline, GST_STATE_PLAYING);
+    }
+    g_object_unref(state);
 
     g_main_loop_run(loop);
 }
