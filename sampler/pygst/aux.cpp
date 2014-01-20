@@ -81,15 +81,16 @@ void Player::print_gst_version() {
 }
 
 void Player::play(char* track_name){
-    GstState* state;
-    gst_element_get_state(pipeline, state, NULL, GST_CLOCK_TIME_NONE);
-    if (*state == GST_STATE_PLAYING){
+    GstState state;
+    gst_element_get_state(pipeline, &state, NULL, GST_CLOCK_TIME_NONE);
+    if (state == GST_STATE_PLAYING){
+        g_print("pausing...");
         gst_element_set_state(pipeline, GST_STATE_PAUSED);
     }else{
+        g_print("playing...");
         g_object_set(G_OBJECT(source), "location", track_name, NULL);
         gst_element_set_state(pipeline, GST_STATE_PLAYING);
     }
-    g_object_unref(state);
 
     g_main_loop_run(loop);
 }
