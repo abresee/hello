@@ -12,6 +12,7 @@ static gboolean bus_call(GstBus* bus, GstMessage* msg, gpointer data){
              my_player->vol    = gst_element_factory_make ("volume", "volume-mixer");
 
              g_object_set(G_OBJECT(my_player->vol), "volume", my_player->volume, NULL);
+             printf("set vol: %f\n", my_player->volume);
 
              gst_bin_add_many(GST_BIN(my_player->pipeline), my_player->adder, my_player->sink, my_player->vol, NULL);
              gst_element_link(my_player->adder, my_player->vol);
@@ -142,6 +143,8 @@ void Player::play_sample(char* sample_name){
     
 void Player::set_volume(double _volume){
     volume = _volume;
+    g_object_set(G_OBJECT(vol), "volume", _volume, NULL);
+    printf("volume: %f %f\n", volume, _volume);
     return;
 }
 
