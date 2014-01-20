@@ -62,6 +62,7 @@ void Player::_d_Player(){
     gst_element_set_state(pipeline, GST_STATE_NULL);
     gst_object_unref(GST_OBJECT(pipeline));
     g_source_remove(bus_watch_id);
+    g_main_loop_quit (loop);
     g_main_loop_unref(loop);
 }
 
@@ -88,6 +89,7 @@ void Player::play(char* track_name){
         gst_element_set_state(pipeline, GST_STATE_PAUSED);
     }else{
         g_print("playing...");
+        gst_element_set_state(pipeline, GST_STATE_READY);
         g_object_set(G_OBJECT(source), "location", track_name, NULL);
         gst_element_set_state(pipeline, GST_STATE_PLAYING);
     }
