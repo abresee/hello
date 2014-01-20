@@ -11,6 +11,10 @@ static gboolean bus_call(GstBus* bus, GstMessage* msg, gpointer data){
              my_player->adder    = gst_element_factory_make ("adder", "mixer");
              gst_bin_add_many(GST_BIN(my_player->pipeline), my_player->adder, my_player->sink, NULL);
              gst_element_link(my_player->adder, my_player->sink);
+
+             my_player->bus = gst_pipeline_get_bus (GST_PIPELINE (my_player->pipeline));
+             my_player->bus_watch_id = gst_bus_add_watch (my_player->bus, bus_call, my_player);
+             gst_object_unref (my_player->bus);
              break;}
         case GST_MESSAGE_ERROR: {
              gchar  *debug;
