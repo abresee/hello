@@ -1,2 +1,2 @@
 # vim: syntax=python
-SConcript('sampler/SConscript')
+env.SConcript('sampler/SConscript')
