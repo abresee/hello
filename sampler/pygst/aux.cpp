@@ -70,7 +70,9 @@ Player::Player(){
 void Player::_d_Player(){
     g_print("destructor\n");
     gst_element_set_state(pipeline, GST_STATE_NULL);
-    gst_object_unref(GST_OBJECT(pipeline));
+    if (pipeline != NULL){
+        gst_object_unref(GST_OBJECT(pipeline));
+    }
     g_source_remove(bus_watch_id);
     g_main_loop_quit (loop);
     g_main_loop_unref(loop);
@@ -100,7 +102,7 @@ void Player::play_sample(char* sample_name){
 
     count++;
     g_main_loop_run(loop);
-    printf("main loop terminated");
+    printf("main loop terminated\n");
 }
     
 

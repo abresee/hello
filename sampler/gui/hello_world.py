@@ -21,8 +21,11 @@ class MyWindow(Gtk.Window):
         self.player.play_sample("test.ogg")
     def on_button2_clicked(self, widget):
         self.player.play_sample("test2.ogg")
+    def close_app(self, _,__):
+        self.player.destruct()
+        Gtk.main_quit()
 
 win = MyWindow()
-win.connect("delete-event", Gtk.main_quit)
+win.connect("delete-event", win.close_app)
 win.show_all()
 Gtk.main()
