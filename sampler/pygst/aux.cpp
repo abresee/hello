@@ -5,6 +5,12 @@ static gboolean bus_call(GstBus* bus, GstMessage* msg, gpointer data){
     switch (GST_MESSAGE_TYPE (msg)) {
         case GST_MESSAGE_EOS:{
              g_print ("End of stream\n");
+             my_player->pipeline = NULL;
+             my_player->pipeline = gst_pipeline_new("audio-player");
+             my_player->sink     = gst_element_factory_make ("autoaudiosink", "audio-output");
+             my_player->adder    = gst_element_factory_make ("adder", "mixer");
+             gst_bin_add_many(GST_BIN(my_player->pipeline), my_player->adder, my_player->sink, NULL);
+             gst_element_link(my_player->adder, my_player->sink);
              break;}
         case GST_MESSAGE_ERROR: {
              gchar  *debug;
@@ -23,6 +29,7 @@ static gboolean bus_call(GstBus* bus, GstMessage* msg, gpointer data){
 }
 
 static void on_pad_added (GstElement *element, GstPad *pad, gpointer data){
+  printf("on pad added\n");
   GstPad *sinkpad;
   GstElement *decoder = (GstElement *) data;
   g_print ("Dynamic pad created, linking demuxer/decoder\n");
@@ -40,12 +47,13 @@ Player::Player(){
 
     count = 0;
     pipeline = gst_pipeline_new("audio-player");
-    sink     = gst_element_factory_make ("autoaudiosink", "audio-output");
-    adder    = gst_element_factory_make ("adder", "mixer");
+    source   = gst_element_factory_make("filesrc", "file-source");
+    sink     = gst_element_factory_make("autoaudiosink", "sink");
+    adder    = gst_element_factory_make("adder", "mixer");
 
-    if (!sink) printf("sink could not be created");
-    if (!adder) printf("adder could not be created");
-    if (!pipeline) printf("pipeline could not be created");
+    if (!sink) printf("sink could not be created\n");
+    if (!adder) printf("adder could not be created\n");
+    if (!pipeline) printf("pipeline could not be created\n");
 
     bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
     bus_watch_id = gst_bus_add_watch (bus, bus_call, my_player);
@@ -62,7 +70,6 @@ void Player::_d_Player(){
     g_source_remove(bus_watch_id);
     g_main_loop_quit (loop);
     g_main_loop_unref(loop);
-    printf("main loop terminated");
 }
 
 void Player::play_sample(char* sample_name){
@@ -122,4 +129,3 @@ void Player::play(char* track_name){
     }
 
 }
-    

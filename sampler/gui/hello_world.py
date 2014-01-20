@@ -2,7 +2,6 @@
 from gi.repository import Gtk
 import player
 class MyWindow(Gtk.Window):
-
     def __init__(self):
         Gtk.Window.__init__(self, title="Hello World")
 
