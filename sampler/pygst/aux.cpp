@@ -1,5 +1,4 @@
 #include "player.h"
-
 static gboolean bus_call(GstBus* bus, GstMessage* msg, gpointer data){
     GMainLoop *loop = (GMainLoop *) data;
     switch (GST_MESSAGE_TYPE (msg)) {
@@ -36,12 +35,15 @@ Player::Player(){
     gst_init(NULL, NULL);
     loop = g_main_loop_new(NULL, FALSE);
 
+    count = 0;
+
     pipeline = gst_pipeline_new("audio-player");
     source   = gst_element_factory_make("filesrc", "file-source");
     demuxer  = gst_element_factory_make ("oggdemux",      "ogg-demuxer");
     decoder  = gst_element_factory_make ("vorbisdec",     "vorbis-decoder");
     conv     = gst_element_factory_make ("audioconvert",  "converter");
     sink     = gst_element_factory_make ("autoaudiosink", "audio-output");
+    adder    = gst_element_factory_make ("adder", "mixer");
 
     if (!pipeline || !source || !demuxer || !decoder || !conv || !sink) {
        g_printerr ("One element could not be created. Exiting.\n");
@@ -51,10 +53,10 @@ Player::Player(){
     bus_watch_id = gst_bus_add_watch (bus, bus_call, loop);
     gst_object_unref (bus);
 
-    gst_bin_add_many(GST_BIN(pipeline), source, demuxer, decoder, conv, sink, NULL);
-    gst_element_link(source, demuxer);
-    gst_element_link_many (decoder, conv, sink, NULL);
+    gst_bin_add_many(GST_BIN(pipeline), adder, sink, NULL);
+    gst_element_link(adder, sink);
     g_signal_connect (demuxer, "pad-added", G_CALLBACK (on_pad_added), decoder); 
+
 }
 
 void Player::_d_Player(){
@@ -65,6 +67,28 @@ void Player::_d_Player(){
     g_main_loop_quit (loop);
     g_main_loop_unref(loop);
 }
+
+void Player::play_sample(char* sample_name){
+    std::string _count = std::to_string(count);
+
+    GstElement* _source   = gst_element_factory_make("filesrc", (std::string("file-source") + _count).c_str());
+    GstElement* _demuxer  = gst_element_factory_make ("oggdemux",      (std::string("ogg-demuxer")+_count).c_str());
+    GstElement* _decoder  = gst_element_factory_make ("vorbisdec",     (std::string("vorbis-decoder")+_count).c_str());
+    GstElement* _conv     = gst_element_factory_make ("audioconvert",  (std::string("converter")+_count).c_str());
+    gst_bin_add_many(GST_BIN(pipeline), _source, _demuxer, _decoder, _conv, NULL);
+    g_signal_connect (_demuxer, "pad-added", G_CALLBACK (on_pad_added), _decoder); 
+
+    g_object_set(G_OBJECT(_source), "location", sample_name, NULL);
+    gst_element_link(_source, _demuxer);
+    gst_element_link(_decoder, _conv);
+    gst_element_link(_conv, adder);
+    gst_element_set_state(pipeline, GST_STATE_PLAYING);
+    printf("%s\n", sample_name);
+
+    count++;
+    g_main_loop_run(loop);
+}
+    
 
 void Player::print_gst_version() {
     const gchar *nano_str;
@@ -94,6 +118,5 @@ void Player::play(char* track_name){
         gst_element_set_state(pipeline, GST_STATE_PLAYING);
     }
 
-    g_main_loop_run(loop);
 }
     
