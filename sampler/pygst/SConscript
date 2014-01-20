@@ -22,7 +22,5 @@ def cythonPseudoBuilder(env,source):
     env.SharedLibrary(source,[o,cppCode],LIBPREFIX='')
 
 env.AddMethod(cythonPseudoBuilder,'Cython')
- 
 c=env.Cython('player')
-
 
