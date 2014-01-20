@@ -10,8 +10,7 @@ env = Environment(BUILDERS={'Py2C':cythonBuilder},
 # note implicit concatenation -- make sure to leave spaces at the ends!
 env.MergeFlags([
     '!pkg-config --cflags --libs '
-        'gstreamer-1.0 '
-        'gstreamer-plugins-base-1.0 ',
+        'gstreamer-1.0 ',
     '!python-config --cflags --libs',
     '-std=c++1y',
     '-Wfatal-errors',
