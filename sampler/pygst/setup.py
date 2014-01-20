@@ -24,6 +24,7 @@ setup(ext_modules=[Extension("cygst", ["player.pyx", "player2.cpp"], language="c
 
 #python
 # >>>import cygst
-# >>>x = cygst.PyGst_Test()
-# >>>x.gst_init()
+# >>>x = cygst.PyPlayer()
+# >>>x.print_version()
 # This Program is linked against GStreamer 1.2.0
+# >>>x.play("test.ogg")
