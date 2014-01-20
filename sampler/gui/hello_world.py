@@ -17,6 +17,8 @@ class MyWindow(Gtk.Window):
         self.box.pack_start(self.button2, True, True, 0)
 
         self.player = player.PyPlayer()
+    def run_main(self):
+        self.player.run()
     def on_button1_clicked(self, widget):
         self.player.play_sample("test.ogg")
     def on_button2_clicked(self, widget):
@@ -29,3 +31,4 @@ win = MyWindow()
 win.connect("delete-event", win.close_app)
 win.show_all()
 Gtk.main()
+#win.run_main()

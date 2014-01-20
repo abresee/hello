@@ -9,12 +9,33 @@ static gboolean bus_call(GstBus* bus, GstMessage* msg, gpointer data){
              my_player->pipeline = gst_pipeline_new("audio-player");
              my_player->sink     = gst_element_factory_make ("autoaudiosink", "audio-output");
              my_player->adder    = gst_element_factory_make ("adder", "mixer");
-             gst_bin_add_many(GST_BIN(my_player->pipeline), my_player->adder, my_player->sink, NULL);
-             gst_element_link(my_player->adder, my_player->sink);
+             my_player->vol    = gst_element_factory_make ("volume", "volume-mixer");
+
+             g_object_set(G_OBJECT(my_player->vol), "volume", my_player->volume, NULL);
+
+             gst_bin_add_many(GST_BIN(my_player->pipeline), my_player->adder, my_player->sink, my_player->vol, NULL);
+             gst_element_link(my_player->adder, my_player->vol);
+             gst_element_link(my_player->vol, my_player->sink);
 
              my_player->bus = gst_pipeline_get_bus (GST_PIPELINE (my_player->pipeline));
              my_player->bus_watch_id = gst_bus_add_watch (my_player->bus, bus_call, my_player);
              gst_object_unref (my_player->bus);
+             /*GstState state;
+             gst_element_get_state(my_player->pipeline, &state, NULL, GST_CLOCK_TIME_NONE);
+             if (state == GST_STATE_PLAYING){
+                 gst_element_set_state(my_player->pipeline, GST_STATE_READY);
+                 printf("pipeline is in playing state\n");
+             }
+             if (state == GST_STATE_PAUSED){
+                 printf("pipeline is in paused state\n");
+             }
+             if (state == GST_STATE_NULL){
+                 printf("pipeline is in null state\n");
+             }
+             if (state == GST_STATE_READY){
+                 printf("pipeline is in ready state\n");
+             }*/
+
              break;}
         case GST_MESSAGE_ERROR: {
              gchar  *debug;
@@ -38,8 +59,12 @@ static void on_pad_added (GstElement *element, GstPad *pad, gpointer data){
   GstElement *decoder = (GstElement *) data;
   g_print ("Dynamic pad created, linking demuxer/decoder\n");
   sinkpad = gst_element_get_static_pad (decoder, "sink");
+  g_print("1\n");
   gst_pad_link (pad, sinkpad);
+  if (sinkpad == NULL) printf("error retrieving sinkpad from decoder\n");
+  g_print("2\n");
   gst_object_unref (sinkpad);
+  g_print("3\n");
 }
 
 Player::Player(){
@@ -54,17 +79,22 @@ Player::Player(){
     source   = gst_element_factory_make("filesrc", "file-source");
     sink     = gst_element_factory_make("autoaudiosink", "sink");
     adder    = gst_element_factory_make("adder", "mixer");
+    vol      = gst_element_factory_make("volume", "volume-mixer");
+    volume = 0.1;
+    g_object_set(G_OBJECT(vol), "volume", volume, NULL);
 
     if (!sink) printf("sink could not be created\n");
     if (!adder) printf("adder could not be created\n");
     if (!pipeline) printf("pipeline could not be created\n");
+    if (!vol) printf("volume-mixer could not be created\n");
 
     bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
     bus_watch_id = gst_bus_add_watch (bus, bus_call, my_player);
     gst_object_unref (bus);
 
-    gst_bin_add_many(GST_BIN(pipeline), adder, sink, NULL);
-    gst_element_link(adder, sink);
+    gst_bin_add_many(GST_BIN(pipeline), adder, vol, sink, NULL);
+    printf("link adder and volume: %d\n", gst_element_link(adder, vol));
+    printf("link volume and sink: %d\n" , gst_element_link(vol, sink));
 }
 
 void Player::_d_Player(){
@@ -77,6 +107,11 @@ void Player::_d_Player(){
     g_main_loop_quit (loop);
     g_main_loop_unref(loop);
 }
+
+void Player::start_main(){
+    g_main_loop_run(loop);
+}
+    
 
 void Player::play_sample(char* sample_name){
     std::string _count = std::to_string(count);
@@ -100,11 +135,15 @@ void Player::play_sample(char* sample_name){
 
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
 
+    printf("starting loop\n");
     count++;
-    g_main_loop_run(loop);
-    printf("main loop terminated\n");
+    //g_main_loop_run(loop);
 }
     
+void Player::set_volume(double _volume){
+    volume = _volume;
+    return;
+}
 
 void Player::print_gst_version() {
     const gchar *nano_str;
