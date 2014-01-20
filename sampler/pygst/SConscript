@@ -14,17 +14,15 @@ env.MergeFlags([
     '!python-config --cflags --libs',
     '-std=c++1y',
     '-Wfatal-errors',
-    '-g',
-    '-lgstapp-1.0'
-])
+    '-g'])
 
 def cythonPseudoBuilder(env,source):
-    cCode = env.Py2C(source)
-    env.SharedLibrary(source,cCode,LIBPREFIX='')
+    cppCode = env.Py2C(source)
+    o=env.SharedObject('aux.cpp')
+    env.SharedLibrary(source,[o,cppCode],LIBPREFIX='')
 
 env.AddMethod(cythonPseudoBuilder,'Cython')
  
 c=env.Cython('player')
-o=env.Object('aux.cpp')
 
 
