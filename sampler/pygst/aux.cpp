@@ -60,12 +60,9 @@ static void on_pad_added (GstElement *element, GstPad *pad, gpointer data){
   GstElement *decoder = (GstElement *) data;
   g_print ("Dynamic pad created, linking demuxer/decoder\n");
   sinkpad = gst_element_get_static_pad (decoder, "sink");
-  g_print("1\n");
   gst_pad_link (pad, sinkpad);
   if (sinkpad == NULL) printf("error retrieving sinkpad from decoder\n");
-  g_print("2\n");
   gst_object_unref (sinkpad);
-  g_print("3\n");
 }
 
 Player::Player(){
@@ -113,7 +110,6 @@ void Player::start_main(){
     g_main_loop_run(loop);
 }
     
-
 void Player::play_sample(char* sample_name){
     std::string _count = std::to_string(count);
 
