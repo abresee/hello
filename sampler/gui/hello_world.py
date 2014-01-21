@@ -4,37 +4,44 @@ import player
 class MyWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="Hello World")
+        self.set_default_size(300, 150)
 
-        self.box = Gtk.Box(spacing=6)
-        self.add(self.box)
+        self.grid = Gtk.Grid()
+        self.add(self.grid)
+        self.grid.set_properties(expand=True)
 
         self.button1 = Gtk.Button(label="clip 1")
+        self.button1.set_properties(expand=True)
         self.button1.connect("clicked", self.on_button1_clicked)
-        self.box.pack_start(self.button1, True, True, 0)
+        self.grid.attach(self.button1, 0, 0, 1, 2)
 
         self.button2 = Gtk.Button(label="clip 2")
         self.button2.connect("clicked", self.on_button2_clicked)
-        self.box.pack_start(self.button2, True, True, 0)
+        self.button2.set_properties(expand=True)
+        self.grid.attach(self.button2, 4, 0, 1, 2)
 
         self.master_slider = Gtk.Scale()
+        self.master_slider.set_properties(expand=True)
         self.master_slider.set_range(0.0, 2.0)
-        self.master_slider.set_properties(orientation=1, inverted=True)
+        self.master_slider.set_properties(orientation=0, inverted=False)
         self.master_slider.connect("value-changed", self.on_slider_changed)
-        self.box.pack_start(self.master_slider, True, True, 0)
-
+        self.grid.attach_next_to(self.master_slider, self.button1, Gtk.PositionType.TOP, 7, 1)
+        self.player = player.PyPlayer()
+        
         self.track_1 = Gtk.Scale()
+        self.track_1.set_properties(expand=True)
         self.track_1.set_range(0.0, 2.0)
         self.track_1.set_properties(orientation=1, inverted=True)
         self.track_1.connect("value-changed", self.on_slider_changed)
-        self.box.pack_start(self.track_1, True, True, 0)
+        self.grid.attach_next_to(self.track_1, self.button1, Gtk.PositionType.RIGHT, 1, 2)
 
         self.track_2 = Gtk.Scale()
+        self.track_2.set_properties(expand=True)
         self.track_2.set_range(0.0, 2.0)
         self.track_2.set_properties(orientation=1, inverted=True)
         self.track_2.connect("value-changed", self.on_slider_changed)
-        self.box.pack_start(self.track_2, True, True, 0)
-
-        self.player = player.PyPlayer()
+        self.grid.attach_next_to(self.track_2, self.button2, Gtk.PositionType.RIGHT, 1, 2)
+        
     def run_main(self):
         self.player.run()
     def on_button1_clicked(self, widget):
@@ -57,7 +64,6 @@ class MyWindow(Gtk.Window):
             print "set track2 volume"
 
 win = MyWindow()
-win.set_default_size(500, 200);
 
 #use this to see available properties on a widget
 #print dir(win.master_slider.props) 

@@ -81,6 +81,9 @@ Player::Player(){
     volume = 0.1;
     g_object_set(G_OBJECT(vol), "volume", volume, NULL);
 
+    vol_track1 = NULL;
+    vol_track2 = NULL;
+
     if (!sink) printf("sink could not be created\n");
     if (!adder) printf("adder could not be created\n");
     if (!pipeline) printf("pipeline could not be created\n");
@@ -158,13 +161,13 @@ void Player::set_volume(double _volume){
 
 void Player::set_volume_track1(double _volume){
     volume_track1 = _volume;
-    g_object_set(G_OBJECT(vol_track1), "volume", _volume, NULL);
+    if (vol_track1 != NULL) g_object_set(G_OBJECT(vol_track1), "volume", _volume, NULL);
     return;
 }
 
 void Player::set_volume_track2(double _volume){
     volume_track2 = _volume;
-    g_object_set(G_OBJECT(vol_track2), "volume", _volume, NULL);
+    if (vol_track2 != NULL) g_object_set(G_OBJECT(vol_track2), "volume", _volume, NULL);
     return;
 }
 
