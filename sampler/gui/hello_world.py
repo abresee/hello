@@ -56,13 +56,12 @@ class MyWindow(Gtk.Window):
             self.player.set_volume_track2(value)
             print "set track2 volume"
 
-        
-        
-
 win = MyWindow()
 win.set_default_size(500, 200);
 
-print dir(win.master_slider.props) #use this to see available properties on a widget
+#use this to see available properties on a widget
+#print dir(win.master_slider.props) 
+
 win.connect("delete-event", win.close_app)
 win.show_all()
 Gtk.main()
