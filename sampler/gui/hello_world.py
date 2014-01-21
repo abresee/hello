@@ -16,9 +16,21 @@ class MyWindow(Gtk.Window):
         self.button2.connect("clicked", self.on_button2_clicked)
         self.box.pack_start(self.button2, True, True, 0)
 
-        self.slider = Gtk.Scale()
-        self.slider.connect("value-changed", self.on_slider_changed)
-        self.box.pack_start(self.slider, True, True, 0)
+        self.master_slider = Gtk.Scale()
+        self.master_slider.set_range(0.0, 2.0)
+        self.master_slider.set_properties(orientation=1, inverted=True)
+        self.master_slider.connect("value-changed", self.on_slider_changed)
+        self.box.pack_start(self.master_slider, True, True, 0)
+
+        self.track_1 = Gtk.Scale()
+        self.track_1.set_range(0.0, 2.0)
+        self.track_1.set_properties(orientation=1, inverted=True)
+        self.box.pack_start(self.track_1, True, True, 0)
+
+        self.track_2 = Gtk.Scale()
+        self.track_2.set_range(0.0, 2.0)
+        self.track_2.set_properties(orientation=1, inverted=True)
+        self.box.pack_start(self.track_2, True, True, 0)
 
         self.player = player.PyPlayer()
     def run_main(self):
@@ -34,11 +46,13 @@ class MyWindow(Gtk.Window):
         value = slider.get_value()
         self.player.set_volume(value)
 
+        
+        
+
 win = MyWindow()
+win.set_default_size(500, 200);
 
-#print dir(win.slider.props) use this to see available properties on a widget
-win.slider.set_range(0.0, 2.0)
-
+print dir(win.master_slider.props) #use this to see available properties on a widget
 win.connect("delete-event", win.close_app)
 win.show_all()
 Gtk.main()
