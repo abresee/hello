@@ -10,6 +10,8 @@ public:
     GstBus* bus;
     int count;
     double volume;
+    double volume_track1;
+    double volume_track2;
     guint bus_watch_id;
     GstElement* pipeline;
     GstElement* source;
@@ -19,6 +21,8 @@ public:
     GstElement* sink;
     GstElement* adder;
     GstElement* vol;
+    GstElement* vol_track1;
+    GstElement* vol_track2;
 
     Player();
     void _d_Player();
@@ -27,4 +31,6 @@ public:
     void play(char* track_name);
     void play_sample(char* sample_name);
     void set_volume(double _volume);
+    void set_volume_track1(double _volume);
+    void set_volume_track2(double _volume);
 };

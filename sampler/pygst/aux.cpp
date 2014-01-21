@@ -121,30 +121,54 @@ void Player::play_sample(char* sample_name){
     GstElement* _demuxer  = gst_element_factory_make ("oggdemux",(std::string("ogg-demuxer")+_count).c_str());
     GstElement* _decoder  = gst_element_factory_make ("vorbisdec",(std::string("vorbis-decoder")+_count).c_str());
     GstElement* _conv     = gst_element_factory_make ("audioconvert",(std::string("converter")+_count).c_str());
+    GstElement* _vol     = gst_element_factory_make ("volume",(std::string("volume-mixer")+_count).c_str());
+
+    std::string track_name("test.ogg");
+    std::string _sample_name(sample_name);
+    if (_sample_name == track_name.c_str()){
+        printf("set volume for this sample to track 1 volume\n");
+        vol_track1 = _vol;
+        g_object_set(G_OBJECT(_vol), "volume", volume_track1, NULL);
+    }else{
+        printf("set volume for this sample to track 2 volume\n");
+        vol_track2 = _vol;
+        g_object_set(G_OBJECT(_vol), "volume", volume_track2, NULL);
+    }
+    
 
     if (!_source || !_demuxer || !_decoder || !_conv){
         printf("One element couldn't be created.");
     }
 
-    gst_bin_add_many(GST_BIN(pipeline), _source, _demuxer, _decoder, _conv, NULL);
+    gst_bin_add_many(GST_BIN(pipeline), _source, _demuxer, _decoder, _conv, _vol, NULL);
     g_signal_connect (_demuxer, "pad-added", G_CALLBACK (on_pad_added), _decoder); 
 
     g_object_set(G_OBJECT(_source), "location", sample_name, NULL);
     printf("linking source and demux %d\n", gst_element_link(_source, _demuxer));
     printf("linking decoder and conv %d\n", gst_element_link(_decoder, _conv));
-    printf("linking conv and adder   %d\n", gst_element_link(_conv, adder));
+    printf("linking conv and volume   %d\n", gst_element_link(_conv, _vol));
+    printf("linking volume and adder   %d\n", gst_element_link(_vol, adder));
 
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
 
-    printf("starting loop\n");
     count++;
-    //g_main_loop_run(loop);
 }
     
 void Player::set_volume(double _volume){
     volume = _volume;
     g_object_set(G_OBJECT(vol), "volume", _volume, NULL);
-    printf("volume: %f %f\n", volume, _volume);
+    return;
+}
+
+void Player::set_volume_track1(double _volume){
+    volume_track1 = _volume;
+    g_object_set(G_OBJECT(vol_track1), "volume", _volume, NULL);
+    return;
+}
+
+void Player::set_volume_track2(double _volume){
+    volume_track2 = _volume;
+    g_object_set(G_OBJECT(vol_track2), "volume", _volume, NULL);
     return;
 }
 

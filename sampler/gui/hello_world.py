@@ -25,11 +25,13 @@ class MyWindow(Gtk.Window):
         self.track_1 = Gtk.Scale()
         self.track_1.set_range(0.0, 2.0)
         self.track_1.set_properties(orientation=1, inverted=True)
+        self.track_1.connect("value-changed", self.on_slider_changed)
         self.box.pack_start(self.track_1, True, True, 0)
 
         self.track_2 = Gtk.Scale()
         self.track_2.set_range(0.0, 2.0)
         self.track_2.set_properties(orientation=1, inverted=True)
+        self.track_2.connect("value-changed", self.on_slider_changed)
         self.box.pack_start(self.track_2, True, True, 0)
 
         self.player = player.PyPlayer()
@@ -44,7 +46,15 @@ class MyWindow(Gtk.Window):
         Gtk.main_quit()
     def on_slider_changed(self, slider):
         value = slider.get_value()
-        self.player.set_volume(value)
+        if (slider == self.master_slider):
+            self.player.set_volume(value)
+            print "set master volume"
+        if (slider == self.track_1):
+            self.player.set_volume_track1(value)
+            print "set track1 volume"
+        if (slider == self.track_2):
+            self.player.set_volume_track2(value)
+            print "set track2 volume"
 
         
         

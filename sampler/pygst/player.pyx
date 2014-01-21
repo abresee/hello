@@ -7,6 +7,8 @@ cdef extern from "player.h":
         void play(char* track_name)
         void play_sample(char* sample_name)
         void set_volume(double _volume)
+        void set_volume_track1(double _volume)
+        void set_volume_track2(double _volume)
 
 cdef class PyPlayer:
     cdef Player *thisptr
@@ -27,3 +29,7 @@ cdef class PyPlayer:
         self.thisptr._d_Player()
     def set_volume(self, _volume):
         self.thisptr.set_volume(_volume)
+    def set_volume_track1(self, _volume):
+        self.thisptr.set_volume_track1(_volume)
+    def set_volume_track2(self, _volume):
+        self.thisptr.set_volume_track2(_volume)
