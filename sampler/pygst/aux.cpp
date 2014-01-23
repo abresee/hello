@@ -178,8 +178,6 @@ void Player::play_sample(char* sample_name){
     printf("linking volume and adder   %d\n", gst_element_link(_vol, adder));
 
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
-
-    count++;
 }
     
 void Player::set_volume(double _volume){
@@ -215,7 +213,7 @@ void Player::print_gst_version() {
     return;
 }
 
-void Player::play(char* track_name){
+/*void Player::play(char* track_name){
     GstState state;
     gst_element_get_state(pipeline, &state, NULL, GST_CLOCK_TIME_NONE);
     if (state == GST_STATE_PLAYING){
@@ -227,7 +225,7 @@ void Player::play(char* track_name){
         g_object_set(G_OBJECT(source), "location", track_name, NULL);
         gst_element_set_state(pipeline, GST_STATE_PLAYING);
     }
-}
+}*/
 
 void Player::listen(){
     midi_in->midi_listen(this);
