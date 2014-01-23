@@ -6,7 +6,7 @@ cdef extern from "player.h":
         void _d_Player()
         void start_main()
         void print_gst_version()
-        void play(char* track_name)
+        #void play(char* track_name)
         void play_sample(char* sample_name)
         void set_volume(double _volume)
         void set_volume_track1(double _volume)
@@ -36,8 +36,8 @@ cdef class PyPlayer:
             self.thisptr._d_Player()'''
     def run(self):
         self.thisptr.start_main()
-    def play(self, track_name):
-        self.thisptr.play(track_name)
+    #def play(self, track_name):
+        #self.thisptr.play(track_name)
     def play_sample(self, sample_name):
         self.thisptr.play_sample(sample_name)
     def print_version(self):
