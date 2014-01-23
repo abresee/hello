@@ -46,4 +46,11 @@ via the ALSA protocol, it should automatically be detected by Note.
 
 Currently the application is set up to play the audio sample "test.ogg" on a note_on MIDI signal
 from MIDI channel no. 1.
+
+
+There are two currently known bugs with the MIDI interface:
+1. If you rapidly input a bunch of MIDI commands, the engine will freeze and you'll 
+   have to restart terminal to gain the functionality back.
+2. Playing two MIDI notes at the same time while on MIDI channel no. 1 will screw up
+   GStreamer, and playback will no longer be possible even from clicking the buttons manually.
 '''
