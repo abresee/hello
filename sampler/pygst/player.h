@@ -13,7 +13,7 @@ class Player{
 public:
     GMainLoop* loop;
     GstBus* bus;
-    //int count;
+    int count;
     double volume;
     double volume_track1;
     double volume_track2;
