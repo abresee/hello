@@ -4,13 +4,24 @@
 
 void MidiInput::mycallback( double deltatime, std::vector< unsigned char > *message, void *userData ){
   unsigned int nBytes = message->size();
-  for ( unsigned int i=0; i<nBytes; i++ )
-    std::cout << "Byte " << i << " = " << (int)message->at(i) << ", ";
+  int byte;
+  int value;
+  Player* my_player = (Player*)userData;
+
+  for ( unsigned int i=0; i<nBytes; i++ ){
+     byte = i;
+     value = (int)message->at(i);
+     std::cout << "Byte " << byte << " = " << value << ", ";
+     if (byte == 0 && value == 144){
+         my_player->play_sample("test.ogg");
+     }
+         
+  }
   if ( nBytes > 0 )
     std::cout << "stamp = " << deltatime << std::endl;
 }
 
-int MidiInput::midi_listen(){
+int MidiInput::midi_listen(void* player){
   RtMidiIn *midiin = new RtMidiIn();
   unsigned int nPorts = midiin->getPortCount();
   if ( nPorts == 0 ) {
@@ -18,7 +29,7 @@ int MidiInput::midi_listen(){
     goto cleanup;
   }
   midiin->openPort( 1 );
-  midiin->setCallback( &mycallback );
+  midiin->setCallback( &mycallback, player );
   midiin->ignoreTypes( false, false, false );
 
   std::cout << "\nReading MIDI input ... press <enter> to quit.\n";
@@ -219,6 +230,6 @@ void Player::play(char* track_name){
 }
 
 void Player::listen(){
-    midi_in->midi_listen();
+    midi_in->midi_listen(this);
     return;
 }

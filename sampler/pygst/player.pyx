@@ -16,7 +16,7 @@ cdef extern from "player.h":
 cdef extern from "midi.h":
     cdef cppclass MidiInput:
         void mycallback(double deltatime, vector[unsigned char]* message, void* userdata) with gil
-        int midi_listen() nogil
+        int midi_listen(void* player) nogil
 
 cdef void midi_init(Player* ob):
     with nogil:

@@ -31,3 +31,19 @@ setup(ext_modules=[Extension("cygst", ["player.pyx", "aux.cpp"], language="c++",
 # >>>x.print_version()
 # This Program is linked against GStreamer 1.2.0
 # >>>x.play("test.ogg")
+
+#MIDI DIRECTIONS
+'''
+Launch the application from note/sampler/gui with the following command:
+
+python hello_world.py
+
+From here, the GUI should immediately be displayed, and the MIDI engine will be initialized:
+    Reading MIDI input ... press <enter> to quit.
+
+This application is set up right now such that if you have your MIDI device connected and recognized 
+via the ALSA protocol, it should automatically be detected by Note.
+
+Currently the application is set up to play the audio sample "test.ogg" on a note_on MIDI signal
+from MIDI channel no. 1.
+'''
