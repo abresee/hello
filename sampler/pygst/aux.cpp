@@ -178,6 +178,7 @@ void Player::play_sample(char* sample_name){
     printf("linking volume and adder   %d\n", gst_element_link(_vol, adder));
 
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
+    count++;
 }
     
 void Player::set_volume(double _volume){
