@@ -99,7 +99,7 @@ Player::Player(){
     gpointer my_player;
     my_player = this;
 
-    //count = 0;
+    count = 0;
     pipeline = gst_pipeline_new("audio-player");
     source   = gst_element_factory_make("filesrc", "file-source");
     sink     = gst_element_factory_make("autoaudiosink", "sink");
