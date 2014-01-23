@@ -16,8 +16,11 @@ def fsh(arg):
 
 cflags = fsh(["pkg-config",lib,"--cflags"])
 libs = fsh(["pkg-config",lib,"--libs"])
+libs.append("asound")
+libs.append("rtmidi")
+libs.append("pthread")
 
-setup(ext_modules=[Extension("cygst", ["player.pyx", "aux.cpp"], language="c++",include_dirs=cflags, libraries=libs,)],
+setup(ext_modules=[Extension("cygst", ["player.pyx", "aux.cpp"], language="c++",include_dirs=cflags, libraries=libs,extra_compile_args=["-Wl,--no-as-needed")],
       cmdclass = {'build_ext': build_ext})
 
 #python setup.py build_ext -i

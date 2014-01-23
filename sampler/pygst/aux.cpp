@@ -1,4 +1,35 @@
 #include "player.h"
+#include "midi.h"
+
+
+void MidiInput::mycallback( double deltatime, std::vector< unsigned char > *message, void *userData ){
+  unsigned int nBytes = message->size();
+  for ( unsigned int i=0; i<nBytes; i++ )
+    std::cout << "Byte " << i << " = " << (int)message->at(i) << ", ";
+  if ( nBytes > 0 )
+    std::cout << "stamp = " << deltatime << std::endl;
+}
+
+int MidiInput::midi_listen(){
+  RtMidiIn *midiin = new RtMidiIn();
+  unsigned int nPorts = midiin->getPortCount();
+  if ( nPorts == 0 ) {
+    std::cout << "No ports available!\n";
+    goto cleanup;
+  }
+  midiin->openPort( 1 );
+  midiin->setCallback( &mycallback );
+  midiin->ignoreTypes( false, false, false );
+
+  std::cout << "\nReading MIDI input ... press <enter> to quit.\n";
+  char input;
+  std::cin.get(input);
+
+ cleanup:
+  delete midiin;
+
+  return 0;
+}
 
 static gboolean bus_call(GstBus* bus, GstMessage* msg, gpointer data){
     Player* my_player = (Player*) data;
@@ -21,21 +52,6 @@ static gboolean bus_call(GstBus* bus, GstMessage* msg, gpointer data){
              my_player->bus = gst_pipeline_get_bus (GST_PIPELINE (my_player->pipeline));
              my_player->bus_watch_id = gst_bus_add_watch (my_player->bus, bus_call, my_player);
              gst_object_unref (my_player->bus);
-             /*GstState state;
-             gst_element_get_state(my_player->pipeline, &state, NULL, GST_CLOCK_TIME_NONE);
-             if (state == GST_STATE_PLAYING){
-                 gst_element_set_state(my_player->pipeline, GST_STATE_READY);
-                 printf("pipeline is in playing state\n");
-             }
-             if (state == GST_STATE_PAUSED){
-                 printf("pipeline is in paused state\n");
-             }
-             if (state == GST_STATE_NULL){
-                 printf("pipeline is in null state\n");
-             }
-             if (state == GST_STATE_READY){
-                 printf("pipeline is in ready state\n");
-             }*/
 
              break;}
         case GST_MESSAGE_ERROR: {
@@ -96,6 +112,8 @@ Player::Player(){
     gst_bin_add_many(GST_BIN(pipeline), adder, vol, sink, NULL);
     printf("link adder and volume: %d\n", gst_element_link(adder, vol));
     printf("link volume and sink: %d\n" , gst_element_link(vol, sink));
+
+    midi_in = new MidiInput();
 }
 
 void Player::_d_Player(){
@@ -198,5 +216,9 @@ void Player::play(char* track_name){
         g_object_set(G_OBJECT(source), "location", track_name, NULL);
         gst_element_set_state(pipeline, GST_STATE_PLAYING);
     }
+}
 
+void Player::listen(){
+    midi_in->midi_listen();
+    return;
 }

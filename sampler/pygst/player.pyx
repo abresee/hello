@@ -1,3 +1,5 @@
+from libcpp.vector cimport vector
+
 cdef extern from "player.h":
     cdef cppclass Player:
         Player()
@@ -9,6 +11,21 @@ cdef extern from "player.h":
         void set_volume(double _volume)
         void set_volume_track1(double _volume)
         void set_volume_track2(double _volume)
+        void listen() nogil
+
+cdef extern from "midi.h":
+    cdef cppclass MidiInput:
+        void mycallback(double deltatime, vector[unsigned char]* message, void* userdata) with gil
+        int midi_listen() nogil
+
+cdef void midi_init(Player* ob):
+    with nogil:
+        ob.listen()
+
+cdef class MidiListen:
+    cdef MidiInput* thisptr
+    def __cinit__(self):
+        self.thisptr = new MidiInput()
 
 cdef class PyPlayer:
     cdef Player *thisptr
@@ -33,3 +50,5 @@ cdef class PyPlayer:
         self.thisptr.set_volume_track1(_volume)
     def set_volume_track2(self, _volume):
         self.thisptr.set_volume_track2(_volume)
+    def get_midi_in(self):
+        midi_init(self.thisptr)

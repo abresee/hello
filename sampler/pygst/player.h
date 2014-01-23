@@ -1,8 +1,13 @@
+#ifndef player_h
+#define player_h
+
 extern "C" {
     #include <stdio.h>
     #include <gst/gst.h>
 }
 #include <string>
+#include "midi.h"
+
 
 class Player{
 public:
@@ -24,6 +29,8 @@ public:
     GstElement* vol_track1;
     GstElement* vol_track2;
 
+    MidiInput* midi_in;
+
     Player();
     void _d_Player();
     void start_main();
@@ -33,4 +40,7 @@ public:
     void set_volume(double _volume);
     void set_volume_track1(double _volume);
     void set_volume_track2(double _volume);
+    void listen();
 };
+
+#endif //player_h

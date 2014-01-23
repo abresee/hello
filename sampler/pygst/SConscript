@@ -14,7 +14,11 @@ env.MergeFlags([
     '!python-config --cflags --libs',
     '-std=c++1y',
     '-Wfatal-errors',
-    '-g'])
+    '-g',
+    '-Wl,--no-as-needed',
+    '-lasound',
+    '-lpthread',
+    '-lrtmidi'])
 
 def cythonPseudoBuilder(env,source):
     cppCode = env.Py2C(source)
