@@ -1,6 +1,8 @@
 #!/usr/bin/python
 from gi.repository import Gtk
 import player
+import threading
+
 class MyWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="Hello World")
@@ -64,11 +66,12 @@ class MyWindow(Gtk.Window):
             print "set track2 volume"
 
 win = MyWindow()
-
-#use this to see available properties on a widget
-#print dir(win.master_slider.props) 
+thread = threading.Thread(target=win.player.get_midi_in)
+thread.daemon = True
+thread.start()
 
 win.connect("delete-event", win.close_app)
 win.show_all()
 Gtk.main()
-#win.run_main()
+#use this to see available properties on a widget
+#print dir(win.master_slider.props) 
